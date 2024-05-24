@@ -1,0 +1,40 @@
+.tebex-js-lightbox {
+    /* Try to negate any unwanted styles from the host page */
+    all: unset;
+    zoom: 1;
+    forced-color-adjust: none;
+    /* Lightbox full-screen positioning and background */
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: var(--tebex-js-z-index, 9999999);
+    background: var(--tebex-js-lightbox-bg, rgba(0, 0, 0, .8));
+    /* Transition */
+    opacity: 0;
+    transition-property: opacity;
+    transition-duration: var(--tebex-js-duration, .4s);
+    transition-timing-function: var(--tebex-js-timing, ease);
+    will-change: opacity;
+    /* Child content positioning */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.tebex-js-lightbox--visible {
+    opacity: 1;
+}
+
+.tebex-js-lightbox__holder {
+    display: block;
+    border: 0;
+    overflow: hidden;
+    border-radius: 5px;
+}
+
+.tebex-js-lightbox__holder > div {
+    /* Without this, there's a little gap below the iframe, so it looks like the bottom border-radius is missing */
+    display: block !important;
+}

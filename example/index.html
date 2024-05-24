@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tebex Checkout Demo</title>
+    <meta content="width=device-width, initial-scale=1" name="viewport">
+
+    <link rel="icon" type="image/x-icon" href="https://tebex.io/assets/favicon.png">
+
+    <link href="https://fonts.googleapis.com/css?family=Lato:400,400i,700" rel="stylesheet">
+
+
+    <link rel="stylesheet" href="normalize.css"/>
+    <link rel="stylesheet" href="coloris.min.css"/>
+    <link rel="stylesheet" href="style.css"/>
+
+    <script src="coloris.min.js"></script>
+
+    <script defer src="/tebex.min.js"></script>
+
+</head>
+<body>
+    <div class="fixed-background"></div>
+    <div class="container">
+        <div class="content text-center" id="loading-spinner"><div class="lds-ring"><div></div><div></div><div></div><div></div></div></div>
+        <div class="hide" id="loading-container">
+            <img src="logo.png" class="logo" />
+            <div class="content">
+                <h1>Checkout</h1>
+                <h2>The all-in-one monetization platform designed to grow your game's revenue</h2>
+                <h3>No hidden fees, 3-day payouts & chargeback insurance.</h3>
+                <div class="config">
+                    <div class="form-input">
+                        <span>Theme</span>
+                        <select id="popup-theme">
+                            <option value="light">Light</option>
+                            <option value="dark">Dark</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="config">
+                    <div class="form-input">
+                        <span>Primary Color</span>
+                        <input type="text" data-coloris name="primary" class="color-selections">
+                    </div>
+                    <div class="form-input">
+                        <span>Secondary Color</span>
+                        <input type="text" data-coloris name="secondary" class="color-selections">
+                    </div>
+                </div>
+                <div class="open">
+                    <button onclick="launch()">Open Demo</button>
+                    <a class="button" href="https://docs.tebex.io/developers/tebex.js">View Documentation</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+
+        let ident = null;
+
+        fetch("/token").then(response => response.json()).then(response => {
+            ident = response.ident;
+            document.getElementById("loading-container").classList.remove("hide");
+            document.getElementById("loading-spinner").classList.add("hide");
+        });
+
+        function launch () {
+            const config = {
+                ident: ident,
+                theme: document.getElementById("popup-theme").value,
+                colors: []
+            };
+
+            Array.prototype.forEach.call(document.getElementsByClassName("color-selections"), function(el) {
+                if (!el.value) return;
+                config.colors.push({
+                    name: el.name,
+                    color: el.value
+                });
+            });
+
+            Tebex.checkout.init(config);
+            Tebex.checkout.launch();
+        }
+
+        addEventListener("load", function (e) {
+            Tebex.checkout.on("open", () => {
+                console.log("checkout opened");
+            });
+
+            Tebex.checkout.on("close", () => {
+                console.log("checkout closed");
+            });
+
+            Tebex.checkout.on("payment:complete", (event) => {
+                console.log("payment completed", event);
+            });
+
+            Tebex.checkout.on("payment:error", (event) => {
+                console.log("payment errored", event);
+            });
+        });
+    </script>
+</body>
+</html>

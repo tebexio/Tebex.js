@@ -1,0 +1,29 @@
+html, body {
+    width: 100px;
+    height: 100px;
+    overflow: hidden;
+}
+
+.tebex-js-spinner {
+    position: fixed;
+    max-height: 60vmin;
+    max-width: 60vmin;
+    height: 40px;
+    width: 40px;
+    top: 50%;
+    left: 50%;
+    box-sizing: border-box;
+    border: 3px solid rgba(0, 0, 0, .2);
+    border-top-color: #FFF;
+    border-radius: 100%;
+    animation: tebex-js-spinner-rotation .7s infinite linear;
+}
+
+@keyframes tebex-js-spinner-rotation {
+    from {
+        transform: translateX(-50%) translateY(-50%) rotate(0deg);
+    }
+    to {
+        transform: translateX(-50%) translateY(-50%) rotate(359deg);
+    }
+}
