@@ -1,0 +1,19 @@
+{
+    "include": ["src/**/*"],
+    "compilerOptions": {
+        "rootDir": "src",
+        "outDir": "dist",
+        "module": "esnext",
+        "target": "es2020",
+        "lib": ["dom", "dom.iterable", "esnext"],
+        "declaration": true,
+        "declarationDir": "dist/types",
+        "moduleResolution": "node",
+        "esModuleInterop": true,
+        "resolveJsonModule": true,
+        "noImplicitOverride": true,
+        "forceConsistentCasingInFileNames": true,
+        "jsx": "react",
+        "jsxFactory": "h",
+    }
+}
