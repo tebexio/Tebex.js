@@ -293,7 +293,7 @@
      * @internal
      */
     const err = (msg = "") => {
-        throw new Error("Tebex.js error: " + msg.trim());
+        throw new Error("Tebex.js error" + (msg ? ": " : "") + msg.trim());
     };
     /**
      * @internal
@@ -2588,9 +2588,9 @@
      */
     const isApplePayAvailable = () => isEnvBrowser() &&
         // @ts-ignore
-        window.ApplePaySession &&
+        typeof window.ApplePaySession !== "undefined" &&
         // @ts-ignore
-        ApplePaySession.canMakePayments();
+        window.ApplePaySession.canMakePayments();
     /**
      * @internal
      */

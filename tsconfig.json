@@ -8,7 +8,7 @@
         "lib": ["dom", "dom.iterable", "esnext"],
         "declaration": true,
         "declarationDir": "dist/types",
-        "moduleResolution": "node",
+        "moduleResolution": "bundler",
         "esModuleInterop": true,
         "resolveJsonModule": true,
         "noImplicitOverride": true,

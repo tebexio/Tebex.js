@@ -50,9 +50,8 @@ export default {
         }),
         replace({
             preventAssignment: true,
-            __VERSION__: JSON.stringify(pkg.version),
-            __BUILD__: JSON.stringify(build)
-        }),,
+            __VERSION__: JSON.stringify(pkg.version)
+        }),
         isServer && dev({
             silent: true,
             host: 'localhost',
