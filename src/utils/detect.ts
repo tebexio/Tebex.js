@@ -16,9 +16,9 @@ export const isEnvNode = () =>
 export const isApplePayAvailable = () => 
     isEnvBrowser() &&
     // @ts-ignore
-    window.ApplePaySession && 
+    typeof window.ApplePaySession !== "undefined" && 
     // @ts-ignore
-    ApplePaySession.canMakePayments();
+    window.ApplePaySession.canMakePayments();
 
 /**
  * @internal
