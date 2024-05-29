@@ -98,13 +98,13 @@ describe("Checkout", () => {
 
     });
 
-    describe("Checkout launch()", () => {
+    describe.todo("Checkout launch()", () => {
 
         // TODO: figure out a way to test this; zoid doesn't want to play ball with jsdom
 
     });
 
-    describe("Checkout render()", () => {
+    describe.todo("Checkout render()", () => {
 
         // TODO: figure out a way to test this; zoid doesn't want to play ball with jsdom
 

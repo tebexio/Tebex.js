@@ -10,9 +10,9 @@ describe("Typechecks", () => {
 
     test("Exports Tebex object as the default", () => {
         expectTypeOf(tebex).toBeObject();
-        expectTypeOf(tebex).toHaveProperty('version');
-        expectTypeOf(tebex).toHaveProperty('events');
-        expectTypeOf(tebex).toHaveProperty('checkout');
+        expectTypeOf(tebex).toHaveProperty("version");
+        expectTypeOf(tebex).toHaveProperty("events");
+        expectTypeOf(tebex).toHaveProperty("checkout");
     });
 
     test("Named export types match their Tebex object equivalents", () => {
