@@ -11,19 +11,22 @@ import { type Implements, assert, isApplePayAvailable, isMobile, isNullOrUndefin
  */
 export type CheckoutOptions = {
     /**
-     * The ident received from either the Headless or Checkout APIs.
+     * The checkout request ident received from either the Headless or Checkout APIs.
      */
     ident: string;
     /**
      * Tebex checkout panel color theme.
+     * @default "light"
      */
     theme?: CheckoutTheme;
     /**
      * Tebex checkout panel UI brand colors.
+     * @default []
      */
     colors?: CheckoutColorDefinition[];
     /**
      * API endpoint to use. Do not change this unless otherwise guided to do so.
+     * @default ""
      * @internal
      */
     endpoint?: string;

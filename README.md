@@ -52,11 +52,11 @@ Before your checkout can be launched, it must first be configured by calling the
 
 ```js
 Tebex.checkout.init({
-    ident: "your checkout request ID goes here"
+    ident: "your checkout request ident goes here"
 })
 ```
 
-The only required option is `ident`, which you must replace with the checkout request ID retrieved from using the Headless API or the Checkout API (depending on your integration method).
+The only required option is `ident`, which you must replace with the checkout request ident retrieved from using the Headless API or the Checkout API (depending on your integration method).
 
 For further information regarding configuration options - such as checkout branding colors - please refer to the [Tebex.js Documentation](https://docs.tebex.io/developers/tebex.js).
 
