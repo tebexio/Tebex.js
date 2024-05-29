@@ -3,7 +3,7 @@ import { describe, test, expect } from "vitest";
 import {
     nextFrame,
     transitionEnd
-} from "./css";
+} from "../../src/utils/css";
 
 describe("nextFrame", () => {
 

@@ -1,6 +1,6 @@
 import { describe, test, expect } from "vitest";
 
-import stubWindow from "./window";
+import stubWindow from "../../src/stubs/window";
 
 describe("window stub", () => {
 

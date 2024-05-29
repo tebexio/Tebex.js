@@ -5,7 +5,7 @@ import {
     isEnvNode,
     isApplePayAvailable,
     isMobile
-} from "./detect";
+} from "../../src/utils/detect";
 
 beforeEach(() => {
     vi.unstubAllGlobals();

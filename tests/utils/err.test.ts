@@ -4,7 +4,7 @@ import {
     err,
     warn,
     assert
-} from "./err";
+} from "../../src/utils/err";
 
 describe("err", () => {
 

@@ -4,7 +4,7 @@ import tebex, {
     checkout,
     events,
     version
-} from "./index";
+} from "../src/index";
 
 describe("Exports", () => {
 

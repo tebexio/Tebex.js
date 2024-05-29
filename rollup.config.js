@@ -42,7 +42,12 @@ export default {
         }),
         typescript({
             outputToFilesystem: true,
-            exclude: '**/*.test.ts',
+            exclude: 'tests/**/*',
+            compilerOptions: {
+                "rootDir": "src",
+                "declaration": true,
+                "declarationDir": "dist/types",
+            },
             sourceMap: isBrowser
         }),
         css({

@@ -4,7 +4,7 @@ import {
     createElement,
     setAttributes,
     h
-} from "./dom";
+} from "../../src/utils/dom";
 
 describe("createElement", () => {
 

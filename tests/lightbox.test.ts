@@ -1,6 +1,6 @@
 import { describe, test, expect, beforeEach } from "vitest";
 
-import { Lightbox } from "./lightbox";
+import { Lightbox } from "../src/lightbox";
 
 describe("Lightbox", () => {
 

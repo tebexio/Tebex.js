@@ -1,6 +1,6 @@
 import { describe, test, expect } from "vitest";
 
-import { spinnerRender } from "./spinner";
+import { spinnerRender } from "../src/spinner";
 
 describe("spinnerRender", () => {
 

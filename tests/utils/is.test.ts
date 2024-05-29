@@ -4,7 +4,7 @@ import {
     isNullOrUndefined,
     isArray,
     isObject
-} from "./is";
+} from "../../src/utils/is";
 
 describe("isNullOrUndefined", () => {
 

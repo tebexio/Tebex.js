@@ -1,6 +1,6 @@
 import { describe, test, expect, beforeEach, vi } from "vitest";
 
-import Checkout from "./checkout";
+import Checkout from "../src/checkout";
 
 describe("Checkout", () => {
 
