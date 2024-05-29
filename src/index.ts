@@ -1,6 +1,8 @@
 import Checkout from "./checkout";
 import * as legacy from "./legacy";
 
+import "./webComponents";
+
 /**
  * Current Tebex.js package version
  */

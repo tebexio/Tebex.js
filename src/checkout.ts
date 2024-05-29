@@ -4,7 +4,7 @@ import { createNanoEvents } from "nanoevents";
 import { Lightbox } from "./lightbox";
 import { spinnerRender } from "./spinner";
 
-import { type Implements, assert, isApplePayAvailable, isMobile, isNullOrUndefined } from "./utils";
+import { type Implements, assert, isApplePayAvailable, isMobile, isNullOrUndefined, isString } from "./utils";
 
 /**
  * Configuration options for `Tebex.checkout.init()`.
@@ -65,6 +65,9 @@ export type CheckoutEventMap = Implements<Record<CheckoutEvent, Function>, {
     "payment:error": (e: Event) => void;
 }>;
 
+const DEFAULT_WIDTH = "800px";
+const DEFAULT_HEIGHT = "760px";
+
 /**
  * Tebex checkout instance. 
  */
@@ -116,7 +119,7 @@ export default class Checkout {
      * On desktop, the panel will launch in a "lightbox" mode that covers the screen. On mobile, it will be opened as a new page.
      */
     async launch() {
-        if (isMobile()) {
+        if (isMobile(DEFAULT_WIDTH, DEFAULT_HEIGHT)) {
             this.#renderComponent(document.body, true);
             this.emitter.emit("open");
             return;
@@ -129,9 +132,12 @@ export default class Checkout {
      * Render the Tebex checkout panel immediately, into a specified HTML element.
      * If `popupOnMobile` is true, then on mobile devices the checkout will be immediately opened as a new page instead.
      */
-    render(element: HTMLElement, width: string, height: string, popupOnMobile = true) {
+    render(element: HTMLElement, width: string | number, height: string | number, popupOnMobile = true) {
+        width = isString(width) ? width : `${ width }px`;
+        height = isString(height) ? height : `${ height }px`;
+        
         this.#buildComponent(width, height);
-        this.#renderComponent(element, popupOnMobile && isMobile());
+        this.#renderComponent(element, popupOnMobile && isMobile(width, height));
         this.emitter.emit("open");
     }
 
@@ -144,7 +150,7 @@ export default class Checkout {
         this.emitter.emit("open");
     }
 
-    #buildComponent(width = "800px", height = "760px") {
+    #buildComponent(width: string | number = DEFAULT_HEIGHT, height: string | number = DEFAULT_HEIGHT) {
         this.component = zoid.create({
             tag: "tebex-js-checkout-component",
             url: () => this.endpoint + "/" + this.ident,

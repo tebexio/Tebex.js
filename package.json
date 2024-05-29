@@ -56,7 +56,6 @@
     "wrangler": "^3.56.0"
   },
   "dependencies": {
-    "bowser": "^2.11.0",
     "nanoevents": "^8.0.0",
     "zoid": "^9.0.86"
   }
