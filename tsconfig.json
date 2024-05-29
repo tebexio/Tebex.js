@@ -1,14 +1,12 @@
 {
-    "include": ["src/**/*"],
+    "include": ["src/**/*", "tests/**/*"],
     "compilerOptions": {
-        "rootDir": "src",
+        "rootDir": ".",
         "outDir": "dist",
         "module": "esnext",
         "target": "es2020",
         "lib": ["dom", "dom.iterable", "esnext"],
-        "declaration": true,
-        "declarationDir": "dist/types",
-        "moduleResolution": "node",
+        "moduleResolution": "bundler",
         "esModuleInterop": true,
         "resolveJsonModule": true,
         "noImplicitOverride": true,

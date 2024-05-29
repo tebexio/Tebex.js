@@ -11,19 +11,22 @@ import { type Implements, assert, isApplePayAvailable, isMobile, isNullOrUndefin
  */
 export type CheckoutOptions = {
     /**
-     * The ident received from either the Headless or Checkout APIs.
+     * The checkout request ident received from either the Headless or Checkout APIs.
      */
     ident: string;
     /**
      * Tebex checkout panel color theme.
+     * @default "light"
      */
     theme?: CheckoutTheme;
     /**
      * Tebex checkout panel UI brand colors.
+     * @default []
      */
     colors?: CheckoutColorDefinition[];
     /**
      * API endpoint to use. Do not change this unless otherwise guided to do so.
+     * @default ""
      * @internal
      */
     endpoint?: string;
@@ -91,9 +94,12 @@ export default class Checkout {
         this.endpoint = options.endpoint ?? this.endpoint;
         
         assert(!isNullOrUndefined(this.ident), "ident option is required");
+        assert(["light", "dark"].includes(this.theme), `invalid theme option "${ this.theme }"`);
 
-        for (let { color, name } of this.colors)
+        for (let { color, name } of this.colors) {
+            assert(["primary", "secondary"].includes(name), `invalid color name "${ name }"`);
             assert(!color.includes("var("), `invalid ${ name } color: colors cannot include CSS variables`);
+        }
     }
     
     /**

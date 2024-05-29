@@ -10,4 +10,4 @@ export declare const setAttributes: (el: Element, attrs: Record<string, number |
  * Custom JSX render function
  * @internal
  */
-export declare const h: (type: string, attrs: Record<string, any>, ...children: Element[]) => Element;
+export declare const h: (type: string, attrs: Record<string, any>, ...children: (Element | Element[])[]) => Element;

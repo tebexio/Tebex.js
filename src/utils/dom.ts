@@ -33,7 +33,7 @@ export const setAttributes = (el: Element, attrs: Record<string, number | string
  * Custom JSX render function
  * @internal
  */
-export const h = (type: string, attrs: Record<string, any>, ...children: Element[]): Element => {
+export const h = (type: string, attrs: Record<string, any>, ...children: (Element | Element[])[]): Element => {
     const el = createElement(type);
 
     if (attrs)
