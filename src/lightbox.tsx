@@ -11,9 +11,9 @@ import styles from "./styles/lightbox.css";
 
 export class Lightbox {
 
-    body: Element;
-    root: Element;
-    holder: Element;
+    body: HTMLElement;
+    root: HTMLElement;
+    holder: HTMLElement;
 
     constructor() {
         assert(isEnvBrowser());

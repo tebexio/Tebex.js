@@ -1,5 +1,12 @@
-import Checkout, { CheckoutTheme, EVENT_NAMES } from "../checkout";
-import { createElement, isEnvBrowser } from "../utils";
+import Checkout, {
+    type CheckoutTheme,
+    EVENT_NAMES
+} from "../checkout";
+
+import {
+    createElement,
+    isEnvBrowser
+} from "../utils";
 
 class TebexCheckout extends HTMLElement {
 
@@ -7,18 +14,26 @@ class TebexCheckout extends HTMLElement {
 
     #root: HTMLElement = null;
     #shadow: ShadowRoot = null;
+    #height = 700;
 
     get ident() {
         return this.checkout.ident;
     }
 
     set ident(ident: string) {
-        this.checkout.ident = ident;
         this.setAttribute("ident", ident);
     }
 
+    get height() {
+        return this.#height;
+    }
+
+    set height(height: number) {
+        this.setAttribute("height", height.toString());
+    }
+
     static get observedAttributes() {
-        return ["ident"];
+        return ["ident", "height"];
     }
 
     constructor() {
@@ -47,18 +62,27 @@ class TebexCheckout extends HTMLElement {
     attributeChangedCallback(key: string, oldVal: string, newVal: string) {
         if (oldVal === newVal)
             return;
-        if (key === "ident")
-            this.#render();
+
+        switch (key) {
+            case "ident":
+                this.checkout.ident = newVal;
+                this.#render();
+                break;
+            case "height":
+                this.#height = parseInt(newVal);
+                this.#resize();
+                break;
+        }
     }
 
     #render() {
         let colors = [];
 
-        if (this.hasAttribute("primary-color"))
-            colors.push({ name: "primary", color: this.getAttribute("primary-color") });
+        if (this.hasAttribute("color-primary"))
+            colors.push({ name: "primary", color: this.getAttribute("color-primary") });
 
-        if (this.hasAttribute("secondary-color"))
-            colors.push({ name: "secondary", color: this.getAttribute("secondary-color") });
+        if (this.hasAttribute("color-secondary"))
+            colors.push({ name: "secondary", color: this.getAttribute("color-secondary") });
     
         this.checkout.init({
             ident: this.getAttribute("ident"),
@@ -67,8 +91,14 @@ class TebexCheckout extends HTMLElement {
             endpoint: this.getAttribute("endpoint"),
         });
 
-        // TODO: customizable size
-        this.checkout.render(this.#root, 800, 900, false);
+        this.checkout.render(this.#root, "100%", this.#height, false);
+    }
+
+    #resize() {
+        const zoid = this.checkout.zoid;
+        if (!zoid)
+            return;
+        zoid.resize({ height: this.#height });
     }
 }
 

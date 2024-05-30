@@ -5,6 +5,7 @@ import { Lightbox } from "./lightbox";
 import { spinnerRender } from "./spinner";
 
 import {
+    CssDimension,
     type Implements,
     assert,
     isApplePayAvailable,
@@ -148,7 +149,7 @@ export default class Checkout {
      * Render the Tebex checkout panel immediately, into a specified HTML element.
      * If `popupOnMobile` is true, then on mobile devices the checkout will be immediately opened as a new page instead.
      */
-    render(element: HTMLElement, width: string | number, height: string | number, popupOnMobile = true) {
+    render(element: HTMLElement, width: CssDimension, height: CssDimension, popupOnMobile = true) {
         width = isString(width) ? width : `${ width }px`;
         height = isString(height) ? height : `${ height }px`;
         
@@ -166,7 +167,7 @@ export default class Checkout {
         this.emitter.emit("open");
     }
 
-    #buildComponent(width: string | number = DEFAULT_HEIGHT, height: string | number = DEFAULT_HEIGHT) {
+    #buildComponent(width: CssDimension = DEFAULT_HEIGHT, height: CssDimension = DEFAULT_HEIGHT) {
         this.component = zoid.create({
             tag: "tebex-js-checkout-component",
             url: () => this.endpoint + "/" + this.ident,
@@ -187,7 +188,7 @@ export default class Checkout {
         });
     }
 
-    #renderComponent(container: Element, popup: boolean) {
+    #renderComponent(container: HTMLElement, popup: boolean) {
         const url = new URL(window.location.href);
 
         if (!this.component)
