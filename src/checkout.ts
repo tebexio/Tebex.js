@@ -4,7 +4,24 @@ import { createNanoEvents } from "nanoevents";
 import { Lightbox } from "./lightbox";
 import { spinnerRender } from "./spinner";
 
-import { type Implements, assert, isApplePayAvailable, isMobile, isNullOrUndefined, isString } from "./utils";
+import {
+    type Implements,
+    assert,
+    isApplePayAvailable,
+    isMobile,
+    isNullOrUndefined,
+    isString
+} from "./utils";
+
+const DEFAULT_WIDTH = "800px";
+const DEFAULT_HEIGHT = "760px";
+
+export const EVENT_NAMES = [
+    "open",
+    "close",
+    "payment:complete",
+    "payment:error"
+] as const;
 
 /**
  * Configuration options for `Tebex.checkout.init()`.
@@ -51,12 +68,7 @@ export type CheckoutColorDefinition = {
 /**
  * Checkout event type. You can subscribe to checkout events with `Tebex.checkout.on()`.
  */
-export type CheckoutEvent = 
-    | "open"
-    | "close"
-    | "payment:complete"
-    | "payment:error"
-;
+export type CheckoutEvent = typeof EVENT_NAMES[number];
 
 /**
  * Maps a {@link CheckoutEvent} to its event callback type.
@@ -67,9 +79,6 @@ export type CheckoutEventMap = Implements<Record<CheckoutEvent, Function>, {
     "payment:complete": (e: Event) => void;
     "payment:error": (e: Event) => void;
 }>;
-
-const DEFAULT_WIDTH = "800px";
-const DEFAULT_HEIGHT = "760px";
 
 /**
  * Tebex checkout instance. 
@@ -92,8 +101,8 @@ export default class Checkout {
      */
     init(options: CheckoutOptions) {
         this.ident = options.ident;
-        this.theme = options.theme ?? "light";
-        this.colors = options.colors ?? [];
+        this.theme = options.theme ?? this.theme;
+        this.colors = options.colors ?? this.colors;
         this.endpoint = options.endpoint ?? this.endpoint;
         
         assert(!isNullOrUndefined(this.ident), "ident option is required");
@@ -117,6 +126,7 @@ export default class Checkout {
         if (event === "payment_error")
             event = "payment:error" as T;
 
+        assert(EVENT_NAMES.includes(event), `invalid event name "${ event }"`);
         return this.emitter.on(event, callback);
     }
 

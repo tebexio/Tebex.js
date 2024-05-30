@@ -44,9 +44,9 @@ export default {
             outputToFilesystem: true,
             exclude: 'tests/**/*',
             compilerOptions: {
-                "rootDir": "src",
-                "declaration": true,
-                "declarationDir": "dist/types",
+                rootDir: 'src',
+                declaration: true,
+                declarationDir: 'dist/types',
             },
             sourceMap: isBrowser
         }),
