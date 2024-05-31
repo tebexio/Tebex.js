@@ -59,7 +59,7 @@ describe("isApplePayAvailable", () => {
 describe("isMobile", () => {
 
     test("Returns true in test environment", () => {
-        expect(isMobile()).toEqual(true);
+        expect(isMobile("800px", "760px")).toEqual(true);
     });
 
 });

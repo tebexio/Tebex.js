@@ -2,7 +2,7 @@ import { describe, test, expect, beforeEach } from "vitest";
 
 import {
     createElement,
-    setAttributes,
+    setAttribute,
     h
 } from "../../src/utils/dom";
 
@@ -16,7 +16,7 @@ describe("createElement", () => {
 
 });
 
-describe("setAttributes", () => {
+describe("setAttribute", () => {
 
     let el: HTMLElement;
 
@@ -24,34 +24,34 @@ describe("setAttributes", () => {
         el = createElement("div");
     });
 
-    test("Adds attributes to a HTML element with string values", () => {
-        setAttributes(el, { test: "123" });
+    test("Adds attribute to a HTML element with string values", () => {
+        setAttribute(el, "test", "123");
         expect(el.outerHTML).toEqual(`<div test="123"></div>`);
     });
 
-    test("Adds attributes to a HTML element with number values", () => {
-        setAttributes(el, { test: 123 });
+    test("Adds attribute to a HTML element with number values", () => {
+        setAttribute(el, "test", 123);
         expect(el.outerHTML).toEqual(`<div test="123"></div>`);
-        setAttributes(el, { test: 0 });
+        setAttribute(el, "test", 0);
         expect(el.outerHTML).toEqual(`<div test="0"></div>`);
     });
 
-    test("Adds attributes to a HTML element with boolean values", () => {
-        setAttributes(el, { test: true });
+    test("Adds attribute to a HTML element with boolean values", () => {
+        setAttribute(el, "test", true);
         expect(el.outerHTML).toEqual(`<div test=""></div>`);
     });
 
-    test("Removes attributes from a HTML element if the new value is null", () => {
-        setAttributes(el, { test: true });
+    test("Removes attribute from a HTML element if the new value is null", () => {
+        setAttribute(el, "test", true);
         expect(el.outerHTML).toEqual(`<div test=""></div>`);
-        setAttributes(el, { test: null });
+        setAttribute(el, "test", null);
         expect(el.outerHTML).toEqual(`<div></div>`);
     });
 
-    test("Removes attributes from a HTML element if the new value is false", () => {
-        setAttributes(el, { test: true });
+    test("Removes attribute from a HTML element if the new value is false", () => {
+        setAttribute(el, "test", true);
         expect(el.outerHTML).toEqual(`<div test=""></div>`);
-        setAttributes(el, { test: false });
+        setAttribute(el, "test", false);
         expect(el.outerHTML).toEqual(`<div></div>`);
     });
 
