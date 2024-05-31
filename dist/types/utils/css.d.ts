@@ -1,4 +1,8 @@
 /**
+ * CSS dimension, measured in pixels or percentages
+ */
+export type CssDimension = number | `${number}px` | `${number}%`;
+/**
  * @internal
  */
 export declare const nextFrame: () => Promise<void>;

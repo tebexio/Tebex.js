@@ -13,4 +13,4 @@ export declare const isApplePayAvailable: () => any;
 /**
  * @internal
  */
-export declare const isMobile: () => boolean;
+export declare const isMobile: (width: string, height: string) => boolean;

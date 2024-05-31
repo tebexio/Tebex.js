@@ -1,4 +1,5 @@
 import Checkout from "./checkout";
+import "./webComponents";
 /**
  * Current Tebex.js package version
  */
