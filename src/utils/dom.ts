@@ -1,4 +1,3 @@
-import { assert } from "./err";
 import { isObject } from "./is";
 
 const camelToDash = (str: string) => 
@@ -13,31 +12,34 @@ export const createElement = (type: string) =>
 /**
  * @internal
  */
-export const setAttributes = (el: Element, attrs: Record<string, number | string | boolean | null>) => {
-    assert(isObject(attrs));
+export const getAttribute = (el: Element, name: string) =>
+    el.getAttribute(name);
 
-    for (let key in attrs) {
-        const attr = camelToDash(key);
-        const value = attrs[key];
+/**
+ * @internal
+ */
+export const setAttribute = (el: Element, name: string, value: number | string | boolean | null) => {
+    const attr = camelToDash(name);
 
-        if (value === true)
-            el.setAttribute(attr, '');
-        else if (value === false || value === null || value === undefined)
-            el.removeAttribute(attr);
-        else
-            el.setAttribute(attr, value + '');
-    }
+    if (value === true)
+        el.setAttribute(attr, "");
+    else if (value === false || value === null || value === undefined)
+        el.removeAttribute(attr);
+    else
+        el.setAttribute(attr, value + "");
 };
 
 /**
  * Custom JSX render function
  * @internal
  */
-export const h = (type: string, attrs: Record<string, any>, ...children: (Element | Element[])[]): Element => {
+export const h = (type: string, attrs: Record<string, number | string | boolean | null>, ...children: (Element | Element[])[]): Element => {
     const el = createElement(type);
 
-    if (attrs)
-        setAttributes(el, attrs);
+    if (isObject(attrs)) {
+        for (let name in attrs)
+            setAttribute(el, name, attrs[name]);
+    }
 
     for (let child of children.flat())
         el.append(child);

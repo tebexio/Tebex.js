@@ -5,7 +5,7 @@ import { Lightbox } from "./lightbox";
 import { spinnerRender } from "./spinner";
 
 import {
-    CssDimension,
+    type CssDimension,
     type Implements,
     assert,
     isApplePayAvailable,
@@ -91,6 +91,7 @@ export default class Checkout {
     colors: CheckoutColorDefinition[] =  [];
     endpoint = "https://pay.tebex.io";
 
+    isOpen = false;
     emitter = createNanoEvents<CheckoutEventMap>();
     lightbox: Lightbox = null;
 
@@ -138,11 +139,26 @@ export default class Checkout {
     async launch() {
         if (isMobile(DEFAULT_WIDTH, DEFAULT_HEIGHT)) {
             this.#renderComponent(document.body, true);
+            this.isOpen = true;
             this.emitter.emit("open");
             return;
         }
 
         await this.#showLightbox();
+    }
+
+    /**
+     * Close the Tebex checkout panel.
+     */
+    async close() {
+        if (this.lightbox)
+            await this.lightbox.hide();
+        
+        if (this.zoid) {
+            await this.zoid.close();
+            this.isOpen = false;
+            this.emitter.emit("close");
+        }
     }
 
     /**
@@ -155,6 +171,7 @@ export default class Checkout {
         
         this.#buildComponent(width, height);
         this.#renderComponent(element, popupOnMobile && isMobile(width, height));
+        this.isOpen = true;
         this.emitter.emit("open");
     }
 
@@ -164,6 +181,7 @@ export default class Checkout {
 
         await this.lightbox.show();
         this.#renderComponent(this.lightbox.holder, false);
+        this.isOpen = true;
         this.emitter.emit("open");
     }
 
@@ -204,6 +222,8 @@ export default class Checkout {
                 await this.zoid.close();
                 if (this.lightbox) 
                     await this.lightbox.hide();
+                
+                this.isOpen = false;
                 this.emitter.emit("close");
             },
             onPaymentComplete: (e) => {

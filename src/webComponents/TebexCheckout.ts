@@ -4,8 +4,10 @@ import Checkout, {
 } from "../checkout";
 
 import {
+    isEnvBrowser,
     createElement,
-    isEnvBrowser
+    getAttribute,
+    setAttribute
 } from "../utils";
 
 class TebexCheckout extends HTMLElement {
@@ -14,15 +16,25 @@ class TebexCheckout extends HTMLElement {
 
     #root: HTMLElement = null;
     #shadow: ShadowRoot = null;
+    #mode: "inline" | "popover" = "popover";
+    #open = false;
     #height = 700;
-    #didRender = false;
+    #didInit = false;
 
     get ident() {
         return this.checkout.ident;
     }
 
     set ident(ident: string) {
-        this.setAttribute("ident", ident);
+        setAttribute(this, "ident", ident);
+    }
+
+    get open() {
+        return this.#open;
+    }
+
+    set open(open: boolean) {
+        setAttribute(this, "open", open);
     }
 
     get height() {
@@ -30,11 +42,15 @@ class TebexCheckout extends HTMLElement {
     }
 
     set height(height: number) {
-        this.setAttribute("height", height.toString());
+        setAttribute(this, "height", height);
     }
 
     static get observedAttributes() {
-        return ["ident", "height"];
+        return [
+            "ident",
+            "open",
+            "height"
+        ];
     }
 
     constructor() {
@@ -52,8 +68,8 @@ class TebexCheckout extends HTMLElement {
     }
 
     connectedCallback() {
-        if (this.getAttribute("ident"))
-            this.#render();
+        if (getAttribute(this, "ident"))
+            this.#init();
     }
 
     disconnectedCallback() {
@@ -67,7 +83,11 @@ class TebexCheckout extends HTMLElement {
         switch (key) {
             case "ident":
                 this.checkout.ident = newVal;
-                this.#render();
+                this.#init();
+                break;
+            case "open":
+                this.#open = (oldVal === "false" || !oldVal) && (newVal === "" || !!newVal);
+                this.#launchOrClose();
                 break;
             case "height":
                 this.#height = parseInt(newVal);
@@ -76,33 +96,59 @@ class TebexCheckout extends HTMLElement {
         }
     }
 
-    #render() {
-        if (this.#didRender)
+    #init() {
+        if (this.#didInit)
             return;
         
-        this.#didRender = true;
+        this.#didInit = true;
 
         let colors = [];
 
         if (this.hasAttribute("color-primary"))
-            colors.push({ name: "primary", color: this.getAttribute("color-primary") });
+            colors.push({ name: "primary", color: getAttribute(this, "color-primary") });
 
         if (this.hasAttribute("color-secondary"))
-            colors.push({ name: "secondary", color: this.getAttribute("color-secondary") });
+            colors.push({ name: "secondary", color: getAttribute(this, "color-secondary") });
     
         this.checkout.init({
-            ident: this.getAttribute("ident"),
-            theme: this.getAttribute("theme") as CheckoutTheme,
+            ident: getAttribute(this, "ident"),
+            theme: getAttribute(this, "theme") as CheckoutTheme,
             colors: colors,
-            endpoint: this.getAttribute("endpoint"),
+            endpoint: getAttribute(this, "endpoint"),
         });
 
-        this.checkout.render(this.#root, "100%", this.#height, false);
+        this.#mode = this.hasAttribute("inline") ? "inline" : "popover";
+
+        if (this.#mode === "inline")
+            this.checkout.render(this.#root, "100%", this.#height, false);
+
+        else if (this.#mode === "popover")
+            this.#launchOrClose();
+    }
+
+    #launchOrClose() {
+        // Opening and closing the checkout is only for "popover" mode
+        if (this.#mode !== "popover")
+            return;
+
+        // Checkout didn't init with an ident yet! Do nothing; this function will be called again after init
+        if (!this.#didInit)
+            return;
+
+        if (this.#open && !this.checkout.isOpen)
+            this.checkout.launch();
+
+        if (!this.#open && this.checkout.isOpen)
+            this.checkout.close();
     }
 
     #resize() {
+        // Resizing only makes sense in "inline" mode
+        if (this.#mode !== "inline")
+            return;
+
+        // Check that a Zoid instance is actually available
         const zoid = this.checkout.zoid;
-        
         if (!zoid)
             return;
 
