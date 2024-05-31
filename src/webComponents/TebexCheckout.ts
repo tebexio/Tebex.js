@@ -15,6 +15,7 @@ class TebexCheckout extends HTMLElement {
     #root: HTMLElement = null;
     #shadow: ShadowRoot = null;
     #height = 700;
+    #didRender = false;
 
     get ident() {
         return this.checkout.ident;
@@ -76,6 +77,11 @@ class TebexCheckout extends HTMLElement {
     }
 
     #render() {
+        if (this.#didRender)
+            return;
+        
+        this.#didRender = true;
+
         let colors = [];
 
         if (this.hasAttribute("color-primary"))
@@ -96,8 +102,10 @@ class TebexCheckout extends HTMLElement {
 
     #resize() {
         const zoid = this.checkout.zoid;
+        
         if (!zoid)
             return;
+
         zoid.resize({ height: this.#height });
     }
 }
