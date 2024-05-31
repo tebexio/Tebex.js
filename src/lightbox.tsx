@@ -7,7 +7,7 @@ import {
     transitionEnd,
 } from "./utils";
 
-import styles from "./styles/lightbox.css";
+import styles from "./styles/lightbox.css?inline";
 
 export class Lightbox {
 
