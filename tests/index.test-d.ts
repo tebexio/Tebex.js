@@ -56,6 +56,7 @@ describe("Typechecks", () => {
                     name: "primary" | "secondary",
                     color: string
                 }[];
+                popupOnMobile?: boolean;
                 endpoint?: string;
             }>();
         });
@@ -68,11 +69,17 @@ describe("Typechecks", () => {
 
         test("Tebex.checkout.render", () => {
             expectTypeOf(tebex.checkout.render).toBeFunction();
-            expectTypeOf(tebex.checkout.render).returns.toMatchTypeOf<void>()
+            expectTypeOf(tebex.checkout.render).returns.toMatchTypeOf<Promise<void>>();
             expectTypeOf(tebex.checkout.render).parameter(0).toMatchTypeOf<HTMLElement>();
             expectTypeOf(tebex.checkout.render).parameter(1).toMatchTypeOf<string | number>();
             expectTypeOf(tebex.checkout.render).parameter(2).toMatchTypeOf<string | number>();
             expectTypeOf(tebex.checkout.render).parameter(3).toMatchTypeOf<boolean>();
+        });
+
+        test("Tebex.checkout.close", () => {
+            expectTypeOf(tebex.checkout.close).toBeFunction();
+            expectTypeOf(tebex.checkout.close).returns.toMatchTypeOf<Promise<void>>();
+            expectTypeOf(tebex.checkout.close).parameter(0).toBeVoid;
         });
 
         describe("Tebex.checkout.on", () => {

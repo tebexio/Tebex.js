@@ -10,16 +10,16 @@ import {
     setAttribute
 } from "../utils";
 
-class TebexCheckout extends HTMLElement {
+export class TebexCheckout extends HTMLElement {
 
     checkout = new Checkout();
 
-    #root: HTMLElement = null;
-    #shadow: ShadowRoot = null;
-    #mode: "inline" | "popover" = "popover";
-    #open = false;
-    #height = 700;
-    #didInit = false;
+    _root: HTMLElement = null;
+    _shadow: ShadowRoot = null;
+    _mode: "inline" | "popover" = "popover";
+    _open = false;
+    _height = 700;
+    _didInit = false;
 
     get ident() {
         return this.checkout.ident;
@@ -30,7 +30,7 @@ class TebexCheckout extends HTMLElement {
     }
 
     get open() {
-        return this.#open;
+        return this._open;
     }
 
     set open(open: boolean) {
@@ -38,7 +38,7 @@ class TebexCheckout extends HTMLElement {
     }
 
     get height() {
-        return this.#height;
+        return this._height;
     }
 
     set height(height: number) {
@@ -55,9 +55,9 @@ class TebexCheckout extends HTMLElement {
 
     constructor() {
         super();
-        this.#shadow = this.attachShadow({ mode: "open" });
-        this.#root = createElement("div");
-        this.#shadow.append(this.#root);
+        this._shadow = this.attachShadow({ mode: "open" });
+        this._root = createElement("div");
+        this._shadow.append(this._root);
 
         // Emit checkout events as DOM events on the element
         for (let event of EVENT_NAMES) {
@@ -86,21 +86,21 @@ class TebexCheckout extends HTMLElement {
                 this.#init();
                 break;
             case "open":
-                this.#open = (oldVal === "false" || !oldVal) && (newVal === "" || !!newVal);
+                this._open = (oldVal === "false" || !oldVal) && (newVal === "" || !!newVal);
                 this.#launchOrClose();
                 break;
             case "height":
-                this.#height = parseInt(newVal);
+                this._height = parseInt(newVal);
                 this.#resize();
                 break;
         }
     }
 
     #init() {
-        if (this.#didInit)
+        if (this._didInit)
             return;
         
-        this.#didInit = true;
+        this._didInit = true;
 
         let colors = [];
 
@@ -117,34 +117,34 @@ class TebexCheckout extends HTMLElement {
             endpoint: getAttribute(this, "endpoint"),
         });
 
-        this.#mode = this.hasAttribute("inline") ? "inline" : "popover";
+        this._mode = this.hasAttribute("inline") ? "inline" : "popover";
 
-        if (this.#mode === "inline")
-            this.checkout.render(this.#root, "100%", this.#height, false);
+        if (this._mode === "inline")
+            this.checkout.render(this._root, "100%", this._height, false);
 
-        else if (this.#mode === "popover")
+        else if (this._mode === "popover")
             this.#launchOrClose();
     }
 
     #launchOrClose() {
         // Opening and closing the checkout is only for "popover" mode
-        if (this.#mode !== "popover")
+        if (this._mode !== "popover")
             return;
 
         // Checkout didn't init with an ident yet! Do nothing; this function will be called again after init
-        if (!this.#didInit)
+        if (!this._didInit)
             return;
 
-        if (this.#open && !this.checkout.isOpen)
+        if (this._open && !this.checkout.isOpen)
             this.checkout.launch();
 
-        if (!this.#open && this.checkout.isOpen)
+        if (!this._open && this.checkout.isOpen)
             this.checkout.close();
     }
 
     #resize() {
         // Resizing only makes sense in "inline" mode
-        if (this.#mode !== "inline")
+        if (this._mode !== "inline")
             return;
 
         // Check that a Zoid instance is actually available
@@ -152,7 +152,7 @@ class TebexCheckout extends HTMLElement {
         if (!zoid)
             return;
 
-        zoid.resize({ height: this.#height });
+        zoid.resize({ height: this._height });
     }
 }
 
