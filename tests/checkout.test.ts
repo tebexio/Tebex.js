@@ -117,7 +117,7 @@ describe("Checkout", () => {
         test("On mobile, opens a popup in a new window by default", async () => {
             const spy = vi.spyOn(window, "open");
 
-            checkout.init({ ident: "test123" });
+            checkout.init({ ident: __TEST_BASKET_IDENT__ });
             await checkout.launch();
 
             expect(document.body.querySelector(".tebex-js-lightbox")).toBeNull();
@@ -126,14 +126,14 @@ describe("Checkout", () => {
 
         test("Opens lightbox on desktop, or if popupOnMobile is true", async () => {
             // popupOnMobile used here to force lightbox; the Playwright driver forces viewport to be small enough to be considered "mobile"
-            checkout.init({ ident: "test123", popupOnMobile: true });
+            checkout.init({ ident: __TEST_BASKET_IDENT__, popupOnMobile: true });
             await checkout.launch();
             
             expect(document.body.querySelector(".tebex-js-lightbox")).not.toBeNull();
         });
 
         test("Lightbox contains Zoid iframe", async () => {
-            checkout.init({ ident: "test123", popupOnMobile: true });
+            checkout.init({ ident: __TEST_BASKET_IDENT__, popupOnMobile: true });
             await checkout.launch();
 
             const iframe = document.body.querySelector<HTMLIFrameElement>(".tebex-js-lightbox iframe");
@@ -144,7 +144,7 @@ describe("Checkout", () => {
         test("Fires \"open\" event", async () => {
             const spy = vi.fn();
 
-            checkout.init({ ident: "test123", popupOnMobile: true });
+            checkout.init({ ident: __TEST_BASKET_IDENT__, popupOnMobile: true });
             checkout.on("open", spy);
 
             await checkout.launch();
@@ -171,7 +171,7 @@ describe("Checkout", () => {
             const el = document.createElement("div");
             document.body.appendChild(el); 
 
-            checkout.init({ ident: "test123" });
+            checkout.init({ ident: __TEST_BASKET_IDENT__ });
             await checkout.render(el, 123, 456, false);
 
             const iframe = el.querySelector<HTMLIFrameElement>("iframe");
@@ -186,7 +186,7 @@ describe("Checkout", () => {
             const el = document.createElement("div");
             document.body.appendChild(el); 
 
-            checkout.init({ ident: "test123" });
+            checkout.init({ ident: __TEST_BASKET_IDENT__ });
             await checkout.render(el, 800, 700, true);
 
             expect(el.querySelector<HTMLIFrameElement>("iframe")).toBeNull();
@@ -198,7 +198,7 @@ describe("Checkout", () => {
             const el = document.createElement("div");
             document.body.appendChild(el); 
 
-            checkout.init({ ident: "test123" });
+            checkout.init({ ident: __TEST_BASKET_IDENT__ });
             checkout.on("open", spy);
             await checkout.render(el, 800, 700, false);
 
@@ -211,7 +211,7 @@ describe("Checkout", () => {
 
         test("Cleans up lightbox elements if used", async () => {
             // popupOnMobile used here to force lightbox; the Playwright driver forces viewport to be small enough to be considered "mobile"
-            checkout.init({ ident: "test123", popupOnMobile: true });
+            checkout.init({ ident: __TEST_BASKET_IDENT__, popupOnMobile: true });
 
             await checkout.launch();
             expect(document.body.querySelector(".tebex-js-lightbox")).not.toBeNull();
@@ -223,7 +223,7 @@ describe("Checkout", () => {
         test("Fires \"close\" event", async () => {
             const spy = vi.fn();
 
-            checkout.init({ ident: "test123", popupOnMobile: true });
+            checkout.init({ ident: __TEST_BASKET_IDENT__, popupOnMobile: true });
             checkout.on("close", spy);
             await checkout.launch();
             await checkout.close();
