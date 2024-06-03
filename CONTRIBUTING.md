@@ -38,4 +38,4 @@ npm install
 4. Open a [Pull Request](https://help.github.com/articles/using-pull-requests) with a clear title and description.
 
 ## Pull requests
-As an open source project are we welcome contributions to help improve Tebex. When contributing towards the code of Tebex, be it new features or just bug fixes.
+As an open source project we welcome contributions to help improve Tebex. When contributing towards the code of Tebex, be it new features or just bug fixes.
