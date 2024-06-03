@@ -1,5 +1,3 @@
-[issue]: https://github.com/tebexio/TebexCheckout-OpenAPI/issues/new
-
 [wiki]: https://docs.tebex.io/creators/
 
 # Contributing Guidelines
