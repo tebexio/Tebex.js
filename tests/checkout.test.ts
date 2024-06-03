@@ -1,4 +1,5 @@
-import { describe, test, expect, beforeEach, vi } from "vitest";
+import { describe, test, expect, beforeEach, afterEach, vi } from "vitest";
+import { destroy } from "zoid"; 
 
 import Checkout from "../src/checkout";
 
@@ -8,6 +9,12 @@ describe("Checkout", () => {
 
     beforeEach(() => {
         checkout = new Checkout();
+    });
+
+    afterEach(() => {
+        destroy();
+        document.body.innerHTML = "";
+        vi.clearAllMocks();
     });
 
     describe("Checkout init()", () => {
@@ -22,6 +29,13 @@ describe("Checkout", () => {
             expect(checkout.theme).toBe("light");
             checkout.init({ ident: "test", theme: "dark" });
             expect(checkout.theme).toBe("dark");
+        });
+
+        test("Colors defaults to empty array", () => {
+            checkout.init({ ident: "test" });
+            expect(checkout.colors).toEqual([]);
+            checkout.init({ ident: "test", colors: [ { name: "primary", color: "#ff0000" } ] });
+            expect(checkout.colors).toEqual([ { name: "primary", color: "#ff0000" } ]);
         });
 
         test("Endpoint defaults to https://pay.tebex.io", () => {
@@ -98,15 +112,124 @@ describe("Checkout", () => {
 
     });
 
-    describe.todo("Checkout launch()", () => {
+    describe("Checkout launch()", () => {
 
-        // TODO: figure out a way to test this; zoid doesn't want to play ball with jsdom
+        test("On mobile, opens a popup in a new window by default", async () => {
+            const spy = vi.spyOn(window, "open");
+
+            checkout.init({ ident: "test123" });
+            await checkout.launch();
+
+            expect(document.body.querySelector(".tebex-js-lightbox")).toBeNull();
+            expect(spy).toHaveBeenCalled();
+        });
+
+        test("Opens lightbox on desktop, or if popupOnMobile is true", async () => {
+            // popupOnMobile used here to force lightbox; the Playwright driver forces viewport to be small enough to be considered "mobile"
+            checkout.init({ ident: "test123", popupOnMobile: true });
+            await checkout.launch();
+            
+            expect(document.body.querySelector(".tebex-js-lightbox")).not.toBeNull();
+        });
+
+        test("Lightbox contains Zoid iframe", async () => {
+            checkout.init({ ident: "test123", popupOnMobile: true });
+            await checkout.launch();
+
+            const iframe = document.body.querySelector<HTMLIFrameElement>(".tebex-js-lightbox iframe");
+            expect(iframe).not.toBeNull();
+            expect(iframe.name.startsWith("__zoid__")).toBe(true);
+        });
+
+        test("Fires \"open\" event", async () => {
+            const spy = vi.fn();
+
+            checkout.init({ ident: "test123", popupOnMobile: true });
+            checkout.on("open", spy);
+
+            await checkout.launch();
+            expect(spy).toHaveBeenCalled();
+        });
 
     });
 
-    describe.todo("Checkout render()", () => {
+    describe("Checkout render()", () => {
 
-        // TODO: figure out a way to test this; zoid doesn't want to play ball with jsdom
+        test("Renders checkout iframe to a custom location", async () => {
+            const el = document.createElement("div");
+            document.body.appendChild(el); 
+
+            checkout.init({ ident: "test123" });
+            await checkout.render(el, 800, 700, false);
+
+            const iframe = el.querySelector<HTMLIFrameElement>("iframe");
+            expect(iframe).not.toBeNull();
+            expect(iframe.name.startsWith("__zoid__")).toBe(true);
+        });
+
+        test("Renders checkout iframe with the given dimensions", async () => {
+            const el = document.createElement("div");
+            document.body.appendChild(el); 
+
+            checkout.init({ ident: "test123" });
+            await checkout.render(el, 123, 456, false);
+
+            const iframe = el.querySelector<HTMLIFrameElement>("iframe");
+            const style = getComputedStyle(iframe);
+            expect(iframe).not.toBeNull();
+            expect(style.width).toEqual("123px");
+            expect(style.height).toEqual("456px");
+        });
+
+        test("Can render content as a popup in a new window", async () => {
+            const spy = vi.spyOn(window, "open");
+            const el = document.createElement("div");
+            document.body.appendChild(el); 
+
+            checkout.init({ ident: "test123" });
+            await checkout.render(el, 800, 700, true);
+
+            expect(el.querySelector<HTMLIFrameElement>("iframe")).toBeNull();
+            expect(spy).toHaveBeenCalled();
+        });
+
+        test("Fires \"open\" event", async () => {
+            const spy = vi.fn();
+            const el = document.createElement("div");
+            document.body.appendChild(el); 
+
+            checkout.init({ ident: "test123" });
+            checkout.on("open", spy);
+            await checkout.render(el, 800, 700, false);
+
+            expect(spy).toHaveBeenCalled();
+        });
+
+    });
+
+    describe("Checkout close", () => {
+
+        test("Cleans up lightbox elements if used", async () => {
+            // popupOnMobile used here to force lightbox; the Playwright driver forces viewport to be small enough to be considered "mobile"
+            checkout.init({ ident: "test123", popupOnMobile: true });
+
+            await checkout.launch();
+            expect(document.body.querySelector(".tebex-js-lightbox")).not.toBeNull();
+
+            await checkout.close();
+            expect(document.body.querySelector(".tebex-js-lightbox")).toBeNull();
+        });
+
+        test("Fires \"close\" event", async () => {
+            const spy = vi.fn();
+
+            checkout.init({ ident: "test123", popupOnMobile: true });
+            checkout.on("close", spy);
+            await checkout.launch();
+            await checkout.close();
+
+            expect(spy).toHaveBeenCalled();
+        });
 
     });
 

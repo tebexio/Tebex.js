@@ -43,6 +43,12 @@ export type CheckoutOptions = {
      */
     colors?: CheckoutColorDefinition[];
     /**
+     * Whether to still display a popup on mobile or not. If `false` or undefined, then calling `launch()` will open a new window on mobile devices.
+     * @default false
+     * @internal
+     */
+    popupOnMobile?: boolean;
+    /**
      * API endpoint to use. Do not change this unless otherwise guided to do so.
      * @default ""
      * @internal
@@ -90,6 +96,7 @@ export default class Checkout {
     theme: CheckoutTheme = "light"; // TODO: add "auto" mode that auto-detects user theme preference
     colors: CheckoutColorDefinition[] =  [];
     endpoint = "https://pay.tebex.io";
+    popupOnMobile = false;
 
     isOpen = false;
     emitter = createNanoEvents<CheckoutEventMap>();
@@ -106,6 +113,7 @@ export default class Checkout {
         this.theme = options.theme ?? this.theme;
         this.colors = options.colors ?? this.colors;
         this.endpoint = options.endpoint ?? this.endpoint;
+        this.popupOnMobile = options.popupOnMobile ?? this.popupOnMobile;
         
         assert(!isNullOrUndefined(this.ident), "ident option is required");
         assert(["light", "dark"].includes(this.theme), `invalid theme option "${ this.theme }"`);
@@ -137,8 +145,8 @@ export default class Checkout {
      * On desktop, the panel will launch in a "lightbox" mode that covers the screen. On mobile, it will be opened as a new page.
      */
     async launch() {
-        if (isMobile(DEFAULT_WIDTH, DEFAULT_HEIGHT)) {
-            this.#renderComponent(document.body, true);
+        if (!this.popupOnMobile && isMobile(DEFAULT_WIDTH, DEFAULT_HEIGHT)) {
+            await this.#renderComponent(document.body, true);
             this.isOpen = true;
             this.emitter.emit("open");
             return;
@@ -165,12 +173,15 @@ export default class Checkout {
      * Render the Tebex checkout panel immediately, into a specified HTML element.
      * If `popupOnMobile` is true, then on mobile devices the checkout will be immediately opened as a new page instead.
      */
-    render(element: HTMLElement, width: CssDimension, height: CssDimension, popupOnMobile = true) {
+    async render(element: HTMLElement, width: CssDimension, height: CssDimension, popupOnMobile = this.popupOnMobile) {
+        // Zoid requires that elements are already in the page, otherwise it throws a confusing error.
+        assert(document.body.contains(element), "Target element must already be inserted into the page before it can be used");
+
         width = isString(width) ? width : `${ width }px`;
         height = isString(height) ? height : `${ height }px`;
         
         this.#buildComponent(width, height);
-        this.#renderComponent(element, popupOnMobile && isMobile(width, height));
+        await this.#renderComponent(element, popupOnMobile && isMobile(width, height));
         this.isOpen = true;
         this.emitter.emit("open");
     }
@@ -180,7 +191,7 @@ export default class Checkout {
             this.lightbox = new Lightbox();
 
         await this.lightbox.show();
-        this.#renderComponent(this.lightbox.holder, false);
+        await this.#renderComponent(this.lightbox.holder, false);
         this.isOpen = true;
         this.emitter.emit("open");
     }
@@ -206,7 +217,7 @@ export default class Checkout {
         });
     }
 
-    #renderComponent(container: HTMLElement, popup: boolean) {
+    async #renderComponent(container: HTMLElement, popup: boolean) {
         const url = new URL(window.location.href);
 
         if (!this.component)
@@ -239,6 +250,6 @@ export default class Checkout {
             version: __VERSION__
         });
 
-        this.zoid.render(container, popup ? "popup" : "iframe");
+        await this.zoid.render(container, popup ? "popup" : "iframe");
     }
 }

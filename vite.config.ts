@@ -1,4 +1,5 @@
 import { defineConfig } from 'vitest/config';
+
 import pkg from './package.json' assert { type: 'json' };
 
 export default defineConfig({
@@ -6,12 +7,11 @@ export default defineConfig({
         __VERSION__: JSON.stringify(pkg.version),
         'process.env': {}
     },
-    plugins: [
-    ],
     test: {
         browser: {
             enabled: true,
             provider: 'playwright',
+            headless: true,
             name: 'chromium',
             isolate: true,
         },

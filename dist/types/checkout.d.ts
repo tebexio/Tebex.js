@@ -20,6 +20,12 @@ export type CheckoutOptions = {
      */
     colors?: CheckoutColorDefinition[];
     /**
+     * Whether to still display a popup on mobile or not. If `false` or undefined, then calling `launch()` will open a new window on mobile devices.
+     * @default false
+     * @internal
+     */
+    popupOnMobile?: boolean;
+    /**
      * API endpoint to use. Do not change this unless otherwise guided to do so.
      * @default ""
      * @internal
@@ -59,6 +65,7 @@ export default class Checkout {
     theme: CheckoutTheme;
     colors: CheckoutColorDefinition[];
     endpoint: string;
+    popupOnMobile: boolean;
     isOpen: boolean;
     emitter: import("nanoevents").Emitter<{
         open: () => void;
@@ -91,5 +98,5 @@ export default class Checkout {
      * Render the Tebex checkout panel immediately, into a specified HTML element.
      * If `popupOnMobile` is true, then on mobile devices the checkout will be immediately opened as a new page instead.
      */
-    render(element: HTMLElement, width: CssDimension, height: CssDimension, popupOnMobile?: boolean): void;
+    render(element: HTMLElement, width: CssDimension, height: CssDimension, popupOnMobile?: boolean): Promise<void>;
 }

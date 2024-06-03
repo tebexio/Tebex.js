@@ -58,7 +58,7 @@ describe("isApplePayAvailable", () => {
 
 describe("isMobile", () => {
 
-    test("Returns true in test environment", () => {
+    test("Returns true in browser test environment", () => {
         expect(isMobile("800px", "760px")).toEqual(true);
     });
 
