@@ -4,11 +4,12 @@ import Checkout, {
 } from "../checkout";
 
 import {
+    assert,
+    warn,
     isEnvBrowser,
     createElement,
     getAttribute,
     setAttribute,
-    assert
 } from "../utils";
 
 export class TebexCheckout extends HTMLElement {
@@ -16,6 +17,7 @@ export class TebexCheckout extends HTMLElement {
     checkout = new Checkout();
 
     _root: HTMLElement = null;
+    _slot: HTMLSlotElement = null;
     _shadow: ShadowRoot = null;
     _mode: "inline" | "popover" = "popover";
     _height = 700;
@@ -59,6 +61,8 @@ export class TebexCheckout extends HTMLElement {
         super();
         this._shadow = this.attachShadow({ mode: "open" });
         this._root = createElement("div");
+        this._slot = createElement("slot");
+        this._root.append(this._slot);
         this._shadow.append(this._root);
     }
 
@@ -140,8 +144,26 @@ export class TebexCheckout extends HTMLElement {
         if (this._mode === "inline")
             await this.checkout.render(this._root, "100%", this._height, false);
 
-        else if (this._mode === "popover")
+        else if (this._mode === "popover") {
+            this.checkout.on("close", () => this.removeAttribute("open"));
             this.#updatePopupState();
+        }
+
+        this.#attachClickHandlers();
+    }
+
+    #attachClickHandlers = () => {
+        const slotElements = this._slot.assignedElements();
+
+        if (this._mode === "inline" && slotElements.length > 0)
+            warn("<tebex-checkout> does not support child elements in inline mode");
+
+        if (this._mode === "inline")
+            return;
+
+        const open = () => this.setAttribute("open", "");
+        for (let element of slotElements)
+            element.addEventListener("click", open);
     }
 
     #updatePopupState() {

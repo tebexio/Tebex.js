@@ -3,6 +3,7 @@ export declare class TebexCheckout extends HTMLElement {
     #private;
     checkout: Checkout;
     _root: HTMLElement;
+    _slot: HTMLSlotElement;
     _shadow: ShadowRoot;
     _mode: "inline" | "popover";
     _height: number;

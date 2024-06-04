@@ -299,6 +299,12 @@ const err = (msg = "") => {
 /**
  * @internal
  */
+const warn = (msg = "") => {
+    console.warn("Tebex.js warning" + (msg ? ": " : "") + msg.trim());
+};
+/**
+ * @internal
+ */
 const assert = (condition, msg = "assert failed") => {
     if (!condition)
         err(msg);
@@ -12667,7 +12673,7 @@ var legacy = /*#__PURE__*/Object.freeze({
     events: events
 });
 
-var _TebexCheckout_instances, _TebexCheckout_init, _TebexCheckout_updatePopupState, _TebexCheckout_updateSize;
+var _TebexCheckout_instances, _TebexCheckout_init, _TebexCheckout_attachClickHandlers, _TebexCheckout_updatePopupState, _TebexCheckout_updateSize;
 class TebexCheckout extends HTMLElement {
     get ident() {
         return this.checkout.ident;
@@ -12699,14 +12705,27 @@ class TebexCheckout extends HTMLElement {
         _TebexCheckout_instances.add(this);
         this.checkout = new Checkout();
         this._root = null;
+        this._slot = null;
         this._shadow = null;
         this._mode = "popover";
         this._height = 700;
         this._open = false;
         this._didInit = false;
         this._didConnect = false;
+        _TebexCheckout_attachClickHandlers.set(this, () => {
+            const slotElements = this._slot.assignedElements();
+            if (this._mode === "inline" && slotElements.length > 0)
+                warn("<tebex-checkout> does not support child elements in inline mode");
+            if (this._mode === "inline")
+                return;
+            const open = () => this.setAttribute("open", "");
+            for (let element of slotElements)
+                element.addEventListener("click", open);
+        });
         this._shadow = this.attachShadow({ mode: "open" });
         this._root = createElement("div");
+        this._slot = createElement("slot");
+        this._root.append(this._slot);
         this._shadow.append(this._root);
     }
     connectedCallback() {
@@ -12753,7 +12772,7 @@ class TebexCheckout extends HTMLElement {
         await this.checkout.renderFinished();
     }
 }
-_TebexCheckout_instances = new WeakSet(), _TebexCheckout_init = async function _TebexCheckout_init() {
+_TebexCheckout_attachClickHandlers = new WeakMap(), _TebexCheckout_instances = new WeakSet(), _TebexCheckout_init = async function _TebexCheckout_init() {
     if (this._didInit || !this._didConnect)
         return;
     this._didInit = true;
@@ -12774,6 +12793,7 @@ _TebexCheckout_instances = new WeakSet(), _TebexCheckout_init = async function _
         await this.checkout.render(this._root, "100%", this._height, false);
     else if (this._mode === "popover")
         __classPrivateFieldGet(this, _TebexCheckout_instances, "m", _TebexCheckout_updatePopupState).call(this);
+    __classPrivateFieldGet(this, _TebexCheckout_attachClickHandlers, "f").call(this);
 }, _TebexCheckout_updatePopupState = function _TebexCheckout_updatePopupState() {
     // Opening and closing the checkout is only for "popover" mode
     if (this._mode !== "popover")

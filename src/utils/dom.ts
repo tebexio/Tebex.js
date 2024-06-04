@@ -6,8 +6,8 @@ const camelToDash = (str: string) =>
 /**
  * @internal
  */
-export const createElement = (type: string) =>
-    document.createElement(type);
+export const createElement = <T extends HTMLElement>(type: string) =>
+    document.createElement(type) as T;
 
 /**
  * @internal

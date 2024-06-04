@@ -1,7 +1,7 @@
 /**
  * @internal
  */
-export declare const createElement: (type: string) => HTMLElement;
+export declare const createElement: <T extends HTMLElement>(type: string) => T;
 /**
  * @internal
  */
