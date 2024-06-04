@@ -2,7 +2,7 @@
 
 We welcome everyone to contribute towards the Tebex Project to help create better and more stable applications. You are free to contribute and raise pull requests. The Tebex team will review the proposed changes and, if appropriate, merge the the changes into our code. 
 
-For Customer support Please contact our support team at [support@tebex.io](mailto:support@tebex.io)
+For customer support Please contact our support team at [support@tebex.io](mailto:support@tebex.io)
 
 ## Local development
 
@@ -21,7 +21,14 @@ git pull upstream
 
 # Install dependencies
 npm install
+
+# Run dev environment
+npm run start
+
+# Build for project (files output in dist)
+npm run build
 ```
+
 
 ## Making Changes
 1. Ensure that your changes adhere to the current coding conventions used in this project, this means using indentation, accurate comments etc.
