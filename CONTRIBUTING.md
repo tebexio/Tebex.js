@@ -1,14 +1,10 @@
-[wiki]: https://docs.tebex.io/creators/
-
 # Contributing Guidelines
 
-We welcome everyone to contribute towards the Tebex Project, but doing so will require you to follow specific rules to
-keep a consistent and welcoming way of contributing.
+We welcome everyone to contribute towards the Tebex Project to help create better and more stable applications. You are free to contribute and raise pull requests. The Tebex team will review the proposed changes and, if appropriate, merge the the changes into our code. 
 
 For Customer support Please contact our support team at [support@tebex.io](mailto:support@tebex.io)
 
-
-## Getting Started
+## Local development
 
 ```shell
 # Clone the repo
@@ -32,10 +28,7 @@ npm install
 2. Ensure existing and new tests pass using `npm test`
 
 ## Submitting Changes
-1. Commit your changes in logical chunks, i.e. keep your changes small per single commit.
+1. Commit your changes in logical chunks, i.e. keep your changes small per single commit with a clear description.
 2. Locally merge (or rebase) the upstream branch into your branch: `git pull upstream && git merge`.
 3. Push your topic branch up to your fork: `git push origin <branch-name>`.
 4. Open a [Pull Request](https://help.github.com/articles/using-pull-requests) with a clear title and description.
-
-## Pull requests
-As an open source project we welcome contributions to help improve Tebex. When contributing towards the code of Tebex, be it new features or just bug fixes.
