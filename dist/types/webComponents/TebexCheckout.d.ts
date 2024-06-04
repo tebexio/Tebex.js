@@ -20,4 +20,5 @@ export declare class TebexCheckout extends HTMLElement {
     connectedCallback(): void;
     disconnectedCallback(): void;
     attributeChangedCallback(key: string, oldVal: string, newVal: string): void;
+    renderFinished(): Promise<void>;
 }

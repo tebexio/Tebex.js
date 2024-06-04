@@ -106,7 +106,14 @@ export class TebexCheckout extends HTMLElement {
         }
     }
 
-    #init() {
+    async renderFinished() {
+        if (!this.checkout)
+            return;
+        
+        await this.checkout.renderFinished();
+    }
+
+    async #init() {
         if (this._didInit || !this._didConnect)
             return;
         
@@ -131,7 +138,7 @@ export class TebexCheckout extends HTMLElement {
         this._mode = this.hasAttribute("inline") ? "inline" : "popover";
 
         if (this._mode === "inline")
-            this.checkout.render(this._root, "100%", this._height, false);
+            await this.checkout.render(this._root, "100%", this._height, false);
 
         else if (this._mode === "popover")
             this.#updatePopupState();

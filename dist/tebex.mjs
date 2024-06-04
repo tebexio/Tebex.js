@@ -44,6 +44,13 @@ function __classPrivateFieldGet(receiver, state, kind, f) {
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 }
 
+function __classPrivateFieldSet(receiver, state, value, kind, f) {
+    if (kind === "m") throw new TypeError("Private method is not writable");
+    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
+    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
+    return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
+}
+
 typeof SuppressedError === "function" ? SuppressedError : function (error, suppressed, message) {
     var e = new Error(message);
     return e.name = "SuppressedError", e.error = error, e.suppressed = suppressed, e;
@@ -12451,7 +12458,7 @@ const spinnerRender = ({ doc, props }) => {
     return html;
 };
 
-var _Checkout_instances, _Checkout_showLightbox, _Checkout_buildComponent, _Checkout_renderComponent;
+var _Checkout_instances, _Checkout_didRender, _Checkout_onRender, _Checkout_showLightbox, _Checkout_buildComponent, _Checkout_renderComponent;
 const DEFAULT_WIDTH = "800px";
 const DEFAULT_HEIGHT = "760px";
 const EVENT_NAMES = [
@@ -12476,6 +12483,8 @@ class Checkout {
         this.lightbox = null;
         this.component = null;
         this.zoid = null;
+        _Checkout_didRender.set(this, false);
+        _Checkout_onRender.set(this, void 0);
     }
     /**
      * Configure the Tebex checkout settings.
@@ -12533,7 +12542,7 @@ class Checkout {
         }
     }
     /**
-     *
+     * Close and destroy the element immediately, without waiting for CSS transitions.
      */
     destroy() {
         if (this.lightbox)
@@ -12558,8 +12567,19 @@ class Checkout {
         this.isOpen = true;
         this.emitter.emit("open");
     }
+    /**
+     * Await internal Zoid render tests - primarily exposed for tests.
+     * @internal
+     */
+    async renderFinished() {
+        return new Promise(resolve => {
+            __classPrivateFieldSet(this, _Checkout_onRender, resolve, "f");
+            if (__classPrivateFieldGet(this, _Checkout_didRender, "f"))
+                resolve();
+        });
+    }
 }
-_Checkout_instances = new WeakSet(), _Checkout_showLightbox = async function _Checkout_showLightbox() {
+_Checkout_didRender = new WeakMap(), _Checkout_onRender = new WeakMap(), _Checkout_instances = new WeakSet(), _Checkout_showLightbox = async function _Checkout_showLightbox() {
     if (!this.lightbox)
         this.lightbox = new Lightbox();
     await this.lightbox.show();
@@ -12615,6 +12635,9 @@ _Checkout_instances = new WeakSet(), _Checkout_showLightbox = async function _Ch
         version: "1.0.0"
     });
     await this.zoid.renderTo(window, container, popup ? "popup" : "iframe");
+    __classPrivateFieldSet(this, _Checkout_didRender, true, "f");
+    if (__classPrivateFieldGet(this, _Checkout_onRender, "f"))
+        __classPrivateFieldGet(this, _Checkout_onRender, "f").call(this);
 };
 
 /**
@@ -12724,8 +12747,13 @@ class TebexCheckout extends HTMLElement {
                 break;
         }
     }
+    async renderFinished() {
+        if (!this.checkout)
+            return;
+        await this.checkout.renderFinished();
+    }
 }
-_TebexCheckout_instances = new WeakSet(), _TebexCheckout_init = function _TebexCheckout_init() {
+_TebexCheckout_instances = new WeakSet(), _TebexCheckout_init = async function _TebexCheckout_init() {
     if (this._didInit || !this._didConnect)
         return;
     this._didInit = true;
@@ -12743,7 +12771,7 @@ _TebexCheckout_instances = new WeakSet(), _TebexCheckout_init = function _TebexC
     });
     this._mode = this.hasAttribute("inline") ? "inline" : "popover";
     if (this._mode === "inline")
-        this.checkout.render(this._root, "100%", this._height, false);
+        await this.checkout.render(this._root, "100%", this._height, false);
     else if (this._mode === "popover")
         __classPrivateFieldGet(this, _TebexCheckout_instances, "m", _TebexCheckout_updatePopupState).call(this);
 }, _TebexCheckout_updatePopupState = function _TebexCheckout_updatePopupState() {

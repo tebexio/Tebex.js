@@ -4,8 +4,6 @@ import { destroy } from "zoid";
 import "../../src/webComponents/TebexCheckout";
 import type { TebexCheckout } from "../../src/webComponents/TebexCheckout";
 
-const sleep = async (ms: number) => new Promise((resolve, reject) => setTimeout(resolve, ms));
-
 describe("<tebex-checkout> Web component", () => {
 
     beforeEach(async () => {
@@ -97,7 +95,7 @@ describe("<tebex-checkout> Web component", () => {
             el.setAttribute("ident", __TEST_BASKET_IDENT__);
             expect(el._mode).toEqual("inline");
             // Wait for Zoid render to complete, since its async, if we end the test and clear the body, it will get confused
-            await sleep(1000);
+            await el.renderFinished();
         });
         
     });
@@ -109,8 +107,6 @@ describe("<tebex-checkout> Web component", () => {
             document.body.appendChild(el);
             el.setAttribute("ident", __TEST_BASKET_IDENT__);
             expect(el.shadowRoot.innerHTML).toEqual("<div></div>");
-            // Wait for Zoid render to complete, since its async, if we end the test and clear the body, it will get confused
-            await sleep(1000);
         });
 
         test("Opens up the popup when open attribute is added", async () => {
@@ -121,7 +117,7 @@ describe("<tebex-checkout> Web component", () => {
             el.setAttribute("open", "");
             expect(spy).toHaveBeenCalled();
             // Wait for Zoid render to complete, since its async, if we end the test and clear the body, it will get confused
-            await sleep(1000);
+            await el.renderFinished();
         });
 
         test("Can force the lightbox mode on mobile by adding the popup-on-mobile attribute", async () => {
@@ -132,7 +128,7 @@ describe("<tebex-checkout> Web component", () => {
             el.setAttribute("open", "");
             expect(document.body.querySelector(".tebex-js-lightbox")).not.toBeNull();
             // Wait for Zoid render to complete, since its async, if we end the test and clear the body, it will get confused
-            await sleep(1000);
+            await el.renderFinished();
         });
 
         test("Ident and open attributes can be added in opposite order", async () => {
@@ -143,7 +139,7 @@ describe("<tebex-checkout> Web component", () => {
             el.setAttribute("ident", __TEST_BASKET_IDENT__);
             expect(document.body.querySelector(".tebex-js-lightbox")).not.toBeNull();
             // Wait for Zoid render to complete, since its async, if we end the test and clear the body, it will get confused
-            await sleep(1000);
+            await el.renderFinished();
         });
 
     });
@@ -156,8 +152,6 @@ describe("<tebex-checkout> Web component", () => {
             document.body.appendChild(el);
             el.setAttribute("inline", "");
             expect(shadow.innerHTML).toEqual("<div></div>");
-            // Wait for Zoid render to complete, since its async, if we end the test and clear the body, it will get confused
-            await sleep(1000);
         });
 
         test("Renders checkout immediately once ident is available", async () => {
@@ -172,7 +166,7 @@ describe("<tebex-checkout> Web component", () => {
             expect(shadow.innerHTML).not.toEqual("<div></div>");
             expect(shadow.querySelector("slot")).not.toBeNull();
             // Wait for Zoid render to complete, since its async, if we end the test and clear the body, it will get confused
-            await sleep(1000);
+            await el.renderFinished();
         });
 
     });

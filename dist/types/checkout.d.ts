@@ -95,7 +95,7 @@ export default class Checkout {
      */
     close(): Promise<void>;
     /**
-     *
+     * Close and destroy the element immediately, without waiting for CSS transitions.
      */
     destroy(): void;
     /**
@@ -103,4 +103,9 @@ export default class Checkout {
      * If `popupOnMobile` is true, then on mobile devices the checkout will be immediately opened as a new page instead.
      */
     render(element: HTMLElement, width: CssDimension, height: CssDimension, popupOnMobile?: boolean): Promise<void>;
+    /**
+     * Await internal Zoid render tests - primarily exposed for tests.
+     * @internal
+     */
+    renderFinished(): Promise<void>;
 }

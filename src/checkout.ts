@@ -106,6 +106,9 @@ export default class Checkout {
     component: any = null;
     zoid: any = null;
 
+    #didRender = false;
+    #onRender: Function;
+
     /**
      * Configure the Tebex checkout settings.
      */
@@ -171,7 +174,7 @@ export default class Checkout {
     }
 
     /**
-     * 
+     * Close and destroy the element immediately, without waiting for CSS transitions.
      */
     destroy() {
         if (this.lightbox)
@@ -199,6 +202,18 @@ export default class Checkout {
         await this.#renderComponent(element, popupOnMobile && isMobile(width, height));
         this.isOpen = true;
         this.emitter.emit("open");
+    }
+
+    /**
+     * Await internal Zoid render tests - primarily exposed for tests.
+     * @internal
+     */
+    async renderFinished() {
+        return new Promise<void>(resolve => {
+            this.#onRender = resolve;
+            if (this.#didRender)
+                resolve();
+        });
     }
 
     async #showLightbox() {
@@ -266,5 +281,9 @@ export default class Checkout {
         });
 
         await this.zoid.renderTo(window, container, popup ? "popup" : "iframe");
+
+        this.#didRender = true;
+        if (this.#onRender)
+            this.#onRender();
     }
 }
