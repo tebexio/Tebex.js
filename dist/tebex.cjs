@@ -50,13 +50,6 @@
         return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
     }
 
-    function __classPrivateFieldSet(receiver, state, value, kind, f) {
-        if (kind === "m") throw new TypeError("Private method is not writable");
-        if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
-        if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
-        return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
-    }
-
     typeof SuppressedError === "function" ? SuppressedError : function (error, suppressed, message) {
         var e = new Error(message);
         return e.name = "SuppressedError", e.error = error, e.suppressed = suppressed, e;
@@ -376,6 +369,17 @@
         else
             el.setAttribute(attr, value + "");
     };
+    /**
+     * @internal
+     */
+    const isInShadowDom = (el) => {
+        const root = el.getRootNode();
+        return root.nodeType === Node.DOCUMENT_FRAGMENT_NODE && root.host !== undefined;
+    };
+    /**
+     * @internal
+     */
+    const isInDocument = (el) => document.contains(el) || isInShadowDom(el);
     /**
      * Custom JSX render function
      * @internal
@@ -12434,6 +12438,10 @@
             await transitionEnd(this.root);
             this.body.removeChild(this.root);
         }
+        destroy() {
+            if (this.root.parentNode)
+                this.body.removeChild(this.root);
+        }
     }
 
     var styles = "html,body{width:100px;height:100px;overflow:hidden;}.tebex-js-spinner{position:fixed;max-height:60vmin;max-width:60vmin;height:40px;width:40px;top:50%;left:50%;box-sizing:border-box;border:3px solid rgba(0,0,0,.2);border-top-color:#FFF;border-radius:100%;animation:tebex-js-spinner-rotation .7s infinite linear;}@keyframes tebex-js-spinner-rotation{from{transform:translateX(-50%) translateY(-50%) rotate(0deg);}to{transform:translateX(-50%) translateY(-50%) rotate(359deg);}}";
@@ -12531,12 +12539,24 @@
             }
         }
         /**
+         *
+         */
+        destroy() {
+            if (this.lightbox)
+                this.lightbox.destroy();
+            if (this.zoid) {
+                this.zoid.close();
+                this.isOpen = false;
+                this.emitter.emit("close");
+            }
+        }
+        /**
          * Render the Tebex checkout panel immediately, into a specified HTML element.
          * If `popupOnMobile` is true, then on mobile devices the checkout will be immediately opened as a new page instead.
          */
         async render(element, width, height, popupOnMobile = this.popupOnMobile) {
             // Zoid requires that elements are already in the page, otherwise it throws a confusing error.
-            assert(document.body.contains(element), "Target element must already be inserted into the page before it can be used");
+            assert(isInDocument(element), "Target element must already be inserted into the page before it can be used");
             width = isString(width) ? width : `${width}px`;
             height = isString(height) ? height : `${height}px`;
             __classPrivateFieldGet(this, _Checkout_instances, "m", _Checkout_buildComponent).call(this, width, height);
@@ -12600,7 +12620,7 @@
             path: url.pathname,
             version: "1.0.0"
         });
-        await this.zoid.render(container, popup ? "popup" : "iframe");
+        await this.zoid.renderTo(window, container, popup ? "popup" : "iframe");
     };
 
     /**
@@ -12630,7 +12650,7 @@
         events: events
     });
 
-    var _TebexCheckout_instances, _TebexCheckout_root, _TebexCheckout_shadow, _TebexCheckout_mode, _TebexCheckout_open, _TebexCheckout_height, _TebexCheckout_didInit, _TebexCheckout_init, _TebexCheckout_launchOrClose, _TebexCheckout_resize;
+    var _TebexCheckout_instances, _TebexCheckout_init, _TebexCheckout_updatePopupState, _TebexCheckout_updateSize;
     class TebexCheckout extends HTMLElement {
         get ident() {
             return this.checkout.ident;
@@ -12639,13 +12659,13 @@
             setAttribute(this, "ident", ident);
         }
         get open() {
-            return __classPrivateFieldGet(this, _TebexCheckout_open, "f");
+            return this._open;
         }
         set open(open) {
             setAttribute(this, "open", open);
         }
         get height() {
-            return __classPrivateFieldGet(this, _TebexCheckout_height, "f");
+            return this._height;
         }
         set height(height) {
             setAttribute(this, "height", height);
@@ -12661,52 +12681,60 @@
             super();
             _TebexCheckout_instances.add(this);
             this.checkout = new Checkout();
-            _TebexCheckout_root.set(this, null);
-            _TebexCheckout_shadow.set(this, null);
-            _TebexCheckout_mode.set(this, "popover");
-            _TebexCheckout_open.set(this, false);
-            _TebexCheckout_height.set(this, 700);
-            _TebexCheckout_didInit.set(this, false);
-            __classPrivateFieldSet(this, _TebexCheckout_shadow, this.attachShadow({ mode: "open" }), "f");
-            __classPrivateFieldSet(this, _TebexCheckout_root, createElement("div"), "f");
-            __classPrivateFieldGet(this, _TebexCheckout_shadow, "f").append(__classPrivateFieldGet(this, _TebexCheckout_root, "f"));
+            this._root = null;
+            this._shadow = null;
+            this._mode = "popover";
+            this._height = 700;
+            this._open = false;
+            this._didInit = false;
+            this._didConnect = false;
+            this._shadow = this.attachShadow({ mode: "open" });
+            this._root = createElement("div");
+            this._shadow.append(this._root);
+        }
+        connectedCallback() {
+            this._didConnect = true;
             // Emit checkout events as DOM events on the element
             for (let event of EVENT_NAMES) {
                 this.checkout.on(event, (e) => {
                     this.dispatchEvent(new CustomEvent(event, { detail: e }));
                 });
             }
-        }
-        connectedCallback() {
             if (getAttribute(this, "ident"))
                 __classPrivateFieldGet(this, _TebexCheckout_instances, "m", _TebexCheckout_init).call(this);
         }
         disconnectedCallback() {
-            this.checkout.emitter.emit("close");
+            this.checkout.destroy();
+            this.checkout = new Checkout();
+            // Go back to initial state
+            this._didConnect = false;
+            this._open = false;
+            this._didInit = false;
+            this._didConnect = false;
         }
         attributeChangedCallback(key, oldVal, newVal) {
             if (oldVal === newVal)
                 return;
             switch (key) {
                 case "ident":
-                    this.checkout.ident = newVal;
+                    assert(!this._didInit, "This checkout element already has an ident - to use a new ident, create a new element");
                     __classPrivateFieldGet(this, _TebexCheckout_instances, "m", _TebexCheckout_init).call(this);
                     break;
                 case "open":
-                    __classPrivateFieldSet(this, _TebexCheckout_open, (oldVal === "false" || !oldVal) && (newVal === "" || !!newVal), "f");
-                    __classPrivateFieldGet(this, _TebexCheckout_instances, "m", _TebexCheckout_launchOrClose).call(this);
+                    this._open = (oldVal === "false" || !oldVal) && (newVal === "" || !!newVal);
+                    __classPrivateFieldGet(this, _TebexCheckout_instances, "m", _TebexCheckout_updatePopupState).call(this);
                     break;
                 case "height":
-                    __classPrivateFieldSet(this, _TebexCheckout_height, parseInt(newVal), "f");
-                    __classPrivateFieldGet(this, _TebexCheckout_instances, "m", _TebexCheckout_resize).call(this);
+                    this._height = parseInt(newVal);
+                    __classPrivateFieldGet(this, _TebexCheckout_instances, "m", _TebexCheckout_updateSize).call(this);
                     break;
             }
         }
     }
-    _TebexCheckout_root = new WeakMap(), _TebexCheckout_shadow = new WeakMap(), _TebexCheckout_mode = new WeakMap(), _TebexCheckout_open = new WeakMap(), _TebexCheckout_height = new WeakMap(), _TebexCheckout_didInit = new WeakMap(), _TebexCheckout_instances = new WeakSet(), _TebexCheckout_init = function _TebexCheckout_init() {
-        if (__classPrivateFieldGet(this, _TebexCheckout_didInit, "f"))
+    _TebexCheckout_instances = new WeakSet(), _TebexCheckout_init = function _TebexCheckout_init() {
+        if (this._didInit || !this._didConnect)
             return;
-        __classPrivateFieldSet(this, _TebexCheckout_didInit, true, "f");
+        this._didInit = true;
         let colors = [];
         if (this.hasAttribute("color-primary"))
             colors.push({ name: "primary", color: getAttribute(this, "color-primary") });
@@ -12716,33 +12744,37 @@
             ident: getAttribute(this, "ident"),
             theme: getAttribute(this, "theme"),
             colors: colors,
+            popupOnMobile: getAttribute(this, "popup-on-mobile") !== null,
             endpoint: getAttribute(this, "endpoint"),
         });
-        __classPrivateFieldSet(this, _TebexCheckout_mode, this.hasAttribute("inline") ? "inline" : "popover", "f");
-        if (__classPrivateFieldGet(this, _TebexCheckout_mode, "f") === "inline")
-            this.checkout.render(__classPrivateFieldGet(this, _TebexCheckout_root, "f"), "100%", __classPrivateFieldGet(this, _TebexCheckout_height, "f"), false);
-        else if (__classPrivateFieldGet(this, _TebexCheckout_mode, "f") === "popover")
-            __classPrivateFieldGet(this, _TebexCheckout_instances, "m", _TebexCheckout_launchOrClose).call(this);
-    }, _TebexCheckout_launchOrClose = function _TebexCheckout_launchOrClose() {
+        this._mode = this.hasAttribute("inline") ? "inline" : "popover";
+        if (this._mode === "inline")
+            this.checkout.render(this._root, "100%", this._height, false);
+        else if (this._mode === "popover")
+            __classPrivateFieldGet(this, _TebexCheckout_instances, "m", _TebexCheckout_updatePopupState).call(this);
+    }, _TebexCheckout_updatePopupState = function _TebexCheckout_updatePopupState() {
         // Opening and closing the checkout is only for "popover" mode
-        if (__classPrivateFieldGet(this, _TebexCheckout_mode, "f") !== "popover")
+        if (this._mode !== "popover")
+            return;
+        // Checkout isn't in DOM yet, can't render
+        if (!this._didConnect)
             return;
         // Checkout didn't init with an ident yet! Do nothing; this function will be called again after init
-        if (!__classPrivateFieldGet(this, _TebexCheckout_didInit, "f"))
+        if (!this._didInit)
             return;
-        if (__classPrivateFieldGet(this, _TebexCheckout_open, "f") && !this.checkout.isOpen)
+        if (this._open && !this.checkout.isOpen)
             this.checkout.launch();
-        if (!__classPrivateFieldGet(this, _TebexCheckout_open, "f") && this.checkout.isOpen)
+        if (!this._open && this.checkout.isOpen)
             this.checkout.close();
-    }, _TebexCheckout_resize = function _TebexCheckout_resize() {
+    }, _TebexCheckout_updateSize = function _TebexCheckout_updateSize() {
         // Resizing only makes sense in "inline" mode
-        if (__classPrivateFieldGet(this, _TebexCheckout_mode, "f") !== "inline")
+        if (this._mode !== "inline")
             return;
         // Check that a Zoid instance is actually available
         const zoid = this.checkout.zoid;
         if (!zoid)
             return;
-        zoid.resize({ height: __classPrivateFieldGet(this, _TebexCheckout_height, "f") });
+        zoid.resize({ height: this._height });
     };
     if (isEnvBrowser())
         customElements.define("tebex-checkout", TebexCheckout);

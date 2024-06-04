@@ -7,7 +7,8 @@ import {
     isEnvBrowser,
     createElement,
     getAttribute,
-    setAttribute
+    setAttribute,
+    assert
 } from "../utils";
 
 export class TebexCheckout extends HTMLElement {
@@ -17,9 +18,10 @@ export class TebexCheckout extends HTMLElement {
     _root: HTMLElement = null;
     _shadow: ShadowRoot = null;
     _mode: "inline" | "popover" = "popover";
-    _open = false;
     _height = 700;
+    _open = false;
     _didInit = false;
+    _didConnect = false;
 
     get ident() {
         return this.checkout.ident;
@@ -58,6 +60,10 @@ export class TebexCheckout extends HTMLElement {
         this._shadow = this.attachShadow({ mode: "open" });
         this._root = createElement("div");
         this._shadow.append(this._root);
+    }
+
+    connectedCallback() {
+        this._didConnect = true;
 
         // Emit checkout events as DOM events on the element
         for (let event of EVENT_NAMES) {
@@ -65,15 +71,19 @@ export class TebexCheckout extends HTMLElement {
                 this.dispatchEvent(new CustomEvent(event, { detail: e }));
             });
         }
-    }
-
-    connectedCallback() {
+        
         if (getAttribute(this, "ident"))
             this.#init();
     }
 
     disconnectedCallback() {
-        this.checkout.emitter.emit("close");
+        this.checkout.destroy();
+        this.checkout = new Checkout();
+        // Go back to initial state
+        this._didConnect = false;
+        this._open = false;
+        this._didInit = false;
+        this._didConnect = false;
     }
 
     attributeChangedCallback(key: string, oldVal: string, newVal: string) {
@@ -82,22 +92,22 @@ export class TebexCheckout extends HTMLElement {
 
         switch (key) {
             case "ident":
-                this.checkout.ident = newVal;
+                assert(!this._didInit, "This checkout element already has an ident - to use a new ident, create a new element");
                 this.#init();
                 break;
             case "open":
                 this._open = (oldVal === "false" || !oldVal) && (newVal === "" || !!newVal);
-                this.#launchOrClose();
+                this.#updatePopupState();
                 break;
             case "height":
                 this._height = parseInt(newVal);
-                this.#resize();
+                this.#updateSize();
                 break;
         }
     }
 
     #init() {
-        if (this._didInit)
+        if (this._didInit || !this._didConnect)
             return;
         
         this._didInit = true;
@@ -114,6 +124,7 @@ export class TebexCheckout extends HTMLElement {
             ident: getAttribute(this, "ident"),
             theme: getAttribute(this, "theme") as CheckoutTheme,
             colors: colors,
+            popupOnMobile: getAttribute(this, "popup-on-mobile") !== null,
             endpoint: getAttribute(this, "endpoint"),
         });
 
@@ -123,15 +134,19 @@ export class TebexCheckout extends HTMLElement {
             this.checkout.render(this._root, "100%", this._height, false);
 
         else if (this._mode === "popover")
-            this.#launchOrClose();
+            this.#updatePopupState();
     }
 
-    #launchOrClose() {
+    #updatePopupState() {
         // Opening and closing the checkout is only for "popover" mode
         if (this._mode !== "popover")
             return;
 
-        // Checkout didn't init with an ident yet! Do nothing; this function will be called again after init
+        // Checkout isn't in DOM yet, can't render
+        if (!this._didConnect)
+            return;
+
+         // Checkout didn't init with an ident yet! Do nothing; this function will be called again after init
         if (!this._didInit)
             return;
 
@@ -142,7 +157,7 @@ export class TebexCheckout extends HTMLElement {
             this.checkout.close();
     }
 
-    #resize() {
+    #updateSize() {
         // Resizing only makes sense in "inline" mode
         if (this._mode !== "inline")
             return;

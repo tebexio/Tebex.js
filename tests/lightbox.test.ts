@@ -38,7 +38,7 @@ describe("Lightbox", () => {
             const start = performance.now();
             await lightbox.show();
             const end = performance.now();
-            expect(end - start).toBeGreaterThan(400); // default duration is 410ms
+            expect(end - start).toBeGreaterThan(390); // default duration is 410ms, but test timing isn't super precise
         });
 
         test("CSS var --tebex-js-duration can be used to adjust the duration time", async() => {
@@ -46,7 +46,7 @@ describe("Lightbox", () => {
             const start = performance.now();
             await lightbox.show();
             const end = performance.now();
-            expect(end - start).toBeGreaterThan(1000);
+            expect(end - start).toBeGreaterThan(900);
         });
     });
 
@@ -64,7 +64,7 @@ describe("Lightbox", () => {
             const start = performance.now();
             await lightbox.hide();
             const end = performance.now();
-            expect(end - start).toBeGreaterThan(390); // default duration is 410ms; but test timing isn't super precise
+            expect(end - start).toBeGreaterThan(390); // default duration is 410ms, but test timing isn't super precise
         });
 
         test("CSS var --tebex-js-duration can be used to adjust the duration time", async () => {
@@ -76,6 +76,16 @@ describe("Lightbox", () => {
             expect(end - start).toBeGreaterThan(900);
         });
 
+    });
+
+    describe("destroy()", () => {
+
+        test("Immediately removes lightbox element from <body>", async () => {
+            await lightbox.show();
+            expect(document.body.querySelector('.tebex-js-lightbox')).not.toBeNull();
+            lightbox.destroy();
+            expect(document.body.querySelector('.tebex-js-lightbox')).toBeNull();
+        });
     });
 
 });

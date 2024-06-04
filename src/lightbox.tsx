@@ -48,4 +48,9 @@ export class Lightbox {
         await transitionEnd(this.root);
         this.body.removeChild(this.root);
     }
+
+    destroy() {
+        if (this.root.parentNode)
+            this.body.removeChild(this.root);
+    }
 };

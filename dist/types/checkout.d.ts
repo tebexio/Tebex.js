@@ -95,6 +95,10 @@ export default class Checkout {
      */
     close(): Promise<void>;
     /**
+     *
+     */
+    destroy(): void;
+    /**
      * Render the Tebex checkout panel immediately, into a specified HTML element.
      * If `popupOnMobile` is true, then on mobile devices the checkout will be immediately opened as a new page instead.
      */

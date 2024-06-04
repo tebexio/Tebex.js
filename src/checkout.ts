@@ -8,6 +8,7 @@ import {
     type CssDimension,
     type Implements,
     assert,
+    isInDocument,
     isApplePayAvailable,
     isMobile,
     isNullOrUndefined,
@@ -170,12 +171,26 @@ export default class Checkout {
     }
 
     /**
+     * 
+     */
+    destroy() {
+        if (this.lightbox)
+            this.lightbox.destroy();
+        
+        if (this.zoid) {
+            this.zoid.close();
+            this.isOpen = false;
+            this.emitter.emit("close");
+        }
+    }
+
+    /**
      * Render the Tebex checkout panel immediately, into a specified HTML element.
      * If `popupOnMobile` is true, then on mobile devices the checkout will be immediately opened as a new page instead.
      */
     async render(element: HTMLElement, width: CssDimension, height: CssDimension, popupOnMobile = this.popupOnMobile) {
         // Zoid requires that elements are already in the page, otherwise it throws a confusing error.
-        assert(document.body.contains(element), "Target element must already be inserted into the page before it can be used");
+        assert(isInDocument(element), "Target element must already be inserted into the page before it can be used");
 
         width = isString(width) ? width : `${ width }px`;
         height = isString(height) ? height : `${ height }px`;
@@ -250,6 +265,6 @@ export default class Checkout {
             version: __VERSION__
         });
 
-        await this.zoid.render(container, popup ? "popup" : "iframe");
+        await this.zoid.renderTo(window, container, popup ? "popup" : "iframe");
     }
 }

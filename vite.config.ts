@@ -22,7 +22,6 @@ export default defineConfig({
             provider: 'playwright',
             headless: true,
             name: 'chromium',
-            isolate: true,
         },
         typecheck: {
             enabled: true,

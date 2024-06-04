@@ -30,6 +30,20 @@ export const setAttribute = (el: Element, name: string, value: number | string |
 };
 
 /**
+ * @internal
+ */
+export const isInShadowDom = (el: Element) => {
+    const root = el.getRootNode();
+    return root.nodeType === Node.DOCUMENT_FRAGMENT_NODE && (root as ShadowRoot).host !== undefined;
+};
+
+/**
+ * @internal
+ */
+export const isInDocument = (el: Element) =>
+    document.contains(el) || isInShadowDom(el);
+
+/**
  * Custom JSX render function
  * @internal
  */

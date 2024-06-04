@@ -6,4 +6,5 @@ export declare class Lightbox {
     render(): any;
     show(): Promise<void>;
     hide(): Promise<void>;
+    destroy(): void;
 }

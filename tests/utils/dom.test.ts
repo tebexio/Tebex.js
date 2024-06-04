@@ -1,8 +1,10 @@
-import { describe, test, expect, beforeEach } from "vitest";
+import { describe, test, expect, beforeEach, afterEach } from "vitest";
 
 import {
     createElement,
     setAttribute,
+    isInShadowDom,
+    isInDocument,
     h
 } from "../../src/utils/dom";
 
@@ -53,6 +55,61 @@ describe("setAttribute", () => {
         expect(el.outerHTML).toEqual(`<div test=""></div>`);
         setAttribute(el, "test", false);
         expect(el.outerHTML).toEqual(`<div></div>`);
+    });
+
+});
+
+describe("isInShadowDom", () => {
+
+    afterEach(() => {
+        document.body.innerHTML = "";
+    });
+
+    test("Returns true if the element is in a shadow DOM element", () => {
+        class CustomElement extends HTMLElement {};
+        customElements.define("test-el", CustomElement);
+        const root = document.createElement("test-el");
+        const shadowRoot = root.attachShadow({ mode: "open" });
+        const el = document.createElement("div");
+        shadowRoot.append(el);
+        expect(isInShadowDom(el)).toBe(true);
+    });
+
+    test("Does return true for non-shadow-DOM elements", () => {
+        const el = document.createElement("div");
+        expect(isInShadowDom(el)).toBe(false);
+
+        document.body.append(el);
+        expect(isInShadowDom(el)).toBe(false);
+    });
+
+});
+
+describe("isInDocument", () => {
+
+    afterEach(() => {
+        document.body.innerHTML = "";
+    });
+
+    test("Returns true if the element is in the page", () => {
+        const el = document.createElement("div");
+        document.body.append(el);
+        expect(isInDocument(el)).toBe(true);
+    });
+
+    test("Returns true if the element is in a shadow DOM element", () => {
+        class CustomElement extends HTMLElement {};
+        customElements.define("test-el2", CustomElement);
+        const root = document.createElement("test-el2");
+        const shadowRoot = root.attachShadow({ mode: "open" });
+        const el = document.createElement("div");
+        shadowRoot.append(el);
+        expect(isInDocument(el)).toBe(true);
+    });
+
+    test("Does return true for non-page elements", () => {
+        const el = document.createElement("div");
+        expect(isInDocument(el)).toBe(false);
     });
 
 });
