@@ -3,6 +3,7 @@ import { destroy } from "zoid";
 
 import "../../src/webComponents/TebexCheckout";
 import type { TebexCheckout } from "../../src/webComponents/TebexCheckout";
+import { nextFrame } from "../../src/utils";
 
 describe("<tebex-checkout> Web component", () => {
 
@@ -66,6 +67,7 @@ describe("<tebex-checkout> Web component", () => {
             document.body.append(el);
             el.setAttribute("theme", "dark");
             el.setAttribute("ident", __TEST_BASKET_IDENT__);
+
             expect(el.checkout.theme).toEqual("dark");
         });
 
@@ -75,6 +77,7 @@ describe("<tebex-checkout> Web component", () => {
             el.setAttribute("color-primary", "#f00");
             el.setAttribute("color-secondary", "#00f");
             el.setAttribute("ident", __TEST_BASKET_IDENT__);
+
             expect(el.checkout.colors.find(c => c.name === "primary").color).toEqual("#f00");
             expect(el.checkout.colors.find(c => c.name === "secondary").color).toEqual("#00f");
         });
@@ -93,7 +96,9 @@ describe("<tebex-checkout> Web component", () => {
             expect(el._mode).toEqual("popover");
             el.setAttribute("inline", "");
             el.setAttribute("ident", __TEST_BASKET_IDENT__);
+
             expect(el._mode).toEqual("inline");
+
             // Wait for Zoid render to complete, since its async, if we end the test and clear the body, it will get confused
             await el.renderFinished();
         });
@@ -106,16 +111,19 @@ describe("<tebex-checkout> Web component", () => {
             const el = document.createElement("tebex-checkout") as TebexCheckout;
             document.body.appendChild(el);
             el.setAttribute("ident", __TEST_BASKET_IDENT__);
-            expect(el.shadowRoot.innerHTML).toEqual("<div></div>");
+
+            expect(el.shadowRoot.innerHTML).toEqual("<div><slot></slot></div>");
         });
 
         test("Opens up the popup when open attribute is added", async () => {
             const el = document.createElement("tebex-checkout") as TebexCheckout;
-            const spy = vi.spyOn(window, 'open'); // Tests are mobile by default, so this test will open up a new window
+            const spy = vi.spyOn(window, "open"); // Tests are mobile by default, so this test will open up a new window
             document.body.appendChild(el);
             el.setAttribute("ident", __TEST_BASKET_IDENT__);
             el.setAttribute("open", "");
+
             expect(spy).toHaveBeenCalled();
+
             // Wait for Zoid render to complete, since its async, if we end the test and clear the body, it will get confused
             await el.renderFinished();
         });
@@ -126,7 +134,9 @@ describe("<tebex-checkout> Web component", () => {
             el.setAttribute("popup-on-mobile", "");
             el.setAttribute("ident", __TEST_BASKET_IDENT__);
             el.setAttribute("open", "");
+
             expect(document.body.querySelector(".tebex-js-lightbox")).not.toBeNull();
+
             // Wait for Zoid render to complete, since its async, if we end the test and clear the body, it will get confused
             await el.renderFinished();
         });
@@ -137,9 +147,49 @@ describe("<tebex-checkout> Web component", () => {
             el.setAttribute("popup-on-mobile", "");
             el.setAttribute("open", "");
             el.setAttribute("ident", __TEST_BASKET_IDENT__);
+
             expect(document.body.querySelector(".tebex-js-lightbox")).not.toBeNull();
+
             // Wait for Zoid render to complete, since its async, if we end the test and clear the body, it will get confused
             await el.renderFinished();
+        });
+
+        test("Elements added inside <tebex-checkout> tag can be clicked to open the checkout", async () => {
+            const el = document.createElement("tebex-checkout") as TebexCheckout;
+            document.body.appendChild(el);
+            el.setAttribute("popup-on-mobile", "");
+            el.setAttribute("ident", __TEST_BASKET_IDENT__);
+
+            const button = document.createElement("button");
+            el.appendChild(button);
+            // Wait a frame for the <tebex-checkout> slot to do its thing
+            await nextFrame();
+
+            button.click();
+            expect(el.hasAttribute("open")).not.toBeFalsy();
+            expect(document.body.querySelector(".tebex-js-lightbox")).not.toBeNull();
+
+            // Wait for Zoid render to complete, since its async, if we end the test and clear the body, it will get confused
+            await el.renderFinished();
+        });
+
+        test("Elements added inside <tebex-checkout> tag no longer have click events after they're removed", async () => {
+            const el = document.createElement("tebex-checkout") as TebexCheckout;
+            document.body.appendChild(el);
+            el.setAttribute("popup-on-mobile", "");
+            el.setAttribute("ident", __TEST_BASKET_IDENT__);
+
+            const button = document.createElement("button");
+            el.appendChild(button);
+            // Wait a frame for the <tebex-checkout> slot to do its thing
+            await nextFrame();
+
+            el.removeChild(button);
+            await nextFrame();
+
+            button.click();
+            expect(el.hasAttribute("open")).toBeFalsy();
+            expect(document.body.querySelector(".tebex-js-lightbox")).toBeNull();
         });
 
     });
@@ -151,7 +201,7 @@ describe("<tebex-checkout> Web component", () => {
             const shadow = el.shadowRoot;
             document.body.appendChild(el);
             el.setAttribute("inline", "");
-            expect(shadow.innerHTML).toEqual("<div></div>");
+            expect(shadow.innerHTML).toEqual("<div><slot></slot></div>");
         });
 
         test("Renders checkout immediately once ident is available", async () => {
@@ -160,7 +210,7 @@ describe("<tebex-checkout> Web component", () => {
             document.body.appendChild(el);
             el.setAttribute("inline", "");
 
-            expect(shadow.innerHTML).toEqual("<div></div>");
+            expect(shadow.innerHTML).toEqual("<div><slot></slot></div>");
 
             el.setAttribute("ident", __TEST_BASKET_IDENT__);
             expect(shadow.innerHTML).not.toEqual("<div></div>");

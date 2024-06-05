@@ -12719,14 +12719,22 @@
             this._didInit = false;
             this._didConnect = false;
             _TebexCheckout_attachClickHandlers.set(this, () => {
-                const slotElements = this._slot.assignedElements();
-                if (this._mode === "inline" && slotElements.length > 0)
+                if (this._mode === "inline" && this._slot.assignedElements().length > 0)
                     warn("<tebex-checkout> does not support child elements in inline mode");
                 if (this._mode === "inline")
                     return;
-                const open = () => this.setAttribute("open", "");
-                for (let element of slotElements)
-                    element.addEventListener("click", open);
+                let oldElements = [];
+                const clickHandler = () => this.setAttribute("open", "");
+                const updateHandlers = () => {
+                    const newElements = this._slot.assignedElements();
+                    for (let el of oldElements)
+                        el.removeEventListener("click", clickHandler);
+                    for (let el of newElements)
+                        el.addEventListener("click", clickHandler);
+                    oldElements = newElements;
+                };
+                updateHandlers();
+                this._slot.addEventListener("slotchange", updateHandlers);
             });
             this._shadow = this.attachShadow({ mode: "open" });
             this._root = createElement("div");
@@ -12797,8 +12805,10 @@
         this._mode = this.hasAttribute("inline") ? "inline" : "popover";
         if (this._mode === "inline")
             await this.checkout.render(this._root, "100%", this._height, false);
-        else if (this._mode === "popover")
+        else if (this._mode === "popover") {
+            this.checkout.on("close", () => this.removeAttribute("open"));
             __classPrivateFieldGet(this, _TebexCheckout_instances, "m", _TebexCheckout_updatePopupState).call(this);
+        }
         __classPrivateFieldGet(this, _TebexCheckout_attachClickHandlers, "f").call(this);
     }, _TebexCheckout_updatePopupState = function _TebexCheckout_updatePopupState() {
         // Opening and closing the checkout is only for "popover" mode

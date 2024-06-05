@@ -153,17 +153,30 @@ export class TebexCheckout extends HTMLElement {
     }
 
     #attachClickHandlers = () => {
-        const slotElements = this._slot.assignedElements();
-
-        if (this._mode === "inline" && slotElements.length > 0)
+        if (this._mode === "inline" && this._slot.assignedElements().length > 0)
             warn("<tebex-checkout> does not support child elements in inline mode");
 
         if (this._mode === "inline")
             return;
 
-        const open = () => this.setAttribute("open", "");
-        for (let element of slotElements)
-            element.addEventListener("click", open);
+        let oldElements: Element[] = [];
+
+        const clickHandler = () => this.setAttribute("open", "");
+    
+        const updateHandlers = () => {
+            const newElements = this._slot.assignedElements();
+            
+            for (let el of oldElements)
+                el.removeEventListener("click", clickHandler);
+            
+            for (let el of newElements)
+                el.addEventListener("click", clickHandler);
+            
+            oldElements = newElements;
+        };
+
+        updateHandlers();
+        this._slot.addEventListener("slotchange", updateHandlers);
     }
 
     #updatePopupState() {
