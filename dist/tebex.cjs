@@ -12644,7 +12644,7 @@
             isEmbedded: !popup,
             referrer: url.hostname,
             path: url.pathname,
-            version: "1.0.0"
+            version: "1.1.0"
         });
         await this.zoid.renderTo(window, container, popup ? "popup" : "iframe");
         __classPrivateFieldSet(this, _Checkout_didRender, true, "f");
@@ -12840,7 +12840,7 @@
     /**
      * Current Tebex.js package version
      */
-    const version = "1.0.0";
+    const version = "1.1.0";
     /**
      * Tebex checkout API
      */
