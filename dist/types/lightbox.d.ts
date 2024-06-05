@@ -1,9 +1,10 @@
 export declare class Lightbox {
-    body: Element;
-    root: Element;
-    holder: Element;
+    body: HTMLElement;
+    root: HTMLElement;
+    holder: HTMLElement;
     constructor();
     render(): any;
     show(): Promise<void>;
     hide(): Promise<void>;
+    destroy(): void;
 }

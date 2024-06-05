@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tebex Checkout Demo</title>
+    <meta content="width=device-width, initial-scale=1" name="viewport">
+
+    <link rel="icon" type="image/x-icon" href="https://tebex.io/assets/favicon.png">
+
+    <link href="https://fonts.googleapis.com/css?family=Lato:400,400i,700" rel="stylesheet">
+
+    <link rel="stylesheet" href="normalize.css"/>
+    <link rel="stylesheet" href="style.css"/>
+
+    <script defer src="/tebex.min.js"></script>
+
+</head>
+<body>
+    <div class="fixed-background"></div>
+    <div class="container">
+        <div class="content text-center" id="loading-spinner"><div class="lds-ring"><div></div><div></div><div></div><div></div></div></div>
+        <div class="hide" id="loading-container">
+            <img src="logo.png" class="logo" />
+            <div class="content">
+                <h1>Checkout</h1>
+                <h2>The all-in-one monetization platform designed to grow your game's revenue</h2>
+                <h3>No hidden fees, 3-day payouts & chargeback insurance.</h3>
+
+                <tebex-checkout id="checkout">
+                    <button>Open Checkout</button>
+                </tebex-checkout>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const checkoutElement = document.getElementById("checkout");
+
+        fetch("/token").then(response => response.json()).then(response => {
+            document.getElementById("loading-container").classList.remove("hide");
+            document.getElementById("loading-spinner").classList.add("hide");
+            checkoutElement.ident = response.ident;
+        });
+
+        checkoutElement.addEventListener("open", () => {
+            console.log("checkout opened");
+        });
+
+        checkoutElement.addEventListener("close", () => {
+            console.log("checkout closed");
+        });
+
+        checkoutElement.addEventListener("payment:complete", (event) => {
+            console.log("payment completed", event);
+        });
+
+        checkoutElement.addEventListener("payment:error", (event) => {
+            console.log("payment errored", event);
+        });
+    </script>
+</body>
+</html>

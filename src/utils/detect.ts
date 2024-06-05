@@ -1,5 +1,3 @@
-import Bowser from "bowser";
-
 /**
  * @internal
  */
@@ -25,7 +23,14 @@ export const isApplePayAvailable = () =>
 /**
  * @internal
  */
-export const isMobile = () => {
-    const browser = Bowser.getParser(window.navigator.userAgent);
-    return browser.getPlatformType() !== "desktop";
+export const isMobile = (width: string, height: string) => {
+    if (!isEnvBrowser())
+        return false;
+
+    // If on some old device that doesn't support matchMedia, best be safe and treat it as a mobile?
+    if (!window.matchMedia)
+        return true;
+
+    const query = window.matchMedia(`(max-width: ${ width }) or (max-height: ${ height })`);
+    return query.matches;
 };

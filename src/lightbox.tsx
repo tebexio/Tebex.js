@@ -7,13 +7,13 @@ import {
     transitionEnd,
 } from "./utils";
 
-import styles from "./styles/lightbox.css";
+import styles from "./styles/lightbox.css?inline";
 
 export class Lightbox {
 
-    body: Element;
-    root: Element;
-    holder: Element;
+    body: HTMLElement;
+    root: HTMLElement;
+    holder: HTMLElement;
 
     constructor() {
         assert(isEnvBrowser());
@@ -47,5 +47,10 @@ export class Lightbox {
         await nextFrame();
         await transitionEnd(this.root);
         this.body.removeChild(this.root);
+    }
+
+    destroy() {
+        if (this.root.parentNode)
+            this.body.removeChild(this.root);
     }
 };

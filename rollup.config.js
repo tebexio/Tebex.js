@@ -44,12 +44,21 @@ export default {
             outputToFilesystem: true,
             exclude: 'tests/**/*',
             compilerOptions: {
-                "rootDir": "src",
-                "declaration": true,
-                "declarationDir": "dist/types",
+                rootDir: 'src',
+                declaration: true,
+                declarationDir: 'dist/types',
             },
             sourceMap: isBrowser
         }),
+        // Annoying: Vite/Vitest only includes CSS imports as strings if you append ?inline to their path... which breaks rollup-plugin-import-css
+        // This just strips the ?inline from th end of those paths so that it works again :)
+        {
+            name: 'inline-css-fixer',
+            resolveId(source, importer, options) {
+                if (source.endsWith('.css?inline'))
+                    return this.resolve(source.replace('?inline', ''), importer, options);
+            }
+        },
         css({
             minify: true
         }),

@@ -1,5 +1,6 @@
 import { Lightbox } from "./lightbox";
-import { type Implements } from "./utils";
+import { type CssDimension, type Implements } from "./utils";
+export declare const EVENT_NAMES: readonly ["open", "close", "payment:complete", "payment:error"];
 /**
  * Configuration options for `Tebex.checkout.init()`.
  */
@@ -18,6 +19,12 @@ export type CheckoutOptions = {
      * @default []
      */
     colors?: CheckoutColorDefinition[];
+    /**
+     * Whether to still display a popup on mobile or not. If `false` or undefined, then calling `launch()` will open a new window on mobile devices.
+     * @default false
+     * @internal
+     */
+    popupOnMobile?: boolean;
     /**
      * API endpoint to use. Do not change this unless otherwise guided to do so.
      * @default ""
@@ -39,7 +46,7 @@ export type CheckoutColorDefinition = {
 /**
  * Checkout event type. You can subscribe to checkout events with `Tebex.checkout.on()`.
  */
-export type CheckoutEvent = "open" | "close" | "payment:complete" | "payment:error";
+export type CheckoutEvent = typeof EVENT_NAMES[number];
 /**
  * Maps a {@link CheckoutEvent} to its event callback type.
  */
@@ -58,6 +65,8 @@ export default class Checkout {
     theme: CheckoutTheme;
     colors: CheckoutColorDefinition[];
     endpoint: string;
+    popupOnMobile: boolean;
+    isOpen: boolean;
     emitter: import("nanoevents").Emitter<{
         open: () => void;
         close: () => void;
@@ -82,8 +91,21 @@ export default class Checkout {
      */
     launch(): Promise<void>;
     /**
+     * Close the Tebex checkout panel.
+     */
+    close(): Promise<void>;
+    /**
+     * Close and destroy the element immediately, without waiting for CSS transitions.
+     */
+    destroy(): void;
+    /**
      * Render the Tebex checkout panel immediately, into a specified HTML element.
      * If `popupOnMobile` is true, then on mobile devices the checkout will be immediately opened as a new page instead.
      */
-    render(element: HTMLElement, width: string, height: string, popupOnMobile?: boolean): void;
+    render(element: HTMLElement, width: CssDimension, height: CssDimension, popupOnMobile?: boolean): Promise<void>;
+    /**
+     * Await internal Zoid render tests - primarily exposed for tests.
+     * @internal
+     */
+    renderFinished(): Promise<void>;
 }

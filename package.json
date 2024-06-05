@@ -1,6 +1,6 @@
 {
   "name": "@tebexio/tebex.js",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Integrate Tebex Checkout directly into your own website or game using our embedded checkout experience.",
   "type": "module",
   "main": "dist/tebex.cjs",
@@ -51,8 +51,10 @@
     "@rollup/plugin-replace": "^5.0.5",
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^11.1.6",
-    "@vitest/coverage-v8": "^1.6.0",
+    "@vitest/browser": "^1.6.0",
+    "@vitest/coverage-istanbul": "^1.6.0",
     "jsdom": "^24.1.0",
+    "playwright": "^1.44.1",
     "rollup": "^4.17.2",
     "rollup-plugin-dev": "^2.0.4",
     "rollup-plugin-import-css": "^3.5.0",
@@ -61,7 +63,6 @@
     "wrangler": "^3.56.0"
   },
   "dependencies": {
-    "bowser": "^2.11.0",
     "nanoevents": "^8.0.0",
     "zoid": "^9.0.86"
   }

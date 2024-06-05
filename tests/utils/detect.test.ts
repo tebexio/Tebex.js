@@ -13,53 +13,50 @@ beforeEach(() => {
 
 describe("isEnvBrowser", () => {
 
-    test("Returns true in test environment (because of jsdom)", () => {
+    test("Returns true in browser test environment", () => {
         expect(isEnvBrowser()).toEqual(true);
     });
 
-    test("Returns false if window object is undefined", () => {
-        vi.stubGlobal('window', undefined);
-        expect(isEnvBrowser()).toEqual(false);
-        vi.unstubAllGlobals();
-    });
+    // TODO: test that this returns false in non-browser environments
 
 });
 
 describe("isEnvNode", () => {
 
-    test("Returns true in test environment", () => {
-        expect(isEnvNode()).toEqual(true);
+    test("Returns false in browser test environment", () => {
+        expect(isEnvNode()).toEqual(false);
     });
 
-    test("Returns false if process object is undefined", () => {
-        vi.stubGlobal('process', undefined);
-        expect(isEnvNode()).toEqual(false);
+    test("Returns true if process object is defined", () => {
+        vi.stubGlobal('process', { versions: { node: "dummy" } });
+        expect(isEnvNode()).toEqual(true);
+        vi.unstubAllGlobals();
     });
 
 });
 
 describe("isApplePayAvailable", () => {
 
-    test("Returns false in test environment", () => {
+    test("Returns false in browser test environment", () => {
         expect(isApplePayAvailable()).toEqual(false);
     });
 
     test("Returns true if ApplePaySession is available on window object", () => {
-        vi.stubGlobal('window', {
-            document: {},
-            ApplePaySession: {
-                canMakePayments: () => true
-            }
+        vi.stubGlobal('ApplePaySession', {
+            canMakePayments: () => true
         });
         expect(isApplePayAvailable()).toEqual(true);
+        vi.unstubAllGlobals();
     });
 
 });
 
 describe("isMobile", () => {
 
-    test("Returns true in test environment", () => {
-        expect(isMobile()).toEqual(true);
+    test("Returns true in browser test environment", () => {
+        expect(isMobile("800px", "760px")).toEqual(true);
     });
+
+    // TODO: test that this returns false on larger viewports
 
 });

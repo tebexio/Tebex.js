@@ -1,8 +1,10 @@
-import { describe, test, expect, beforeEach } from "vitest";
+import { describe, test, expect, beforeEach, afterEach } from "vitest";
 
 import {
     createElement,
-    setAttributes,
+    setAttribute,
+    isInShadowDom,
+    isInDocument,
     h
 } from "../../src/utils/dom";
 
@@ -16,7 +18,7 @@ describe("createElement", () => {
 
 });
 
-describe("setAttributes", () => {
+describe("setAttribute", () => {
 
     let el: HTMLElement;
 
@@ -24,35 +26,90 @@ describe("setAttributes", () => {
         el = createElement("div");
     });
 
-    test("Adds attributes to a HTML element with string values", () => {
-        setAttributes(el, { test: "123" });
+    test("Adds attribute to a HTML element with string values", () => {
+        setAttribute(el, "test", "123");
         expect(el.outerHTML).toEqual(`<div test="123"></div>`);
     });
 
-    test("Adds attributes to a HTML element with number values", () => {
-        setAttributes(el, { test: 123 });
+    test("Adds attribute to a HTML element with number values", () => {
+        setAttribute(el, "test", 123);
         expect(el.outerHTML).toEqual(`<div test="123"></div>`);
-        setAttributes(el, { test: 0 });
+        setAttribute(el, "test", 0);
         expect(el.outerHTML).toEqual(`<div test="0"></div>`);
     });
 
-    test("Adds attributes to a HTML element with boolean values", () => {
-        setAttributes(el, { test: true });
+    test("Adds attribute to a HTML element with boolean values", () => {
+        setAttribute(el, "test", true);
         expect(el.outerHTML).toEqual(`<div test=""></div>`);
     });
 
-    test("Removes attributes from a HTML element if the new value is null", () => {
-        setAttributes(el, { test: true });
+    test("Removes attribute from a HTML element if the new value is null", () => {
+        setAttribute(el, "test", true);
         expect(el.outerHTML).toEqual(`<div test=""></div>`);
-        setAttributes(el, { test: null });
+        setAttribute(el, "test", null);
         expect(el.outerHTML).toEqual(`<div></div>`);
     });
 
-    test("Removes attributes from a HTML element if the new value is false", () => {
-        setAttributes(el, { test: true });
+    test("Removes attribute from a HTML element if the new value is false", () => {
+        setAttribute(el, "test", true);
         expect(el.outerHTML).toEqual(`<div test=""></div>`);
-        setAttributes(el, { test: false });
+        setAttribute(el, "test", false);
         expect(el.outerHTML).toEqual(`<div></div>`);
+    });
+
+});
+
+describe("isInShadowDom", () => {
+
+    afterEach(() => {
+        document.body.innerHTML = "";
+    });
+
+    test("Returns true if the element is in a shadow DOM element", () => {
+        class CustomElement extends HTMLElement {};
+        customElements.define("test-el", CustomElement);
+        const root = document.createElement("test-el");
+        const shadowRoot = root.attachShadow({ mode: "open" });
+        const el = document.createElement("div");
+        shadowRoot.append(el);
+        expect(isInShadowDom(el)).toBe(true);
+    });
+
+    test("Does return true for non-shadow-DOM elements", () => {
+        const el = document.createElement("div");
+        expect(isInShadowDom(el)).toBe(false);
+
+        document.body.append(el);
+        expect(isInShadowDom(el)).toBe(false);
+    });
+
+});
+
+describe("isInDocument", () => {
+
+    afterEach(() => {
+        document.body.innerHTML = "";
+    });
+
+    test("Returns true if the element is in the page", () => {
+        const el = document.createElement("div");
+        document.body.append(el);
+        expect(isInDocument(el)).toBe(true);
+    });
+
+    test("Returns true if the element is in a shadow DOM element", () => {
+        class CustomElement extends HTMLElement {};
+        customElements.define("test-el2", CustomElement);
+        const root = document.createElement("test-el2");
+        const shadowRoot = root.attachShadow({ mode: "open" });
+        const el = document.createElement("div");
+        shadowRoot.append(el);
+        expect(isInDocument(el)).toBe(true);
+    });
+
+    test("Does return true for non-page elements", () => {
+        const el = document.createElement("div");
+        expect(isInDocument(el)).toBe(false);
     });
 
 });
