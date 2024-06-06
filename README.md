@@ -21,7 +21,7 @@ npm install @tebexio/tebex.js
 The `Tebex` object can then be imported into your code like so:
 
 ```js
-import Tebex from '@tebexio/tebex.js'
+import Tebex from "@tebexio/tebex.js";
 ```
 
 #### From Our CDN
@@ -29,7 +29,7 @@ import Tebex from '@tebexio/tebex.js'
 Alternatively, we also provide Tebex.js via our own CDN, which you can add as a script within the `<head>` tag of your website:
 
 ```html
-<script defer src="https://js.tebex.io/v/1.0.0.js"></script>
+<script defer src="https://js.tebex.io/v/1.js"></script>
 ```
 
 > We will automatically update `v/1.js` with new minor and patch releases of Tebex.js. This shouldn't present any breaking changes, but if you would prefer to stay on a fixed version, you can specify the full version number in the URL, for example `https://js.tebex.io/v/1.1.1.js`. Version history can be found on our [releases](https://github.com/tebexio/Tebex.js/releases) page.
@@ -40,11 +40,11 @@ We recommend using `defer` on the script to prevent it from blocking your websit
 
 ```html
 <script>
-    addEventListener('load', function() {
+    addEventListener("load", function() {
         
         // Configure Tebex.js here
 
-    })
+    });
 </script>
 ```
 
@@ -55,7 +55,7 @@ Before your checkout can be launched, it must first be configured by calling the
 ```js
 Tebex.checkout.init({
     ident: "your checkout request ident goes here"
-})
+});
 ```
 
 The only required option is `ident`, which you must replace with the checkout request ident retrieved from using the Headless API or the Checkout API (depending on your integration method).
