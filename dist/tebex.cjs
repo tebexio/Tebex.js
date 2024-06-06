@@ -12598,7 +12598,7 @@
         await __classPrivateFieldGet(this, _Checkout_instances, "m", _Checkout_renderComponent).call(this, this.lightbox.holder, false);
         this.isOpen = true;
         this.emitter.emit("open");
-    }, _Checkout_buildComponent = function _Checkout_buildComponent(width = DEFAULT_HEIGHT, height = DEFAULT_HEIGHT) {
+    }, _Checkout_buildComponent = function _Checkout_buildComponent(width = DEFAULT_WIDTH, height = DEFAULT_HEIGHT) {
         this.component = zoid.create({
             tag: "tebex-js-checkout-component",
             url: () => this.endpoint + "/" + this.ident,
@@ -12644,7 +12644,7 @@
             isEmbedded: !popup,
             referrer: url.hostname,
             path: url.pathname,
-            version: "1.1.0"
+            version: "1.1.1"
         });
         await this.zoid.renderTo(window, container, popup ? "popup" : "iframe");
         __classPrivateFieldSet(this, _Checkout_didRender, true, "f");
@@ -12840,7 +12840,7 @@
     /**
      * Current Tebex.js package version
      */
-    const version = "1.1.0";
+    const version = "1.1.1";
     /**
      * Tebex checkout API
      */

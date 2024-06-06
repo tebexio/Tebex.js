@@ -226,7 +226,7 @@ export default class Checkout {
         this.emitter.emit("open");
     }
 
-    #buildComponent(width: CssDimension = DEFAULT_HEIGHT, height: CssDimension = DEFAULT_HEIGHT) {
+    #buildComponent(width: CssDimension = DEFAULT_WIDTH, height: CssDimension = DEFAULT_HEIGHT) {
         this.component = zoid.create({
             tag: "tebex-js-checkout-component",
             url: () => this.endpoint + "/" + this.ident,
