@@ -1,5 +1,7 @@
 import { Lightbox } from "./lightbox";
 import { type CssDimension, type Implements } from "./utils";
+export declare const THEME_NAMES: readonly ["default", "light", "dark"];
+export declare const COLOR_NAMES: readonly ["primary", "secondary"];
 export declare const EVENT_NAMES: readonly ["open", "close", "payment:complete", "payment:error"];
 /**
  * Configuration options for `Tebex.checkout.init()`.
@@ -35,12 +37,12 @@ export type CheckoutOptions = {
 /**
  * Color theme for the embedded Tebex checkout panel.
  */
-export type CheckoutTheme = "light" | "dark";
+export type CheckoutTheme = typeof THEME_NAMES[number];
 /**
  * Color definition. The `color` property can be set to any valid CSS color, so long as it does not rely on CSS Variables.
  */
 export type CheckoutColorDefinition = {
-    name: "primary" | "secondary";
+    name: typeof COLOR_NAMES[number];
     color: string;
 };
 /**
