@@ -1,0 +1,23 @@
+# This workflow will run tests and build when a pull request is opened or reopened
+
+name: PR
+
+on:
+    # Triggers the workflow on push or pull request events but only for the master branch
+    pull_request:
+      types: [opened, reopened]
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org/
+      - run: npm ci
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+      - run: npm test -- run
+      - run: npm run build
