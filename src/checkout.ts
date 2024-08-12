@@ -18,6 +18,18 @@ import {
 const DEFAULT_WIDTH = "800px";
 const DEFAULT_HEIGHT = "760px";
 
+export const THEME_NAMES = [
+    "default",
+    "light",
+    "dark",
+    // "auto", TODO: detect user's preference for light/dark theme
+] as const;
+
+export const COLOR_NAMES = [
+    "primary",
+    "secondary"
+] as const;
+
 export const EVENT_NAMES = [
     "open",
     "close",
@@ -60,16 +72,13 @@ export type CheckoutOptions = {
 /**
  * Color theme for the embedded Tebex checkout panel.
  */
-export type CheckoutTheme = 
-    | "light"
-    | "dark"
-;
+export type CheckoutTheme = typeof THEME_NAMES[number];
 
 /**
  * Color definition. The `color` property can be set to any valid CSS color, so long as it does not rely on CSS Variables.
  */
 export type CheckoutColorDefinition = {
-    name: "primary" | "secondary";
+    name: typeof COLOR_NAMES[number];
     color: string;
 }; // TODO: might make this legacy (but still supported), and just define colors as an object of { name: color }
 
@@ -94,7 +103,7 @@ export type CheckoutEventMap = Implements<Record<CheckoutEvent, Function>, {
 export default class Checkout {
 
     ident: string = null;
-    theme: CheckoutTheme = "light"; // TODO: add "auto" mode that auto-detects user theme preference
+    theme: CheckoutTheme = "default";
     colors: CheckoutColorDefinition[] =  [];
     endpoint = "https://pay.tebex.io";
     popupOnMobile = false;
@@ -120,10 +129,10 @@ export default class Checkout {
         this.popupOnMobile = options.popupOnMobile ?? this.popupOnMobile;
         
         assert(!isNullOrUndefined(this.ident), "ident option is required");
-        assert(["light", "dark"].includes(this.theme), `invalid theme option "${ this.theme }"`);
+        assert(THEME_NAMES.includes(this.theme), `invalid theme option "${ this.theme }"`);
 
         for (let { color, name } of this.colors) {
-            assert(["primary", "secondary"].includes(name), `invalid color name "${ name }"`);
+            assert(COLOR_NAMES.includes(name), `invalid color name "${ name }"`);
             assert(!color.includes("var("), `invalid ${ name } color: colors cannot include CSS variables`);
         }
     }

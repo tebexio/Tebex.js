@@ -12473,6 +12473,16 @@
     var _Checkout_instances, _Checkout_didRender, _Checkout_onRender, _Checkout_showLightbox, _Checkout_buildComponent, _Checkout_renderComponent;
     const DEFAULT_WIDTH = "800px";
     const DEFAULT_HEIGHT = "760px";
+    const THEME_NAMES = [
+        "default",
+        "light",
+        "dark",
+        // "auto", TODO: detect user's preference for light/dark theme
+    ];
+    const COLOR_NAMES = [
+        "primary",
+        "secondary"
+    ];
     const EVENT_NAMES = [
         "open",
         "close",
@@ -12486,7 +12496,7 @@
         constructor() {
             _Checkout_instances.add(this);
             this.ident = null;
-            this.theme = "light"; // TODO: add "auto" mode that auto-detects user theme preference
+            this.theme = "default";
             this.colors = [];
             this.endpoint = "https://pay.tebex.io";
             this.popupOnMobile = false;
@@ -12508,9 +12518,9 @@
             this.endpoint = options.endpoint ?? this.endpoint;
             this.popupOnMobile = options.popupOnMobile ?? this.popupOnMobile;
             assert(!isNullOrUndefined(this.ident), "ident option is required");
-            assert(["light", "dark"].includes(this.theme), `invalid theme option "${this.theme}"`);
+            assert(THEME_NAMES.includes(this.theme), `invalid theme option "${this.theme}"`);
             for (let { color, name } of this.colors) {
-                assert(["primary", "secondary"].includes(name), `invalid color name "${name}"`);
+                assert(COLOR_NAMES.includes(name), `invalid color name "${name}"`);
                 assert(!color.includes("var("), `invalid ${name} color: colors cannot include CSS variables`);
             }
         }
@@ -12644,7 +12654,7 @@
             isEmbedded: !popup,
             referrer: url.hostname,
             path: url.pathname,
-            version: "1.1.1"
+            version: "1.2.0"
         });
         await this.zoid.renderTo(window, container, popup ? "popup" : "iframe");
         __classPrivateFieldSet(this, _Checkout_didRender, true, "f");
@@ -12840,7 +12850,7 @@
     /**
      * Current Tebex.js package version
      */
-    const version = "1.1.1";
+    const version = "1.2.0";
     /**
      * Tebex checkout API
      */
