@@ -24,9 +24,9 @@ describe("Checkout", () => {
             expect(checkout.ident).toBe("test");
         });
 
-        test("Theme defaults to light", () => {
+        test("Theme defaults to 'default'", () => {
             checkout.init({ ident: "test" });
-            expect(checkout.theme).toBe("light");
+            expect(checkout.theme).toBe("default");
             checkout.init({ ident: "test", theme: "dark" });
             expect(checkout.theme).toBe("dark");
         });
