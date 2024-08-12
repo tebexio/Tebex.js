@@ -8,7 +8,7 @@ on:
       types: [opened, reopened]
 
 jobs:
-  publish-npm:
+  test-and-build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
