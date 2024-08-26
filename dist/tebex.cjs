@@ -12496,7 +12496,7 @@
         constructor() {
             _Checkout_instances.add(this);
             this.ident = null;
-            this.locale = "en_US";
+            this.locale = null;
             this.theme = "default";
             this.colors = [];
             this.endpoint = "https://pay.tebex.io";
@@ -12514,7 +12514,7 @@
          */
         init(options) {
             this.ident = options.ident;
-            this.locale = options.locale ?? (navigator.language || this.locale);
+            this.locale = options.locale ?? null;
             this.theme = options.theme ?? this.theme;
             this.colors = options.colors ?? this.colors;
             this.endpoint = options.endpoint ?? this.endpoint;

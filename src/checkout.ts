@@ -108,7 +108,7 @@ export type CheckoutEventMap = Implements<Record<CheckoutEvent, Function>, {
 export default class Checkout {
 
     ident: string = null;
-    locale: string = "en_US";
+    locale: string = null;
     theme: CheckoutTheme = "default";
     colors: CheckoutColorDefinition[] =  [];
     endpoint = "https://pay.tebex.io";
@@ -129,7 +129,7 @@ export default class Checkout {
      */
     init(options: CheckoutOptions) {
         this.ident = options.ident;
-        this.locale = options.locale ?? (navigator.language || this.locale);
+        this.locale = options.locale ?? null;
         this.theme = options.theme ?? this.theme;
         this.colors = options.colors ?? this.colors;
         this.endpoint = options.endpoint ?? this.endpoint;
