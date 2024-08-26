@@ -133,6 +133,7 @@ export class TebexCheckout extends HTMLElement {
     
         this.checkout.init({
             ident: getAttribute(this, "ident"),
+            locale: getAttribute(this, "locale"),
             theme: getAttribute(this, "theme") as CheckoutTheme,
             colors: colors,
             popupOnMobile: getAttribute(this, "popup-on-mobile") !== null,
