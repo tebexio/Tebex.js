@@ -150,6 +150,13 @@ export class TebexCheckout extends HTMLElement {
             this.#updatePopupState();
         }
 
+        this.checkout.on("payment:complete", () => {
+            if (this.hasAttribute("redirect-on-complete")) {
+                const url = this.getAttribute("redirect-on-complete");
+                location.href = url;
+            }
+        });
+
         this.#attachClickHandlers();
     }
 
