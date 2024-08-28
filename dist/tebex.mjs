@@ -12417,7 +12417,7 @@ let createNanoEvents = () => ({
   }
 });
 
-var styles$1 = ".tebex-js-lightbox{all:unset;zoom:1;forced-color-adjust:none;position:fixed;left:0;top:0;width:100vw;height:100vh;z-index:var(--tebex-js-z-index,9999999);background:var(--tebex-js-lightbox-bg,rgba(0,0,0,.8));opacity:0;transition-property:opacity;transition-duration:var(--tebex-js-duration,.4s);transition-timing-function:var(--tebex-js-timing,ease);will-change:opacity;display:flex;justify-content:center;align-items:center;}.tebex-js-lightbox--visible{opacity:1;}.tebex-js-lightbox__holder{display:block;border:0;overflow:hidden;border-radius:5px;}.tebex-js-lightbox__holder > div{display:block!important;}";
+var styles$1 = ".tebex-js-lightbox{all:unset;zoom:1;forced-color-adjust:none;position:fixed;left:0;top:0;width:100vw;height:100vh;z-index:var(--tebex-js-z-index,9999999);background:var(--tebex-js-lightbox-bg,rgba(0,0,0,.8));opacity:0;transition-property:opacity;transition-duration:var(--tebex-js-duration,.4s);transition-timing-function:var(--tebex-js-timing,ease);will-change:opacity;display:flex;justify-content:center;align-items:center;user-select:none;-webkit-user-select:none;-moz-user-select:none;}.tebex-js-lightbox--visible{opacity:1;}.tebex-js-lightbox__holder{display:block;border:0;overflow:hidden;border-radius:5px;}.tebex-js-lightbox__holder > div{display:block!important;}";
 
 class Lightbox {
     constructor() {
@@ -12490,6 +12490,7 @@ class Checkout {
     constructor() {
         _Checkout_instances.add(this);
         this.ident = null;
+        this.locale = null;
         this.theme = "default";
         this.colors = [];
         this.endpoint = "https://pay.tebex.io";
@@ -12507,6 +12508,7 @@ class Checkout {
      */
     init(options) {
         this.ident = options.ident;
+        this.locale = options.locale ?? null;
         this.theme = options.theme ?? this.theme;
         this.colors = options.colors ?? this.colors;
         this.endpoint = options.endpoint ?? this.endpoint;
@@ -12626,6 +12628,7 @@ _Checkout_didRender = new WeakMap(), _Checkout_onRender = new WeakMap(), _Checko
     if (!this.component)
         __classPrivateFieldGet(this, _Checkout_instances, "m", _Checkout_buildComponent).call(this);
     this.zoid = this.component({
+        locale: this.locale,
         colors: this.colors,
         theme: this.theme,
         onOpenWindow: (url) => {
@@ -12648,7 +12651,7 @@ _Checkout_didRender = new WeakMap(), _Checkout_onRender = new WeakMap(), _Checko
         isEmbedded: !popup,
         referrer: url.hostname,
         path: url.pathname,
-        version: "1.2.0"
+        version: "1.3.0"
     });
     await this.zoid.renderTo(window, container, popup ? "popup" : "iframe");
     __classPrivateFieldSet(this, _Checkout_didRender, true, "f");
@@ -12801,6 +12804,7 @@ _TebexCheckout_attachClickHandlers = new WeakMap(), _TebexCheckout_instances = n
         colors.push({ name: "secondary", color: getAttribute(this, "color-secondary") });
     this.checkout.init({
         ident: getAttribute(this, "ident"),
+        locale: getAttribute(this, "locale"),
         theme: getAttribute(this, "theme"),
         colors: colors,
         popupOnMobile: getAttribute(this, "popup-on-mobile") !== null,
@@ -12813,6 +12817,12 @@ _TebexCheckout_attachClickHandlers = new WeakMap(), _TebexCheckout_instances = n
         this.checkout.on("close", () => this.removeAttribute("open"));
         __classPrivateFieldGet(this, _TebexCheckout_instances, "m", _TebexCheckout_updatePopupState).call(this);
     }
+    this.checkout.on("payment:complete", () => {
+        if (this.hasAttribute("redirect-on-complete")) {
+            const url = this.getAttribute("redirect-on-complete");
+            location.href = url;
+        }
+    });
     __classPrivateFieldGet(this, _TebexCheckout_attachClickHandlers, "f").call(this);
 }, _TebexCheckout_updatePopupState = function _TebexCheckout_updatePopupState() {
     // Opening and closing the checkout is only for "popover" mode
@@ -12844,7 +12854,7 @@ if (isEnvBrowser())
 /**
  * Current Tebex.js package version
  */
-const version = "1.2.0";
+const version = "1.3.0";
 /**
  * Tebex checkout API
  */

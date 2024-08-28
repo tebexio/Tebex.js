@@ -21,6 +21,10 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    /* Prevent selection when lightbox background is clicked */
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
 }
 
 .tebex-js-lightbox--visible {
