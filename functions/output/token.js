@@ -1,7 +1,7 @@
-const HEADLESS_API_ENDPOINT = __HEADLESS_API_ENDPOINT__;
-const ACCOUNT_ID = __ACCOUNT_ID__;
+const HEADLESS_API_ENDPOINT = "https://headless.dev.tebex.io";
+const ACCOUNT_ID = "t6c9-0927595131662ac732bf5f1d9bd5570482db5316";
 
-export async function onRequest(request, env, context) {
+async function onRequest(request, env, context) {
     let createBasketRequest = await fetch(`${HEADLESS_API_ENDPOINT}/api/accounts/${ACCOUNT_ID}/baskets`, {
         method: "POST",
         body: JSON.stringify({
@@ -46,3 +46,4 @@ export async function onRequest(request, env, context) {
     });
 }
 
+export { onRequest };

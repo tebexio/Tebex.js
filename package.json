@@ -57,12 +57,14 @@
     "playwright": "^1.44.1",
     "rollup": "^4.17.2",
     "rollup-plugin-dev": "^2.0.4",
+    "rollup-plugin-dotenv": "^0.5.1",
     "rollup-plugin-import-css": "^3.5.0",
     "rollup-plugin-node-globals": "^1.4.0",
     "vitest": "^1.6.0",
     "wrangler": "^3.56.0"
   },
   "dependencies": {
+    "dotenv": "^16.4.5",
     "nanoevents": "^8.0.0",
     "zoid": "^9.0.86"
   }
