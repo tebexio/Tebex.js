@@ -10,3 +10,6 @@ node_modules*
 tsconfig.vitest-temp.json
 coverage
 .env
+
+example/output
+functions/output

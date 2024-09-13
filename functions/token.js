@@ -1,7 +1,7 @@
-const HEADLESS_API_ENDPOINT = __HEADLESS_API_ENDPOINT__;
-const ACCOUNT_ID = __ACCOUNT_ID__;
-
 export async function onRequest(request, env, context) {
+    const HEADLESS_API_ENDPOINT = __HEADLESS_API_ENDPOINT__;
+    const ACCOUNT_ID = __ACCOUNT_ID__;
+
     let createBasketRequest = await fetch(`${HEADLESS_API_ENDPOINT}/api/accounts/${ACCOUNT_ID}/baskets`, {
         method: "POST",
         body: JSON.stringify({

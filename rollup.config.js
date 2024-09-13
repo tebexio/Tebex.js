@@ -76,7 +76,7 @@ export default [
                 preventAssignment: true,
                 __VERSION__: JSON.stringify(pkg.version),
             }),
-        ].filter(Boolean),
+        ],
         output: [
             // browser-only build
             isBrowser && {
