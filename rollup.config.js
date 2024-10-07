@@ -106,22 +106,6 @@ export default [
             },
         ].filter(Boolean),
     },
-    // Functions build
-    {
-        input: "functions/token.js",
-        output: [
-            {
-                file: "functions/output/token.js",
-            },
-        ],
-        plugins: [
-            replace({
-                preventAssignment: true,
-                __HEADLESS_API_ENDPOINT__: `"${process.env.HEADLESS_API_ENDPOINT}"`,
-                __ACCOUNT_ID__: `"${process.env.ACCOUNT_ID}"`,
-            }),
-        ],
-    },
     // Example build
     {
         input: "example/index.js",
@@ -135,7 +119,7 @@ export default [
             commonjs(),
             replace({
                 preventAssignment: true,
-                __ENDPOINT__: `"${process.env.ENDPOINT}"`,
+                __ENDPOINT__: `"${process.env.CHECKOUT_HOST_ENDPOINT}"`,
             }),
             isServer &&
                 dev({
@@ -144,7 +128,7 @@ export default [
                     port: "8080",
                     dirs: ["example", "dist", "example/output"],
                     // Proxy all function routes through to locally running cloudflare pages instance
-                    proxy: readdirSync("./functions/output")
+                    proxy: readdirSync("./functions")
                         .map((p) => path.parse(p).name)
                         .map((route) => ({
                             from: `/${route}`,
