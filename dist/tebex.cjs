@@ -12474,10 +12474,10 @@
     const DEFAULT_WIDTH = "800px";
     const DEFAULT_HEIGHT = "760px";
     const THEME_NAMES = [
+        "auto",
         "default",
         "light",
-        "dark",
-        // "auto", TODO: detect user's preference for light/dark theme
+        "dark"
     ];
     const COLOR_NAMES = [
         "primary",
@@ -12656,8 +12656,10 @@
             isApplePayAvailable: isApplePayAvailable(),
             isEmbedded: !popup,
             referrer: url.hostname,
+            origin: url.origin,
             path: url.pathname,
-            version: "1.3.0"
+            params: url.search,
+            version: "1.4.0",
         });
         await this.zoid.renderTo(window, container, popup ? "popup" : "iframe");
         __classPrivateFieldSet(this, _Checkout_didRender, true, "f");
@@ -12860,7 +12862,7 @@
     /**
      * Current Tebex.js package version
      */
-    const version = "1.3.0";
+    const version = "1.4.0";
     /**
      * Tebex checkout API
      */

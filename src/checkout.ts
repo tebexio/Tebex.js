@@ -19,10 +19,10 @@ const DEFAULT_WIDTH = "800px";
 const DEFAULT_HEIGHT = "760px";
 
 export const THEME_NAMES = [
+    "auto",
     "default",
     "light",
-    "dark",
-    // "auto", TODO: detect user's preference for light/dark theme
+    "dark"
 ] as const;
 
 export const COLOR_NAMES = [
@@ -293,8 +293,10 @@ export default class Checkout {
             isApplePayAvailable: isApplePayAvailable(),
             isEmbedded: !popup,
             referrer: url.hostname,
+            origin: url.origin,
             path: url.pathname,
-            version: __VERSION__
+            params: url.search,
+            version: __VERSION__,
         });
 
         await this.zoid.renderTo(window, container, popup ? "popup" : "iframe");

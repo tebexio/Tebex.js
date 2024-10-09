@@ -12468,10 +12468,10 @@ var _Checkout_instances, _Checkout_didRender, _Checkout_onRender, _Checkout_show
 const DEFAULT_WIDTH = "800px";
 const DEFAULT_HEIGHT = "760px";
 const THEME_NAMES = [
+    "auto",
     "default",
     "light",
-    "dark",
-    // "auto", TODO: detect user's preference for light/dark theme
+    "dark"
 ];
 const COLOR_NAMES = [
     "primary",
@@ -12650,8 +12650,10 @@ _Checkout_didRender = new WeakMap(), _Checkout_onRender = new WeakMap(), _Checko
         isApplePayAvailable: isApplePayAvailable(),
         isEmbedded: !popup,
         referrer: url.hostname,
+        origin: url.origin,
         path: url.pathname,
-        version: "1.3.0"
+        params: url.search,
+        version: "1.4.0",
     });
     await this.zoid.renderTo(window, container, popup ? "popup" : "iframe");
     __classPrivateFieldSet(this, _Checkout_didRender, true, "f");
@@ -12854,7 +12856,7 @@ if (isEnvBrowser())
 /**
  * Current Tebex.js package version
  */
-const version = "1.3.0";
+const version = "1.4.0";
 /**
  * Tebex checkout API
  */
