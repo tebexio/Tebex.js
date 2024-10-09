@@ -1,6 +1,6 @@
 import { Lightbox } from "./lightbox";
 import { type CssDimension, type Implements } from "./utils";
-export declare const THEME_NAMES: readonly ["default", "light", "dark"];
+export declare const THEME_NAMES: readonly ["auto", "default", "light", "dark"];
 export declare const COLOR_NAMES: readonly ["primary", "secondary"];
 export declare const EVENT_NAMES: readonly ["open", "close", "payment:complete", "payment:error"];
 /**
