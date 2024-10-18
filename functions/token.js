@@ -1,38 +1,74 @@
-export async function onRequest(context) {
-    let createBasketRequest = await fetch("https://headless.tebex.io/api/accounts/t6c9-0927595131662ac732bf5f1d9bd5570482db5316/baskets", {
-        method: "POST",
-        body: JSON.stringify({
-            username: "Notch",
-            complete_url: "https://tebex-js.pages.dev/complete",
-            cancel_url: "https://tebex-js.pages.dev/cancel",
-        }),
+function respondWithError(message, status = 500) {
+    return new Response(JSON.stringify({ error: message }), {
+        status,
         headers: {
             "content-type": "application/json;charset=UTF-8",
-        }
+        },
     });
+}
 
-    const createBasketResponse = await createBasketRequest.json();
-    const basketIdent = createBasketResponse.data.ident;
+export async function onRequest(request) {
+    const env = request.env;
 
-    await fetch(`https://headless.tebex.io/api/baskets/${basketIdent}/packages`, {
-        method: "POST",
-        body: JSON.stringify({
-            package_id: 5987844
-        }),
-        headers: {
-            "content-type": "application/json;charset=UTF-8",
+    let basketIdent;
+
+    try {
+        const response = await fetch(
+            `${env.HEADLESS_API_ENDPOINT}/api/accounts/${env.ACCOUNT_ID}/baskets`,
+            {
+                method: "POST",
+                headers: {
+                    Accept: "application/json",
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    username: `${env.USERNAME}`,
+                    complete_url: "https://tebex-js.pages.dev/complete",
+                    cancel_url: "https://tebex-js.pages.dev/cancel",
+                }),
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error("Failed to create basket");
         }
-    });
 
-    await fetch(`https://headless.tebex.io/api/baskets/${basketIdent}/packages`, {
-        method: "POST",
-        body: JSON.stringify({
-            package_id: 5987895
-        }),
-        headers: {
-            "content-type": "application/json;charset=UTF-8",
+        const { data } = await response.json();
+
+        console.log("Basket created", data);
+
+        basketIdent = data.ident;
+    } catch (e) {
+        return respondWithError("Failed to create basket");
+    }
+
+    console.log("Basket ident: ", basketIdent);
+
+    let packageIds = env.PACKAGE_IDS.split(",");
+
+    for (let packageId of packageIds) {
+        try {
+            const response = await fetch(
+                `${env.HEADLESS_API_ENDPOINT}/api/baskets/${basketIdent}/packages`,
+                {
+                    method: "POST",
+                    body: JSON.stringify({
+                        package_id: packageId,
+                    }),
+                    headers: {
+                        "content-type": "application/json;charset=UTF-8",
+                    },
+                }
+            );
+
+            if (!response.ok) {
+                console.log(await response.text());
+                throw new Error("Failed to add package to basket");
+            }
+        } catch (e) {
+            return respondWithError("Failed to add package to basket");
         }
-    });
+    }
 
     const json = JSON.stringify({ ident: basketIdent }, null, 2);
 
@@ -42,4 +78,3 @@ export async function onRequest(context) {
         },
     });
 }
-
