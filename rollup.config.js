@@ -15,7 +15,7 @@ import css from "rollup-plugin-import-css";
 import dev from "rollup-plugin-dev";
 import dotenv from "dotenv";
 
-dotenv.config();
+dotenv.config({ path: '.dev.vars' });
 
 const build = process.env.BUILD ?? "browser";
 const isBrowser = build === "browser";
@@ -119,7 +119,7 @@ export default [
             commonjs(),
             replace({
                 preventAssignment: true,
-                __ENDPOINT__: `"${process.env.CHECKOUT_HOST_ENDPOINT}"`,
+                __ENDPOINT__: `"${process.env.CHECKOUT_HOST_ENDPOINT || "https://pay.tebex.io"}"`,
             }),
             isServer &&
                 dev({
