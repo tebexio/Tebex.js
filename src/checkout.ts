@@ -19,10 +19,10 @@ const DEFAULT_WIDTH = "800px";
 const DEFAULT_HEIGHT = "760px";
 
 export const THEME_NAMES = [
+    "auto",
     "default",
     "light",
-    "dark",
-    // "auto", TODO: detect user's preference for light/dark theme
+    "dark"
 ] as const;
 
 export const COLOR_NAMES = [
@@ -45,6 +45,11 @@ export type CheckoutOptions = {
      * The checkout request ident received from either the Headless or Checkout APIs.
      */
     ident: string;
+    /**
+     * The default language to use, defined as an ISO locale code - e.g. `"en_US" for American English, "de_DE" for German, etc.
+     * @default `navigator.language`
+     */
+    locale?: string;
     /**
      * Tebex checkout panel color theme.
      * @default "light"
@@ -103,6 +108,7 @@ export type CheckoutEventMap = Implements<Record<CheckoutEvent, Function>, {
 export default class Checkout {
 
     ident: string = null;
+    locale: string = null;
     theme: CheckoutTheme = "default";
     colors: CheckoutColorDefinition[] =  [];
     endpoint = "https://pay.tebex.io";
@@ -123,6 +129,7 @@ export default class Checkout {
      */
     init(options: CheckoutOptions) {
         this.ident = options.ident;
+        this.locale = options.locale ?? null;
         this.theme = options.theme ?? this.theme;
         this.colors = options.colors ?? this.colors;
         this.endpoint = options.endpoint ?? this.endpoint;
@@ -263,6 +270,7 @@ export default class Checkout {
             this.#buildComponent();
 
         this.zoid = this.component({
+            locale: this.locale,
             colors: this.colors,
             theme: this.theme,
             onOpenWindow: (url) => {
@@ -285,8 +293,10 @@ export default class Checkout {
             isApplePayAvailable: isApplePayAvailable(),
             isEmbedded: !popup,
             referrer: url.hostname,
+            origin: url.origin,
             path: url.pathname,
-            version: __VERSION__
+            params: url.search,
+            version: __VERSION__,
         });
 
         await this.zoid.renderTo(window, container, popup ? "popup" : "iframe");

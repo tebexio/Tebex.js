@@ -133,6 +133,7 @@ export class TebexCheckout extends HTMLElement {
     
         this.checkout.init({
             ident: getAttribute(this, "ident"),
+            locale: getAttribute(this, "locale"),
             theme: getAttribute(this, "theme") as CheckoutTheme,
             colors: colors,
             popupOnMobile: getAttribute(this, "popup-on-mobile") !== null,
@@ -148,6 +149,13 @@ export class TebexCheckout extends HTMLElement {
             this.checkout.on("close", () => this.removeAttribute("open"));
             this.#updatePopupState();
         }
+
+        this.checkout.on("payment:complete", () => {
+            if (this.hasAttribute("redirect-on-complete")) {
+                const url = this.getAttribute("redirect-on-complete");
+                location.href = url;
+            }
+        });
 
         this.#attachClickHandlers();
     }

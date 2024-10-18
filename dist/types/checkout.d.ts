@@ -1,6 +1,6 @@
 import { Lightbox } from "./lightbox";
 import { type CssDimension, type Implements } from "./utils";
-export declare const THEME_NAMES: readonly ["default", "light", "dark"];
+export declare const THEME_NAMES: readonly ["auto", "default", "light", "dark"];
 export declare const COLOR_NAMES: readonly ["primary", "secondary"];
 export declare const EVENT_NAMES: readonly ["open", "close", "payment:complete", "payment:error"];
 /**
@@ -11,6 +11,11 @@ export type CheckoutOptions = {
      * The checkout request ident received from either the Headless or Checkout APIs.
      */
     ident: string;
+    /**
+     * The default language to use, defined as an ISO locale code - e.g. `"en_US" for American English, "de_DE" for German, etc.
+     * @default `navigator.language`
+     */
+    locale?: string;
     /**
      * Tebex checkout panel color theme.
      * @default "light"
@@ -64,6 +69,7 @@ export type CheckoutEventMap = Implements<Record<CheckoutEvent, Function>, {
 export default class Checkout {
     #private;
     ident: string;
+    locale: string;
     theme: CheckoutTheme;
     colors: CheckoutColorDefinition[];
     endpoint: string;

@@ -27,61 +27,40 @@
   <body>
     <div class="fixed-background"></div>
     <div class="container">
-      <div class="content text-center" id="loading-spinner">
-        <div class="lds-ring">
-          <div></div>
-          <div></div>
-          <div></div>
-          <div></div>
+        <div class="content text-center" id="loading-spinner"><div class="lds-ring"><div></div><div></div><div></div><div></div></div></div>
+        <div class="hide" id="loading-container">
+            <img src="logo.png" class="logo" />
+            <div class="content">
+                <h1>Checkout</h1>
+                <h2>The all-in-one monetization platform designed to grow your game's revenue</h2>
+                <h3>No hidden fees, 3-day payouts & chargeback insurance.</h3>
+                <div class="config">
+                    <div class="form-input">
+                        <span>Theme</span>
+                        <select id="popup-theme">
+                            <option value="default">Default</option>
+                            <option value="auto">Auto</option>
+                            <option value="light">Light</option>
+                            <option value="dark">Dark</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="config">
+                    <div class="form-input">
+                        <span>Primary Color</span>
+                        <input type="text" data-coloris name="primary" class="color-selections">
+                    </div>
+                    <div class="form-input">
+                        <span>Secondary Color</span>
+                        <input type="text" data-coloris name="secondary" class="color-selections">
+                    </div>
+                </div>
+                <div class="open">
+                    <button onclick="launch()">Open Demo</button>
+                    <a class="button" href="https://docs.tebex.io/developers/tebex.js">View Documentation</a>
+                </div>
+            </div>
         </div>
-      </div>
-      <div class="hide" id="loading-container">
-        <img src="logo.png" class="logo" />
-        <div class="content">
-          <h1>Checkout</h1>
-          <h2>
-            The all-in-one monetization platform designed to grow your game's
-            revenue
-          </h2>
-          <h3>No hidden fees, 3-day payouts & chargeback insurance.</h3>
-          <div class="config">
-            <div class="form-input">
-              <span>Theme</span>
-              <select id="popup-theme">
-                <option value="default">Default</option>
-                <option value="light">Light</option>
-                <option value="dark">Dark</option>
-              </select>
-            </div>
-          </div>
-          <div class="config">
-            <div class="form-input">
-              <span>Primary Color</span>
-              <input
-                type="text"
-                data-coloris
-                name="primary"
-                class="color-selections"
-              />
-            </div>
-            <div class="form-input">
-              <span>Secondary Color</span>
-              <input
-                type="text"
-                data-coloris
-                name="secondary"
-                class="color-selections"
-              />
-            </div>
-          </div>
-          <div class="open">
-            <button onclick="launch()">Open Demo</button>
-            <a class="button" href="https://docs.tebex.io/developers/tebex.js"
-              >View Documentation</a
-            >
-          </div>
-        </div>
-      </div>
     </div>
 
     <script defer src="output/index.js"></script>
