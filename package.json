@@ -42,8 +42,7 @@
     "start": "npm run start:pages & npm run start:rollup",
     "start:pages": "WRANGLER_LOG=info && wrangler pages dev --port 8787 --compatibility-date=2024-05-12 ./example",
     "start:rollup": "rollup -c -w --environment SERVER,BUILD:browser",
-    "prepublishOnly": "npm run build",
-    "postinstall": "node ./postinstall.js"
+    "prepublishOnly": "npm run build"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^25.0.7",
