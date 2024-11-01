@@ -130,8 +130,7 @@ export default [
                 }"`,
             }),
             copy({
-                targets: [{ src: ["./example/*", '!./example/*.html', '!./example/index.js'], dest: exampleDist }],
-                hook: 'writeBundle'
+                targets: [{ src: ["./example/*", '!./example/*.html', '!./example/index.js', '!./example/dist'], dest: exampleDist }],
             }),
             htmlTemplate({
                 template: "example/index.html",
