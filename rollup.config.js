@@ -11,11 +11,13 @@ import globals from "rollup-plugin-node-globals";
 import replace from "@rollup/plugin-replace";
 import terser from "@rollup/plugin-terser";
 import css from "rollup-plugin-import-css";
+import htmlTemplate from "rollup-plugin-generate-html-template";
+import copy from "rollup-plugin-copy";
 
 import dev from "rollup-plugin-dev";
 import dotenv from "dotenv";
 
-dotenv.config({ path: '.dev.vars' });
+dotenv.config({ path: ".dev.vars" });
 
 const build = process.env.BUILD ?? "browser";
 const isBrowser = build === "browser";
@@ -32,6 +34,8 @@ const bannerMessage = readFileSync("./LICENSE")
 const banner = `/**!
 ${bannerMessage}
  */`;
+
+const exampleDist = isServer ? "example/.dist" : "example/dist";
 
 export default [
     // Main Tebex.js build
@@ -111,7 +115,9 @@ export default [
         input: "example/index.js",
         output: [
             {
-                file: "example/output/index.js",
+                // Use a different output file for local server builds to preven accidentally overriding the build
+                // when running locally
+                file: `${exampleDist}/index.js`,
             },
         ],
         plugins: [
@@ -119,14 +125,25 @@ export default [
             commonjs(),
             replace({
                 preventAssignment: true,
-                __ENDPOINT__: `"${process.env.CHECKOUT_HOST_ENDPOINT || "https://pay.tebex.io"}"`,
+                __ENDPOINT__: `"${
+                    process.env.CHECKOUT_HOST_ENDPOINT || "https://pay.tebex.io"
+                }"`,
+            }),
+            copy({
+                targets: [{ src: ["./example/*", '!./example/*.html', '!./example/index.js'], dest: exampleDist }],
+                hook: 'writeBundle'
+            }),
+            htmlTemplate({
+                template: "example/index.html",
+                target: `${exampleDist}/index.html`,
+                attrs: ["defer"],
             }),
             isServer &&
                 dev({
                     silent: true,
                     host: "localhost",
                     port: "8080",
-                    dirs: ["example", "dist", "example/output"],
+                    dirs: ["dist", "example/.dist"],
                     // Proxy all function routes through to locally running cloudflare pages instance
                     proxy: readdirSync("./functions")
                         .map((p) => path.parse(p).name)
