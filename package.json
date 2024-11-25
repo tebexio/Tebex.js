@@ -52,10 +52,10 @@
     "@rollup/plugin-replace": "^5.0.5",
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^11.1.6",
-    "@vitest/browser": "^1.6.0",
-    "@vitest/coverage-istanbul": "^1.6.0",
+    "@vitest/browser": "^2.1.5",
+    "@vitest/coverage-istanbul": "^2.1.5",
     "jsdom": "^24.1.0",
-    "playwright": "^1.44.1",
+    "playwright": "^1.49.0",
     "rollup": "^4.17.2",
     "rollup-plugin-bundle-inject": "^1.0.3",
     "rollup-plugin-copy": "^3.5.0",
@@ -65,7 +65,7 @@
     "rollup-plugin-html": "^0.2.1",
     "rollup-plugin-import-css": "^3.5.0",
     "rollup-plugin-node-globals": "^1.4.0",
-    "vitest": "^1.6.0",
+    "vitest": "^2.1.5",
     "wrangler": "^3.56.0"
   },
   "dependencies": {
