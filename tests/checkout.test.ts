@@ -44,6 +44,20 @@ describe("Checkout", () => {
             checkout.init({ ident: "test", endpoint: "https://pay.test.tebex.io" });
             expect(checkout.endpoint).toBe("https://pay.test.tebex.io");
         });
+
+        test("Can set closeOnClickOutside, which defaults to false", () => {
+            checkout.init({ ident: "test" });
+            expect(checkout.closeOnClickOutside).toBe(false);
+            checkout.init({ ident: "test", closeOnClickOutside: true });
+            expect(checkout.closeOnClickOutside).toBe(true);
+        });
+
+        test("Can set closeOnEsc, which defaults to false", () => {
+            checkout.init({ ident: "test" });
+            expect(checkout.closeOnEsc).toBe(false);
+            checkout.init({ ident: "test", closeOnEsc: true });
+            expect(checkout.closeOnEsc).toBe(true);
+        });
         
         test("Throws if ident option is not specified", () => {
             expect(() => checkout.init({} as any)).toThrow();

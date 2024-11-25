@@ -52,6 +52,8 @@ describe("Typechecks", () => {
             expectTypeOf(tebex.checkout.init).parameter(0).toMatchTypeOf<{
                 ident: string;
                 theme?: "light" | "dark" | "default" | "auto";
+                closeOnClickOutside?: boolean;
+                closeOnEsc?: boolean;
                 colors?: {
                     name: "primary" | "secondary",
                     color: string

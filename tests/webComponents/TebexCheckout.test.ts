@@ -71,6 +71,17 @@ describe("<tebex-checkout> Web component", () => {
             expect(el.checkout.theme).toEqual("dark");
         });
 
+        test("Close behavior can be set with the close-on-click-outside and close-on-esc attributes", () => {
+            const el = document.createElement("tebex-checkout") as TebexCheckout;
+            document.body.append(el);
+            el.setAttribute("close-on-click-outside", "aaaa");
+            el.setAttribute("close-on-esc", "aaaa");
+            el.setAttribute("ident", __TEST_BASKET_IDENT__);
+
+            expect(el.checkout.closeOnClickOutside).toEqual(true);
+            expect(el.checkout.closeOnEsc).toEqual(true);
+        });
+
         test("Colors can be set with the color-primary and color-secondary attributes", () => {
             const el = document.createElement("tebex-checkout") as TebexCheckout;
             document.body.append(el);

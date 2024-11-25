@@ -61,6 +61,16 @@ export type CheckoutOptions = {
      */
     colors?: CheckoutColorDefinition[];
     /**
+     * Whether to close the Tebex.js popup when the user clicks outside of the modal.
+     * @default false
+     */
+    closeOnClickOutside?: boolean;
+    /**
+     * Whether to close the Tebex.js popup when the user presses the Escape key.
+     * @default false
+     */
+    closeOnEsc?: boolean;
+    /**
      * Whether to still display a popup on mobile or not. If `false` or undefined, then calling `launch()` will open a new window on mobile devices.
      * @default false
      * @internal
@@ -111,8 +121,10 @@ export default class Checkout {
     locale: string = null;
     theme: CheckoutTheme = "default";
     colors: CheckoutColorDefinition[] =  [];
-    endpoint = "https://pay.tebex.io";
+    closeOnClickOutside = false;
+    closeOnEsc = false;
     popupOnMobile = false;
+    endpoint = "https://pay.tebex.io";
 
     isOpen = false;
     emitter = createNanoEvents<CheckoutEventMap>();
@@ -132,8 +144,10 @@ export default class Checkout {
         this.locale = options.locale ?? null;
         this.theme = options.theme ?? this.theme;
         this.colors = options.colors ?? this.colors;
-        this.endpoint = options.endpoint ?? this.endpoint;
+        this.closeOnClickOutside = options.closeOnClickOutside ?? this.closeOnClickOutside;
+        this.closeOnEsc = options.closeOnEsc ?? this.closeOnEsc;
         this.popupOnMobile = options.popupOnMobile ?? this.popupOnMobile;
+        this.endpoint = options.endpoint ?? this.endpoint;
         
         assert(!isNullOrUndefined(this.ident), "ident option is required");
         assert(THEME_NAMES.includes(this.theme), `invalid theme option "${ this.theme }"`);
@@ -232,12 +246,24 @@ export default class Checkout {
         });
     }
 
+    #onRequestLightboxClose = async () => {
+        if (this.isOpen)
+            await this.close();
+    };
+
     async #showLightbox() {
         if (!this.lightbox)
             this.lightbox = new Lightbox();
 
+        if (this.closeOnClickOutside)
+            this.lightbox.clickOutsideHandler = this.#onRequestLightboxClose;
+
+        if (this.closeOnEsc)
+            this.lightbox.escKeyHandler = this.#onRequestLightboxClose;
+
         await this.lightbox.show();
         await this.#renderComponent(this.lightbox.holder, false);
+
         this.isOpen = true;
         this.emitter.emit("open");
     }
@@ -272,6 +298,8 @@ export default class Checkout {
         this.zoid = this.component({
             locale: this.locale,
             colors: this.colors,
+            closeOnClickOutside: this.closeOnClickOutside,
+            closeOnEsc: this.closeOnEsc,
             theme: this.theme,
             onOpenWindow: (url) => {
                 window.open(url);

@@ -14,7 +14,12 @@ export const nextFrame = async () => new Promise<void>((resolve) => {
  * @internal
  */
 export const transitionEnd = async (el: Element) => new Promise<void>((resolve) => {
-    if (!getComputedStyle(el).transition)
+    const style = getComputedStyle(el);
+
+    if (!style.transition)
+        resolve();
+
+    if (parseFloat(style.transitionDuration) === 0)
         resolve();
 
     const done = () => {

@@ -9,11 +9,17 @@ import {
 
 import styles from "./styles/lightbox.css?inline";
 
+export type LightboxClickOutsideHandler = (e: MouseEvent) => void;
+export type LightboxEscKeyHandler = (e: KeyboardEvent) => void;
+
 export class Lightbox {
 
     body: HTMLElement;
     root: HTMLElement;
     holder: HTMLElement;
+
+    clickOutsideHandler: LightboxClickOutsideHandler | null = null;
+    escKeyHandler: LightboxEscKeyHandler | null = null;
 
     constructor() {
         assert(isEnvBrowser());
@@ -40,9 +46,13 @@ export class Lightbox {
         await nextFrame();
         this.root.classList.add("tebex-js-lightbox--visible");
         await transitionEnd(this.root);
+        this.body.addEventListener("click", this.#onClickOutside);
+        this.body.addEventListener("keydown", this.#onKeyPress);
     }
 
     async hide() {
+        this.body.removeEventListener("click", this.#onClickOutside);
+        this.body.removeEventListener("keydown", this.#onKeyPress);
         this.root.classList.remove("tebex-js-lightbox--visible");
         await nextFrame();
         await transitionEnd(this.root);
@@ -50,7 +60,26 @@ export class Lightbox {
     }
 
     destroy() {
-        if (this.root.parentNode)
-            this.body.removeChild(this.root);
+        if (!this.root.parentNode)
+            return;
+        this.body.removeEventListener("click", this.#onClickOutside);
+        this.body.removeEventListener("keydown", this.#onKeyPress);
+        this.root.classList.remove("tebex-js-lightbox--visible");
+        this.body.removeChild(this.root);
+    }
+
+    #onClickOutside = (e: MouseEvent) => {
+        if (!this.clickOutsideHandler)
+            return;
+        // @ts-expect-error: e.target type isn't necessarily Element 
+        if (!this.holder.contains(e.target))
+            this.clickOutsideHandler(e);
+    }
+
+    #onKeyPress = (e: KeyboardEvent) => {
+        if (!this.escKeyHandler)
+            return;
+        if (e.key === "Escape")
+            this.escKeyHandler(e);
     }
 };
