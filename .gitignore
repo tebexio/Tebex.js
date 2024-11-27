@@ -9,6 +9,7 @@ node_modules*
 
 tsconfig.vitest-temp.json
 coverage
+__screenshots__
 .env
 .dev.vars
 

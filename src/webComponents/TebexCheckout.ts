@@ -136,6 +136,8 @@ export class TebexCheckout extends HTMLElement {
             locale: getAttribute(this, "locale"),
             theme: getAttribute(this, "theme") as CheckoutTheme,
             colors: colors,
+            closeOnClickOutside: getAttribute(this, "close-on-click-outside") !== null,
+            closeOnEsc: getAttribute(this, "close-on-esc") !== null,
             popupOnMobile: getAttribute(this, "popup-on-mobile") !== null,
             endpoint: getAttribute(this, "endpoint"),
         });

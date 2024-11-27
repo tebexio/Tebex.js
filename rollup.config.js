@@ -137,6 +137,11 @@ export default [
                 target: `${exampleDist}/index.html`,
                 attrs: ["defer"],
             }),
+            htmlTemplate({
+                template: "example/components.html",
+                target: `${exampleDist}/components.html`,
+                attrs: ["defer"],
+            }),
             isServer &&
                 dev({
                     silent: true,

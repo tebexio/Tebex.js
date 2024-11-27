@@ -27,6 +27,16 @@ export type CheckoutOptions = {
      */
     colors?: CheckoutColorDefinition[];
     /**
+     * Whether to close the Tebex.js popup when the user clicks outside of the modal.
+     * @default false
+     */
+    closeOnClickOutside?: boolean;
+    /**
+     * Whether to close the Tebex.js popup when the user presses the Escape key.
+     * @default false
+     */
+    closeOnEsc?: boolean;
+    /**
      * Whether to still display a popup on mobile or not. If `false` or undefined, then calling `launch()` will open a new window on mobile devices.
      * @default false
      * @internal
@@ -72,8 +82,10 @@ export default class Checkout {
     locale: string;
     theme: CheckoutTheme;
     colors: CheckoutColorDefinition[];
-    endpoint: string;
+    closeOnClickOutside: boolean;
+    closeOnEsc: boolean;
     popupOnMobile: boolean;
+    endpoint: string;
     isOpen: boolean;
     emitter: import("nanoevents").Emitter<{
         open: () => void;

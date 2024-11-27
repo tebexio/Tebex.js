@@ -412,7 +412,10 @@ const nextFrame = async () => new Promise((resolve) => {
  * @internal
  */
 const transitionEnd = async (el) => new Promise((resolve) => {
-    if (!getComputedStyle(el).transition)
+    const style = getComputedStyle(el);
+    if (!style.transition)
+        resolve();
+    if (parseFloat(style.transitionDuration) === 0)
         resolve();
     const done = () => {
         el.removeEventListener("transitionend", done);
@@ -12419,8 +12422,24 @@ let createNanoEvents = () => ({
 
 var styles$1 = ".tebex-js-lightbox{all:unset;zoom:1;forced-color-adjust:none;position:fixed;left:0;top:0;width:100vw;height:100vh;z-index:var(--tebex-js-z-index,9999999);background:var(--tebex-js-lightbox-bg,rgba(0,0,0,.8));opacity:0;transition-property:opacity;transition-duration:var(--tebex-js-duration,.4s);transition-timing-function:var(--tebex-js-timing,ease);will-change:opacity;display:flex;justify-content:center;align-items:center;user-select:none;-webkit-user-select:none;-moz-user-select:none;}.tebex-js-lightbox--visible{opacity:1;}.tebex-js-lightbox__holder{display:block;border:0;overflow:hidden;border-radius:5px;}.tebex-js-lightbox__holder > div{display:block!important;}";
 
+var _Lightbox_onClickOutside, _Lightbox_onKeyPress;
 class Lightbox {
     constructor() {
+        this.clickOutsideHandler = null;
+        this.escKeyHandler = null;
+        _Lightbox_onClickOutside.set(this, (e) => {
+            if (!this.clickOutsideHandler)
+                return;
+            // @ts-expect-error: e.target type isn't necessarily Element 
+            if (!this.holder.contains(e.target))
+                this.clickOutsideHandler(e);
+        });
+        _Lightbox_onKeyPress.set(this, (e) => {
+            if (!this.escKeyHandler)
+                return;
+            if (e.key === "Escape")
+                this.escKeyHandler(e);
+        });
         assert(isEnvBrowser());
         this.body = document.body;
         const stylesheet = createElement("style");
@@ -12438,18 +12457,27 @@ class Lightbox {
         await nextFrame();
         this.root.classList.add("tebex-js-lightbox--visible");
         await transitionEnd(this.root);
+        this.body.addEventListener("click", __classPrivateFieldGet(this, _Lightbox_onClickOutside, "f"));
+        this.body.addEventListener("keydown", __classPrivateFieldGet(this, _Lightbox_onKeyPress, "f"));
     }
     async hide() {
+        this.body.removeEventListener("click", __classPrivateFieldGet(this, _Lightbox_onClickOutside, "f"));
+        this.body.removeEventListener("keydown", __classPrivateFieldGet(this, _Lightbox_onKeyPress, "f"));
         this.root.classList.remove("tebex-js-lightbox--visible");
         await nextFrame();
         await transitionEnd(this.root);
         this.body.removeChild(this.root);
     }
     destroy() {
-        if (this.root.parentNode)
-            this.body.removeChild(this.root);
+        if (!this.root.parentNode)
+            return;
+        this.body.removeEventListener("click", __classPrivateFieldGet(this, _Lightbox_onClickOutside, "f"));
+        this.body.removeEventListener("keydown", __classPrivateFieldGet(this, _Lightbox_onKeyPress, "f"));
+        this.root.classList.remove("tebex-js-lightbox--visible");
+        this.body.removeChild(this.root);
     }
 }
+_Lightbox_onClickOutside = new WeakMap(), _Lightbox_onKeyPress = new WeakMap();
 
 var styles = "html,body{width:100px;height:100px;overflow:hidden;}.tebex-js-spinner{position:fixed;max-height:60vmin;max-width:60vmin;height:40px;width:40px;top:50%;left:50%;box-sizing:border-box;border:3px solid rgba(0,0,0,.2);border-top-color:#FFF;border-radius:100%;animation:tebex-js-spinner-rotation .7s infinite linear;}@keyframes tebex-js-spinner-rotation{from{transform:translateX(-50%) translateY(-50%) rotate(0deg);}to{transform:translateX(-50%) translateY(-50%) rotate(359deg);}}";
 
@@ -12464,7 +12492,7 @@ const spinnerRender = ({ doc, props }) => {
     return html;
 };
 
-var _Checkout_instances, _Checkout_didRender, _Checkout_onRender, _Checkout_showLightbox, _Checkout_buildComponent, _Checkout_renderComponent;
+var _Checkout_instances, _Checkout_didRender, _Checkout_onRender, _Checkout_onRequestLightboxClose, _Checkout_showLightbox, _Checkout_buildComponent, _Checkout_renderComponent;
 const DEFAULT_WIDTH = "800px";
 const DEFAULT_HEIGHT = "760px";
 const THEME_NAMES = [
@@ -12493,8 +12521,10 @@ class Checkout {
         this.locale = null;
         this.theme = "default";
         this.colors = [];
-        this.endpoint = "https://pay.tebex.io";
+        this.closeOnClickOutside = false;
+        this.closeOnEsc = false;
         this.popupOnMobile = false;
+        this.endpoint = "https://pay.tebex.io";
         this.isOpen = false;
         this.emitter = createNanoEvents();
         this.lightbox = null;
@@ -12502,6 +12532,10 @@ class Checkout {
         this.zoid = null;
         _Checkout_didRender.set(this, false);
         _Checkout_onRender.set(this, void 0);
+        _Checkout_onRequestLightboxClose.set(this, async () => {
+            if (this.isOpen)
+                await this.close();
+        });
     }
     /**
      * Configure the Tebex checkout settings.
@@ -12511,8 +12545,10 @@ class Checkout {
         this.locale = options.locale ?? null;
         this.theme = options.theme ?? this.theme;
         this.colors = options.colors ?? this.colors;
-        this.endpoint = options.endpoint ?? this.endpoint;
+        this.closeOnClickOutside = options.closeOnClickOutside ?? this.closeOnClickOutside;
+        this.closeOnEsc = options.closeOnEsc ?? this.closeOnEsc;
         this.popupOnMobile = options.popupOnMobile ?? this.popupOnMobile;
+        this.endpoint = options.endpoint ?? this.endpoint;
         assert(!isNullOrUndefined(this.ident), "ident option is required");
         assert(THEME_NAMES.includes(this.theme), `invalid theme option "${this.theme}"`);
         for (let { color, name } of this.colors) {
@@ -12597,9 +12633,13 @@ class Checkout {
         });
     }
 }
-_Checkout_didRender = new WeakMap(), _Checkout_onRender = new WeakMap(), _Checkout_instances = new WeakSet(), _Checkout_showLightbox = async function _Checkout_showLightbox() {
+_Checkout_didRender = new WeakMap(), _Checkout_onRender = new WeakMap(), _Checkout_onRequestLightboxClose = new WeakMap(), _Checkout_instances = new WeakSet(), _Checkout_showLightbox = async function _Checkout_showLightbox() {
     if (!this.lightbox)
         this.lightbox = new Lightbox();
+    if (this.closeOnClickOutside)
+        this.lightbox.clickOutsideHandler = __classPrivateFieldGet(this, _Checkout_onRequestLightboxClose, "f");
+    if (this.closeOnEsc)
+        this.lightbox.escKeyHandler = __classPrivateFieldGet(this, _Checkout_onRequestLightboxClose, "f");
     await this.lightbox.show();
     await __classPrivateFieldGet(this, _Checkout_instances, "m", _Checkout_renderComponent).call(this, this.lightbox.holder, false);
     this.isOpen = true;
@@ -12630,6 +12670,8 @@ _Checkout_didRender = new WeakMap(), _Checkout_onRender = new WeakMap(), _Checko
     this.zoid = this.component({
         locale: this.locale,
         colors: this.colors,
+        closeOnClickOutside: this.closeOnClickOutside,
+        closeOnEsc: this.closeOnEsc,
         theme: this.theme,
         onOpenWindow: (url) => {
             window.open(url);
@@ -12653,7 +12695,7 @@ _Checkout_didRender = new WeakMap(), _Checkout_onRender = new WeakMap(), _Checko
         origin: url.origin,
         path: url.pathname,
         params: url.search,
-        version: "1.4.0",
+        version: "1.5.0",
     });
     await this.zoid.renderTo(window, container, popup ? "popup" : "iframe");
     __classPrivateFieldSet(this, _Checkout_didRender, true, "f");
@@ -12809,6 +12851,8 @@ _TebexCheckout_attachClickHandlers = new WeakMap(), _TebexCheckout_instances = n
         locale: getAttribute(this, "locale"),
         theme: getAttribute(this, "theme"),
         colors: colors,
+        closeOnClickOutside: getAttribute(this, "close-on-click-outside") !== null,
+        closeOnEsc: getAttribute(this, "close-on-esc") !== null,
         popupOnMobile: getAttribute(this, "popup-on-mobile") !== null,
         endpoint: getAttribute(this, "endpoint"),
     });
@@ -12856,7 +12900,7 @@ if (isEnvBrowser())
 /**
  * Current Tebex.js package version
  */
-const version = "1.4.0";
+const version = "1.5.0";
 /**
  * Tebex checkout API
  */

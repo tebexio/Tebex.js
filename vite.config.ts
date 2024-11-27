@@ -1,11 +1,18 @@
+import { existsSync } from 'fs';
 import { defineConfig } from 'vitest/config';
+import dotenv from 'dotenv';
 
 import pkg from './package.json' assert { type: 'json' };
 import { onRequest } from './functions/token';
 
+if (existsSync('.dev.vars'))
+    dotenv.config({ path: '.dev.vars' });
+else
+    dotenv.config({ path: 'wrangler.toml' });
+
 const ident = await (async () => {
     console.log('Getting test basket ident...');
-    const resp = await onRequest();
+    const resp = await onRequest({ env: process.env });
     const data = await resp.json();
     return data.ident;
 })();
