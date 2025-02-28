@@ -1,5 +1,5 @@
 import zoid from "zoid";
-import { createNanoEvents } from "nanoevents";
+import { createNanoEvents, Unsubscribe } from "nanoevents";
 
 import { Lightbox } from "./lightbox";
 import { spinnerRender } from "./spinner";
@@ -8,11 +8,16 @@ import {
     type CssDimension,
     type Implements,
     assert,
+    warn,
     isInDocument,
     isApplePayAvailable,
     isMobile,
     isNullOrUndefined,
-    isString
+    isString,
+    isArray,
+    isNonEmptyString,
+    isObject,
+    isBoolean,
 } from "./utils";
 
 const DEFAULT_WIDTH = "800px";
@@ -140,37 +145,37 @@ export default class Checkout {
      * Configure the Tebex checkout settings.
      */
     init(options: CheckoutOptions) {
-        this.ident = options.ident;
-        this.locale = options.locale ?? null;
-        this.theme = options.theme ?? this.theme;
-        this.colors = options.colors ?? this.colors;
+        assert(!isNonEmptyString(options.ident), "ident option is required, and must be a non-empty string");
+
+        this.locale = this.#resolveLocale(options) ?? this.locale;
+        this.theme = this.#resolveTheme(options) ?? this.theme;
+        this.colors = this.#resolveColors(options) ?? this.colors;
+        this.popupOnMobile = this.#resolvePopupOnMobile(options) ?? this.popupOnMobile;
+        this.endpoint = this.#resolveEndpoint(options) ?? this.endpoint;
+
+        // TODO: validate these
         this.closeOnClickOutside = options.closeOnClickOutside ?? this.closeOnClickOutside;
         this.closeOnEsc = options.closeOnEsc ?? this.closeOnEsc;
-        this.popupOnMobile = options.popupOnMobile ?? this.popupOnMobile;
-        this.endpoint = options.endpoint ?? this.endpoint;
-        
-        assert(!isNullOrUndefined(this.ident), "ident option is required");
-        assert(THEME_NAMES.includes(this.theme), `invalid theme option "${ this.theme }"`);
-
-        for (let { color, name } of this.colors) {
-            assert(COLOR_NAMES.includes(name), `invalid color name "${ name }"`);
-            assert(!color.includes("var("), `invalid ${ name } color: colors cannot include CSS variables`);
-        }
     }
     
     /**
      * Subscribe to Tebex checkout events, such as when the embed is closed or when a payment is completed.
      * NOTE: None of these events should not be used to confirm actual receipt of payment - you should use Webhooks for that.
      */
-    on<T extends CheckoutEvent>(event: T, callback: CheckoutEventMap[T]) {
+    on<T extends CheckoutEvent>(event: T, callback: CheckoutEventMap[T]): Unsubscribe {
         // @ts-ignore - handles legacy event name
         if (event === "payment_complete")
             event = "payment:complete" as T;
+
         // @ts-ignore - handles legacy event name
         if (event === "payment_error")
             event = "payment:error" as T;
 
-        assert(EVENT_NAMES.includes(event), `invalid event name "${ event }"`);
+        if (!EVENT_NAMES.includes(event)) {
+            warn(`invalid event name "${ event }"`);
+            return () => {};
+        }
+
         return this.emitter.on(event, callback);
     }
 
@@ -244,6 +249,100 @@ export default class Checkout {
             if (this.#didRender)
                 resolve();
         });
+    }
+    
+    #resolveLocale(options: CheckoutOptions) {
+        if (isNullOrUndefined(options.locale))
+            return null;
+
+        if (!isNonEmptyString(options.locale)) {
+            warn(`invalid locale option "${ options.locale }" - must be a non-empty string`);
+            return null;
+        }
+        
+        return options.locale;
+    }
+
+    #resolveTheme(options: CheckoutOptions) {
+        if (isNullOrUndefined(options.theme))
+            return null;
+ 
+        if(!THEME_NAMES.includes(options.theme)) {
+            const list = THEME_NAMES.map(n => `"${ n }"`).join(", ");
+            warn(`invalid theme option "${ options.theme }" - must be one of ${ list }`);
+            return null;
+        }
+
+        return options.theme;
+    }
+
+    #resolveColors(options: CheckoutOptions) {
+        if (isNullOrUndefined(options.colors))
+            return null;
+
+        if (!isArray(options.colors)) {
+            warn(`invalid colors option "${ options.colors }" - must be an array`);
+            return null;
+        }
+
+        for (let entry of this.colors) {
+            if (!isObject(entry)) {
+                warn(`invalid colors option item ${ entry } - must be an object`);
+                return null;
+            }
+
+            if (!entry.hasOwnProperty("name")) {
+                warn(`invalid colors option item - missing 'name' field`);
+                return null;
+            }
+
+            if (!entry.hasOwnProperty("color")) {
+                warn(`invalid colors option item - missing 'color' field`);
+                return null;
+            }
+
+            if (!COLOR_NAMES.includes(entry.name)) {
+                const list = COLOR_NAMES.map(n => `"${ n }"`).join(", ");
+                warn(`invalid color name "${ entry.name }" - must be one of ${ list }`);
+                return null;
+            }
+
+            if (!isNonEmptyString(entry.color)) {
+                warn(`invalid color value "${ entry.color }" - must be a non-empty string`);
+                return null;
+            }
+
+            if (entry.color.includes("var(")) {
+                warn(`invalid color value "${ entry.color }" - cannot include CSS variables`);
+                return null;
+            }
+        }
+        
+        return options.colors;
+    }
+
+    #resolvePopupOnMobile(options: CheckoutOptions) {
+        if (isNullOrUndefined(options.popupOnMobile))
+            return null;
+
+        if (!isBoolean(options.popupOnMobile)) {
+            warn(`invalid popupOnMobile option "${ options.popupOnMobile }" - must be a boolean`);
+            return null;
+        }
+
+        return options.popupOnMobile;
+    }
+
+    #resolveEndpoint(options: CheckoutOptions) {
+        if (isNullOrUndefined(options.endpoint))
+            return null;
+
+        if (!isNonEmptyString(options.endpoint)) {
+            warn(`invalid endpoint option "${ options.endpoint }" - must be a non-empty string`);
+            return null;
+        }
+
+        return options.endpoint;
     }
 
     #onRequestLightboxClose = async () => {
