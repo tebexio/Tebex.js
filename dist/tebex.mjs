@@ -12616,7 +12616,8 @@ class Checkout {
         assert(isInDocument(element), "Target element must already be inserted into the page before it can be used");
         width = isString(width) ? width : `${width}px`;
         height = isString(height) ? height : `${height}px`;
-        __classPrivateFieldGet(this, _Checkout_instances, "m", _Checkout_buildComponent).call(this, width, height);
+        if (!this.component)
+            __classPrivateFieldGet(this, _Checkout_instances, "m", _Checkout_buildComponent).call(this, width, height);
         await __classPrivateFieldGet(this, _Checkout_instances, "m", _Checkout_renderComponent).call(this, element, popupOnMobile && isMobile(width, height));
         this.isOpen = true;
         this.emitter.emit("open");

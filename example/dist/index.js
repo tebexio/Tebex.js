@@ -5,7 +5,7 @@ function launch() {
         ident: ident,
         theme: document.getElementById("popup-theme")?.value,
         colors: [],
-        endpoint: "https://localhost:3000",
+        endpoint: "https://pay.tebex.io",
     };
 
     Array.prototype.forEach.call(

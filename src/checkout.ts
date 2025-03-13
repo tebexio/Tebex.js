@@ -228,7 +228,8 @@ export default class Checkout {
         width = isString(width) ? width : `${ width }px`;
         height = isString(height) ? height : `${ height }px`;
         
-        this.#buildComponent(width, height);
+        if (!this.component)
+            this.#buildComponent(width, height);
         await this.#renderComponent(element, popupOnMobile && isMobile(width, height));
         this.isOpen = true;
         this.emitter.emit("open");
