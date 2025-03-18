@@ -12785,7 +12785,7 @@ _Checkout_didRender = new WeakMap(), _Checkout_onRender = new WeakMap(), _Checko
         origin: url.origin,
         path: url.pathname,
         params: url.search,
-        version: "1.5.0",
+        version: "1.6.0",
     });
     await this.zoid.renderTo(window, container, popup ? "popup" : "iframe");
     __classPrivateFieldSet(this, _Checkout_didRender, true, "f");
@@ -12990,7 +12990,7 @@ if (isEnvBrowser())
 /**
  * Current Tebex.js package version
  */
-const version = "1.5.0";
+const version = "1.6.0";
 /**
  * Tebex checkout API
  */
