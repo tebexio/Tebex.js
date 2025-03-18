@@ -330,6 +330,14 @@
     /**
      * @internal
      */
+    const isNonEmptyString = (value) => typeof value === "string" && value !== "";
+    /**
+     * @internal
+     */
+    const isBoolean = (value) => typeof value === "boolean";
+    /**
+     * @internal
+     */
     const isArray$1 = (value) => Array.isArray(value);
     /**
      * @internal
@@ -12498,7 +12506,7 @@
         return html;
     };
 
-    var _Checkout_instances, _Checkout_didRender, _Checkout_onRender, _Checkout_onRequestLightboxClose, _Checkout_showLightbox, _Checkout_buildComponent, _Checkout_renderComponent;
+    var _Checkout_instances, _Checkout_didRender, _Checkout_onRender, _Checkout_resolveLocale, _Checkout_resolveTheme, _Checkout_resolveColors, _Checkout_resolvePopupOnMobile, _Checkout_resolveEndpoint, _Checkout_resolveCloseOnClickOutside, _Checkout_resolveCloseOnEsc, _Checkout_onRequestLightboxClose, _Checkout_showLightbox, _Checkout_buildComponent, _Checkout_renderComponent;
     const DEFAULT_WIDTH = "800px";
     const DEFAULT_HEIGHT = "760px";
     const THEME_NAMES = [
@@ -12547,20 +12555,15 @@
          * Configure the Tebex checkout settings.
          */
         init(options) {
+            assert(options.ident && isString(options.ident), "ident option is required, and must be a string");
             this.ident = options.ident;
-            this.locale = options.locale ?? null;
-            this.theme = options.theme ?? this.theme;
-            this.colors = options.colors ?? this.colors;
-            this.closeOnClickOutside = options.closeOnClickOutside ?? this.closeOnClickOutside;
-            this.closeOnEsc = options.closeOnEsc ?? this.closeOnEsc;
-            this.popupOnMobile = options.popupOnMobile ?? this.popupOnMobile;
-            this.endpoint = options.endpoint ?? this.endpoint;
-            assert(!isNullOrUndefined(this.ident), "ident option is required");
-            assert(THEME_NAMES.includes(this.theme), `invalid theme option "${this.theme}"`);
-            for (let { color, name } of this.colors) {
-                assert(COLOR_NAMES.includes(name), `invalid color name "${name}"`);
-                assert(!color.includes("var("), `invalid ${name} color: colors cannot include CSS variables`);
-            }
+            this.locale = __classPrivateFieldGet(this, _Checkout_instances, "m", _Checkout_resolveLocale).call(this, options) ?? this.locale;
+            this.theme = __classPrivateFieldGet(this, _Checkout_instances, "m", _Checkout_resolveTheme).call(this, options) ?? this.theme;
+            this.colors = __classPrivateFieldGet(this, _Checkout_instances, "m", _Checkout_resolveColors).call(this, options) ?? this.colors;
+            this.popupOnMobile = __classPrivateFieldGet(this, _Checkout_instances, "m", _Checkout_resolvePopupOnMobile).call(this, options) ?? this.popupOnMobile;
+            this.endpoint = __classPrivateFieldGet(this, _Checkout_instances, "m", _Checkout_resolveEndpoint).call(this, options) ?? this.endpoint;
+            this.closeOnClickOutside = __classPrivateFieldGet(this, _Checkout_instances, "m", _Checkout_resolveCloseOnClickOutside).call(this, options) ?? this.closeOnClickOutside;
+            this.closeOnEsc = __classPrivateFieldGet(this, _Checkout_instances, "m", _Checkout_resolveCloseOnEsc).call(this, options) ?? this.closeOnEsc;
         }
         /**
          * Subscribe to Tebex checkout events, such as when the embed is closed or when a payment is completed.
@@ -12573,7 +12576,10 @@
             // @ts-ignore - handles legacy event name
             if (event === "payment_error")
                 event = "payment:error";
-            assert(EVENT_NAMES.includes(event), `invalid event name "${event}"`);
+            if (!EVENT_NAMES.includes(event)) {
+                warn(`invalid event name "${event}"`);
+                return () => { };
+            }
             return this.emitter.on(event, callback);
         }
         /**
@@ -12639,7 +12645,91 @@
             });
         }
     }
-    _Checkout_didRender = new WeakMap(), _Checkout_onRender = new WeakMap(), _Checkout_onRequestLightboxClose = new WeakMap(), _Checkout_instances = new WeakSet(), _Checkout_showLightbox = async function _Checkout_showLightbox() {
+    _Checkout_didRender = new WeakMap(), _Checkout_onRender = new WeakMap(), _Checkout_onRequestLightboxClose = new WeakMap(), _Checkout_instances = new WeakSet(), _Checkout_resolveLocale = function _Checkout_resolveLocale(options) {
+        if (isNullOrUndefined(options.locale))
+            return null;
+        if (!isNonEmptyString(options.locale)) {
+            warn(`invalid locale option "${options.locale}" - must be a non-empty string`);
+            return null;
+        }
+        return options.locale;
+    }, _Checkout_resolveTheme = function _Checkout_resolveTheme(options) {
+        if (isNullOrUndefined(options.theme))
+            return null;
+        if (!THEME_NAMES.includes(options.theme)) {
+            const list = THEME_NAMES.map(n => `"${n}"`).join(", ");
+            warn(`invalid theme option "${options.theme}" - must be one of ${list}`);
+            return null;
+        }
+        return options.theme;
+    }, _Checkout_resolveColors = function _Checkout_resolveColors(options) {
+        if (isNullOrUndefined(options.colors))
+            return null;
+        if (!isArray$1(options.colors)) {
+            warn(`invalid colors option "${options.colors}" - must be an array`);
+            return null;
+        }
+        for (let entry of options.colors) {
+            if (!isObject(entry)) {
+                warn(`invalid colors option item ${entry} - must be an object`);
+                return null;
+            }
+            if (!entry.hasOwnProperty("name")) {
+                warn(`invalid colors option item - missing 'name' field`);
+                return null;
+            }
+            if (!entry.hasOwnProperty("color")) {
+                warn(`invalid colors option item - missing 'color' field`);
+                return null;
+            }
+            if (!COLOR_NAMES.includes(entry.name)) {
+                const list = COLOR_NAMES.map(n => `"${n}"`).join(", ");
+                warn(`invalid color name "${entry.name}" - must be one of ${list}`);
+                return null;
+            }
+            if (!isNonEmptyString(entry.color)) {
+                warn(`invalid color value "${entry.color}" - must be a non-empty string`);
+                return null;
+            }
+            if (entry.color.includes("var(")) {
+                warn(`invalid color value "${entry.color}" - cannot include CSS variables`);
+                return null;
+            }
+        }
+        return options.colors;
+    }, _Checkout_resolvePopupOnMobile = function _Checkout_resolvePopupOnMobile(options) {
+        if (isNullOrUndefined(options.popupOnMobile))
+            return null;
+        if (!isBoolean(options.popupOnMobile)) {
+            warn(`invalid popupOnMobile option "${options.popupOnMobile}" - must be a boolean`);
+            return null;
+        }
+        return options.popupOnMobile;
+    }, _Checkout_resolveEndpoint = function _Checkout_resolveEndpoint(options) {
+        if (isNullOrUndefined(options.endpoint))
+            return null;
+        if (!isNonEmptyString(options.endpoint)) {
+            warn(`invalid endpoint option "${options.endpoint}" - must be a non-empty string`);
+            return null;
+        }
+        return options.endpoint;
+    }, _Checkout_resolveCloseOnClickOutside = function _Checkout_resolveCloseOnClickOutside(options) {
+        if (isNullOrUndefined(options.closeOnClickOutside))
+            return null;
+        if (!isBoolean(options.closeOnClickOutside)) {
+            warn(`invalid closeOnClickOutside option "${options.closeOnClickOutside}" - must be a boolean`);
+            return null;
+        }
+        return options.closeOnClickOutside;
+    }, _Checkout_resolveCloseOnEsc = function _Checkout_resolveCloseOnEsc(options) {
+        if (isNullOrUndefined(options.closeOnEsc))
+            return null;
+        if (!isBoolean(options.closeOnEsc)) {
+            warn(`invalid closeOnEsc option "${options.closeOnEsc}" - must be a boolean`);
+            return null;
+        }
+        return options.closeOnEsc;
+    }, _Checkout_showLightbox = async function _Checkout_showLightbox() {
         if (!this.lightbox)
             this.lightbox = new Lightbox();
         if (this.closeOnClickOutside)

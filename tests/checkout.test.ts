@@ -1,4 +1,4 @@
-import { describe, test, expect, beforeEach, afterEach, vi } from "vitest";
+import { describe, test, expect, beforeEach, afterEach, vi, MockInstance } from "vitest";
 import { destroy } from "zoid"; 
 
 import Checkout from "../src/checkout";
@@ -18,82 +18,267 @@ describe("Checkout", () => {
     });
 
     describe("Checkout init()", () => {
-
-        test("Class members reflect options", () => {
-            checkout.init({ ident: "test" });
-            expect(checkout.ident).toBe("test");
-        });
-
-        test("Theme defaults to 'default'", () => {
-            checkout.init({ ident: "test" });
-            expect(checkout.theme).toBe("default");
-            checkout.init({ ident: "test", theme: "dark" });
-            expect(checkout.theme).toBe("dark");
-        });
-
-        test("Colors defaults to empty array", () => {
-            checkout.init({ ident: "test" });
-            expect(checkout.colors).toEqual([]);
-            checkout.init({ ident: "test", colors: [ { name: "primary", color: "#ff0000" } ] });
-            expect(checkout.colors).toEqual([ { name: "primary", color: "#ff0000" } ]);
-        });
-
-        test("Endpoint defaults to https://pay.tebex.io", () => {
-            checkout.init({ ident: "test" });
-            expect(checkout.endpoint).toBe("https://pay.tebex.io");
-            checkout.init({ ident: "test", endpoint: "https://pay.test.tebex.io" });
-            expect(checkout.endpoint).toBe("https://pay.test.tebex.io");
-        });
-
-        test("Can set closeOnClickOutside, which defaults to false", () => {
-            checkout.init({ ident: "test" });
-            expect(checkout.closeOnClickOutside).toBe(false);
-            checkout.init({ ident: "test", closeOnClickOutside: true });
-            expect(checkout.closeOnClickOutside).toBe(true);
-        });
-
-        test("Can set closeOnEsc, which defaults to false", () => {
-            checkout.init({ ident: "test" });
-            expect(checkout.closeOnEsc).toBe(false);
-            checkout.init({ ident: "test", closeOnEsc: true });
-            expect(checkout.closeOnEsc).toBe(true);
-        });
         
-        test("Throws if ident option is not specified", () => {
-            expect(() => checkout.init({} as any)).toThrow();
+        describe("ident option", () => {
+
+            test("Throws if ident option is not specified", () => {
+                expect(() => checkout.init({} as any)).toThrow();
+            });
+
+            test("Class ident member reflects ident option", () => {
+                checkout.init({ ident: "test" });
+                expect(checkout.ident).toBe("test");
+            });
         });
 
-        test("Throws if theme isn't valid", () => {
-            expect(() => checkout.init({
-                ident: "test",
-                theme: "invalid" as any
-            })).toThrow();
+        describe("locale option", () => {
+
+            test("Locale can be set with locale option, and defaults to null", () => {
+                checkout.init({ ident: "test" });
+                expect(checkout.locale).toBe(null);
+                checkout.init({ ident: "test", locale: "en_US" });
+                expect(checkout.locale).toBe("en_US");
+            });
+
+            test("Warns if locale isn't a string, and falls back to default", () => {
+                const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
+                checkout.init({ ident: "test", locale: 123 as any });
+                expect(spy).toHaveBeenCalledOnce();
+                expect(spy.mock.lastCall[0]).toContain("invalid locale option");
+                expect(checkout.locale).toBe(null);
+            });
+
+            test("Warns if locale is an empty string, and falls back to default", () => {
+                const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
+                checkout.init({ ident: "test", locale: "" });
+                expect(spy).toHaveBeenCalledOnce();
+                expect(spy.mock.lastCall[0]).toContain("invalid locale option");
+                expect(checkout.locale).toBe(null);
+            });
         });
 
-        test("Throws if color name is invalid", () => {
-            expect(() => checkout.init({
-                ident: "test",
-                colors: [
-                    {
-                        name: "invalid" as any,
-                        color: "#fff"
-                    }
-                ]
-            })).toThrow();
+        describe("theme option", () => {
+
+            test("Theme can be set with theme option, and defaults to 'default'", () => {
+                checkout.init({ ident: "test" });
+                expect(checkout.theme).toBe("default");
+                checkout.init({ ident: "test", theme: "dark" });
+                expect(checkout.theme).toBe("dark");
+            });
+
+            test("Warns if theme isn't a string, and falls back to default", () => {
+                const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
+                checkout.init({ ident: "test", theme: 123 as any });
+                expect(spy).toHaveBeenCalledOnce();
+                expect(spy.mock.lastCall[0]).toContain("invalid theme option");
+                expect(checkout.theme).toBe("default");
+            });
+
+            test("Warns if theme isn't a valid theme name, and falls back to default", () => {
+                const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
+                checkout.init({ ident: "test", theme: "TEST" as any });
+                expect(spy).toHaveBeenCalledOnce();
+                expect(spy.mock.lastCall[0]).toContain("invalid theme option");
+                expect(checkout.theme).toBe("default");
+            });
         });
 
-        test("Throws if color includes CSS variable", () => {
-            expect(() => checkout.init({
-                ident: "test",
-                colors: [
-                    {
-                        name: "primary",
-                        color: "var(--color)"
-                    }
-                ]
-            })).toThrow();
+        describe("colors option", () => {
+
+            test("Colors can be set with colors option, and defaults to empty array", () => {
+                checkout.init({ ident: "test" });
+                expect(checkout.colors).toEqual([]);
+                checkout.init({ ident: "test", colors: [ { name: "primary", color: "#ff0000" } ] });
+                expect(checkout.colors).toEqual([ { name: "primary", color: "#ff0000" } ]);
+            });
+
+            test("Warns if colors option isn't valid array, and falls back to default", () => {
+                const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
+                checkout.init({
+                    ident: "test",
+                    colors: {} as any
+                });
+                expect(spy).toHaveBeenCalledOnce();
+                expect(spy.mock.lastCall[0]).toContain("invalid colors option");
+                expect(checkout.colors).toMatchObject([]);
+            });
+
+            test("Warns if color entry isn't an object, and falls back to default", () => {
+                const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
+                checkout.init({
+                    ident: "test",
+                    colors: [
+                        "invalid" as any
+                    ]
+                });
+                expect(spy).toHaveBeenCalledOnce();
+                expect(spy.mock.lastCall[0]).toContain("invalid colors option item");
+                expect(checkout.colors).toMatchObject([]);
+            });
+
+            test("Warns if color name is missing, and falls back to default", () => {
+                const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
+                checkout.init({
+                    ident: "test",
+                    colors: [
+                        {
+                            color: "#fff"
+                        } as any
+                    ]
+                });
+                expect(spy).toHaveBeenCalledOnce();
+                expect(spy.mock.lastCall[0]).toContain("invalid colors option item - missing 'name' field");
+                expect(checkout.colors).toMatchObject([]);
+            });
+
+            test("Warns if color value is missing, and falls back to default", () => {
+                const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
+                checkout.init({
+                    ident: "test",
+                    colors: [
+                        {
+                            name: "primary",
+                        } as any
+                    ]
+                });
+                expect(spy).toHaveBeenCalledOnce();
+                expect(spy.mock.lastCall[0]).toContain("invalid colors option item - missing 'color' field");
+                expect(checkout.colors).toMatchObject([]);
+            });
+
+            test("Warns if color name isn't valid, and falls back to default", () => {
+                const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
+                checkout.init({
+                    ident: "test",
+                    colors: [
+                        {
+                            name: "invalid" as any,
+                            color: "#fff"
+                        }
+                    ]
+                });
+                expect(spy).toHaveBeenCalledOnce();
+                expect(spy.mock.lastCall[0]).toContain("invalid color name");
+                expect(checkout.colors).toMatchObject([]);
+            });
+
+            test("Warns if color value isn't valid, and falls back to default", () => {
+                const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
+                checkout.init({
+                    ident: "test",
+                    colors: [
+                        {
+                            name: "primary",
+                            color: 123 as any
+                        }
+                    ]
+                });
+                expect(spy).toHaveBeenCalledOnce();
+                expect(spy.mock.lastCall[0]).toContain("invalid color value \"123\"");
+                expect(checkout.colors).toMatchObject([]);
+            });
+
+            test("Warns if color value includes CSS variable, and falls back to default", () => {
+                const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
+                checkout.init({
+                    ident: "test",
+                    colors: [
+                        {
+                            name: "primary",
+                            color: "var(--color-primary)"
+                        }
+                    ]
+                });
+                expect(spy).toHaveBeenCalledOnce();
+                expect(spy.mock.lastCall[0]).toContain("invalid color value");
+                expect(spy.mock.lastCall[0]).toContain("cannot include CSS variables");
+                expect(checkout.colors).toMatchObject([]);
+            });
         });
 
+        describe("popupOnMobile", () => {
+
+            test("Can set popupOnMobile, which defaults to false", () => {
+                checkout.init({ ident: "test" });
+                expect(checkout.popupOnMobile).toBe(false);
+                checkout.init({ ident: "test", popupOnMobile: true });
+                expect(checkout.popupOnMobile).toBe(true);
+            });
+
+            test("Warns if popupOnMobile option isn't valid, and falls back to default", () => {
+                const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
+                checkout.init({
+                    ident: "test",
+                    popupOnMobile: 123 as any
+                });
+                expect(spy).toHaveBeenCalledOnce();
+                expect(spy.mock.lastCall[0]).toContain("invalid popupOnMobile option");
+                expect(checkout.popupOnMobile).toBe(false);
+            });
+        });
+
+        describe("endpoint option", () => {
+
+            test("Endpoint can be set with endpoint option, and defaults to https://pay.tebex.io", () => {
+                checkout.init({ ident: "test" });
+                expect(checkout.endpoint).toBe("https://pay.tebex.io");
+                checkout.init({ ident: "test", endpoint: "https://pay.test.tebex.io" });
+                expect(checkout.endpoint).toBe("https://pay.test.tebex.io");
+            });
+
+            test("Warns if endpoint option isn't valid, and falls back to default", () => {
+                const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
+                checkout.init({
+                    ident: "test",
+                    endpoint: 123 as any
+                });
+                expect(spy).toHaveBeenCalledOnce();
+                expect(spy.mock.lastCall[0]).toContain("invalid endpoint option");
+                expect(checkout.endpoint).toBe("https://pay.tebex.io");
+            });
+        });
+
+        describe("closeOnClickOutside option", () => {
+
+            test("Can set closeOnClickOutside, which defaults to false", () => {
+                checkout.init({ ident: "test" });
+                expect(checkout.closeOnClickOutside).toBe(false);
+                checkout.init({ ident: "test", closeOnClickOutside: true });
+                expect(checkout.closeOnClickOutside).toBe(true);
+            });
+
+            test("Warns if closeOnClickOutside option isn't valid, and falls back to default", () => {
+                const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
+                checkout.init({
+                    ident: "test",
+                    closeOnClickOutside: 123 as any
+                });
+                expect(spy).toHaveBeenCalledOnce();
+                expect(spy.mock.lastCall[0]).toContain("invalid closeOnClickOutside option");
+                expect(checkout.closeOnClickOutside).toBe(false);
+            });
+        });
+
+        describe("closeOnEsc option", () => {
+
+            test("Can set closeOnEsc, which defaults to false", () => {
+                checkout.init({ ident: "test" });
+                expect(checkout.closeOnEsc).toBe(false);
+                checkout.init({ ident: "test", closeOnEsc: true });
+                expect(checkout.closeOnEsc).toBe(true);
+            });
+
+            test("Warns if closeOnEsc option isn't valid, and falls back to default", () => {
+                const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
+                checkout.init({
+                    ident: "test",
+                    closeOnEsc: 123 as any
+                });
+                expect(spy).toHaveBeenCalledOnce();
+                expect(spy.mock.lastCall[0]).toContain("invalid closeOnEsc option");
+                expect(checkout.closeOnEsc).toBe(false);
+            });
+        });
     });
 
     describe("Checkout on()", () => {
@@ -105,6 +290,7 @@ describe("Checkout", () => {
 
         test("Returns event unsubscribe function", () => {
             const unsubscribe = checkout.on("open", () => {});
+            expect(unsubscribe).toBeTypeOf("function");
             expect(checkout.emitter.events["open"].length).toBe(1);
             unsubscribe();
             expect(checkout.emitter.events["open"].length).toBe(0);
@@ -122,6 +308,14 @@ describe("Checkout", () => {
             checkout.on("open", spy);
             checkout.emitter.emit("open");
             expect(spy).toHaveBeenCalled();
+        });
+
+        test("Warns when event name isn't valid, but still returns a dummy unsubscriber", () => {
+            const spy = vi.spyOn(console, "warn");
+            const unsubscribe = checkout.on("invalid" as any, () => {});
+            expect(spy).toHaveBeenCalled();
+            expect(spy).toHaveBeenCalledWith("Tebex.js warning: invalid event name \"invalid\"");
+            expect(unsubscribe).toBeTypeOf("function");
         });
 
     });

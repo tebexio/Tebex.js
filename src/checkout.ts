@@ -145,17 +145,15 @@ export default class Checkout {
      * Configure the Tebex checkout settings.
      */
     init(options: CheckoutOptions) {
-        assert(!isNonEmptyString(options.ident), "ident option is required, and must be a non-empty string");
-
+        assert(options.ident && isString(options.ident), "ident option is required, and must be a string");
+        this.ident = options.ident;
         this.locale = this.#resolveLocale(options) ?? this.locale;
         this.theme = this.#resolveTheme(options) ?? this.theme;
         this.colors = this.#resolveColors(options) ?? this.colors;
         this.popupOnMobile = this.#resolvePopupOnMobile(options) ?? this.popupOnMobile;
         this.endpoint = this.#resolveEndpoint(options) ?? this.endpoint;
-
-        // TODO: validate these
-        this.closeOnClickOutside = options.closeOnClickOutside ?? this.closeOnClickOutside;
-        this.closeOnEsc = options.closeOnEsc ?? this.closeOnEsc;
+        this.closeOnClickOutside = this.#resolveCloseOnClickOutside(options) ?? this.closeOnClickOutside;
+        this.closeOnEsc = this.#resolveCloseOnEsc(options) ?? this.closeOnEsc;
     }
     
     /**
@@ -285,7 +283,7 @@ export default class Checkout {
             return null;
         }
 
-        for (let entry of this.colors) {
+        for (let entry of options.colors) {
             if (!isObject(entry)) {
                 warn(`invalid colors option item ${ entry } - must be an object`);
                 return null;
@@ -343,6 +341,30 @@ export default class Checkout {
         }
 
         return options.endpoint;
+    }
+
+    #resolveCloseOnClickOutside(options: CheckoutOptions) {
+        if (isNullOrUndefined(options.closeOnClickOutside))
+            return null;
+
+        if (!isBoolean(options.closeOnClickOutside)) {
+            warn(`invalid closeOnClickOutside option "${ options.closeOnClickOutside }" - must be a boolean`);
+            return null;
+        }
+
+        return options.closeOnClickOutside;
+    }
+
+    #resolveCloseOnEsc(options: CheckoutOptions) {
+        if (isNullOrUndefined(options.closeOnEsc))
+            return null;
+
+        if (!isBoolean(options.closeOnEsc)) {
+            warn(`invalid closeOnEsc option "${ options.closeOnEsc }" - must be a boolean`);
+            return null
+        }
+
+        return options.closeOnEsc;
     }
 
     #onRequestLightboxClose = async () => {
