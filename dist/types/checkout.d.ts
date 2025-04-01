@@ -1,3 +1,4 @@
+import { Unsubscribe } from "nanoevents";
 import { Lightbox } from "./lightbox";
 import { type CssDimension, type Implements } from "./utils";
 export declare const THEME_NAMES: readonly ["auto", "default", "light", "dark"];
@@ -104,7 +105,7 @@ export default class Checkout {
      * Subscribe to Tebex checkout events, such as when the embed is closed or when a payment is completed.
      * NOTE: None of these events should not be used to confirm actual receipt of payment - you should use Webhooks for that.
      */
-    on<T extends CheckoutEvent>(event: T, callback: CheckoutEventMap[T]): import("nanoevents").Unsubscribe;
+    on<T extends CheckoutEvent>(event: T, callback: CheckoutEventMap[T]): Unsubscribe;
     /**
      * Launch the Tebex checkout panel.
      * On desktop, the panel will launch in a "lightbox" mode that covers the screen. On mobile, it will be opened as a new page.
