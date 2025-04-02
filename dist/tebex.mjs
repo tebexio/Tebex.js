@@ -324,6 +324,14 @@ const isString = (value) => typeof value === "string";
 /**
  * @internal
  */
+const isNonEmptyString = (value) => typeof value === "string" && value !== "";
+/**
+ * @internal
+ */
+const isBoolean = (value) => typeof value === "boolean";
+/**
+ * @internal
+ */
 const isArray$1 = (value) => Array.isArray(value);
 /**
  * @internal
@@ -12492,7 +12500,7 @@ const spinnerRender = ({ doc, props }) => {
     return html;
 };
 
-var _Checkout_instances, _Checkout_didRender, _Checkout_onRender, _Checkout_onRequestLightboxClose, _Checkout_showLightbox, _Checkout_buildComponent, _Checkout_renderComponent;
+var _Checkout_instances, _Checkout_didRender, _Checkout_onRender, _Checkout_resolveLocale, _Checkout_resolveTheme, _Checkout_resolveColors, _Checkout_resolvePopupOnMobile, _Checkout_resolveEndpoint, _Checkout_resolveCloseOnClickOutside, _Checkout_resolveCloseOnEsc, _Checkout_onRequestLightboxClose, _Checkout_showLightbox, _Checkout_buildComponent, _Checkout_renderComponent;
 const DEFAULT_WIDTH = "800px";
 const DEFAULT_HEIGHT = "760px";
 const THEME_NAMES = [
@@ -12541,20 +12549,15 @@ class Checkout {
      * Configure the Tebex checkout settings.
      */
     init(options) {
+        assert(options.ident && isString(options.ident), "ident option is required, and must be a string");
         this.ident = options.ident;
-        this.locale = options.locale ?? null;
-        this.theme = options.theme ?? this.theme;
-        this.colors = options.colors ?? this.colors;
-        this.closeOnClickOutside = options.closeOnClickOutside ?? this.closeOnClickOutside;
-        this.closeOnEsc = options.closeOnEsc ?? this.closeOnEsc;
-        this.popupOnMobile = options.popupOnMobile ?? this.popupOnMobile;
-        this.endpoint = options.endpoint ?? this.endpoint;
-        assert(!isNullOrUndefined(this.ident), "ident option is required");
-        assert(THEME_NAMES.includes(this.theme), `invalid theme option "${this.theme}"`);
-        for (let { color, name } of this.colors) {
-            assert(COLOR_NAMES.includes(name), `invalid color name "${name}"`);
-            assert(!color.includes("var("), `invalid ${name} color: colors cannot include CSS variables`);
-        }
+        this.locale = __classPrivateFieldGet(this, _Checkout_instances, "m", _Checkout_resolveLocale).call(this, options) ?? this.locale;
+        this.theme = __classPrivateFieldGet(this, _Checkout_instances, "m", _Checkout_resolveTheme).call(this, options) ?? this.theme;
+        this.colors = __classPrivateFieldGet(this, _Checkout_instances, "m", _Checkout_resolveColors).call(this, options) ?? this.colors;
+        this.popupOnMobile = __classPrivateFieldGet(this, _Checkout_instances, "m", _Checkout_resolvePopupOnMobile).call(this, options) ?? this.popupOnMobile;
+        this.endpoint = __classPrivateFieldGet(this, _Checkout_instances, "m", _Checkout_resolveEndpoint).call(this, options) ?? this.endpoint;
+        this.closeOnClickOutside = __classPrivateFieldGet(this, _Checkout_instances, "m", _Checkout_resolveCloseOnClickOutside).call(this, options) ?? this.closeOnClickOutside;
+        this.closeOnEsc = __classPrivateFieldGet(this, _Checkout_instances, "m", _Checkout_resolveCloseOnEsc).call(this, options) ?? this.closeOnEsc;
     }
     /**
      * Subscribe to Tebex checkout events, such as when the embed is closed or when a payment is completed.
@@ -12567,7 +12570,10 @@ class Checkout {
         // @ts-ignore - handles legacy event name
         if (event === "payment_error")
             event = "payment:error";
-        assert(EVENT_NAMES.includes(event), `invalid event name "${event}"`);
+        if (!EVENT_NAMES.includes(event)) {
+            warn(`invalid event name "${event}"`);
+            return () => { };
+        }
         return this.emitter.on(event, callback);
     }
     /**
@@ -12633,7 +12639,91 @@ class Checkout {
         });
     }
 }
-_Checkout_didRender = new WeakMap(), _Checkout_onRender = new WeakMap(), _Checkout_onRequestLightboxClose = new WeakMap(), _Checkout_instances = new WeakSet(), _Checkout_showLightbox = async function _Checkout_showLightbox() {
+_Checkout_didRender = new WeakMap(), _Checkout_onRender = new WeakMap(), _Checkout_onRequestLightboxClose = new WeakMap(), _Checkout_instances = new WeakSet(), _Checkout_resolveLocale = function _Checkout_resolveLocale(options) {
+    if (isNullOrUndefined(options.locale))
+        return null;
+    if (!isNonEmptyString(options.locale)) {
+        warn(`invalid locale option "${options.locale}" - must be a non-empty string`);
+        return null;
+    }
+    return options.locale;
+}, _Checkout_resolveTheme = function _Checkout_resolveTheme(options) {
+    if (isNullOrUndefined(options.theme))
+        return null;
+    if (!THEME_NAMES.includes(options.theme)) {
+        const list = THEME_NAMES.map(n => `"${n}"`).join(", ");
+        warn(`invalid theme option "${options.theme}" - must be one of ${list}`);
+        return null;
+    }
+    return options.theme;
+}, _Checkout_resolveColors = function _Checkout_resolveColors(options) {
+    if (isNullOrUndefined(options.colors))
+        return null;
+    if (!isArray$1(options.colors)) {
+        warn(`invalid colors option "${options.colors}" - must be an array`);
+        return null;
+    }
+    for (let entry of options.colors) {
+        if (!isObject(entry)) {
+            warn(`invalid colors option item ${entry} - must be an object`);
+            return null;
+        }
+        if (!entry.hasOwnProperty("name")) {
+            warn(`invalid colors option item - missing 'name' field`);
+            return null;
+        }
+        if (!entry.hasOwnProperty("color")) {
+            warn(`invalid colors option item - missing 'color' field`);
+            return null;
+        }
+        if (!COLOR_NAMES.includes(entry.name)) {
+            const list = COLOR_NAMES.map(n => `"${n}"`).join(", ");
+            warn(`invalid color name "${entry.name}" - must be one of ${list}`);
+            return null;
+        }
+        if (!isNonEmptyString(entry.color)) {
+            warn(`invalid color value "${entry.color}" - must be a non-empty string`);
+            return null;
+        }
+        if (entry.color.includes("var(")) {
+            warn(`invalid color value "${entry.color}" - cannot include CSS variables`);
+            return null;
+        }
+    }
+    return options.colors;
+}, _Checkout_resolvePopupOnMobile = function _Checkout_resolvePopupOnMobile(options) {
+    if (isNullOrUndefined(options.popupOnMobile))
+        return null;
+    if (!isBoolean(options.popupOnMobile)) {
+        warn(`invalid popupOnMobile option "${options.popupOnMobile}" - must be a boolean`);
+        return null;
+    }
+    return options.popupOnMobile;
+}, _Checkout_resolveEndpoint = function _Checkout_resolveEndpoint(options) {
+    if (isNullOrUndefined(options.endpoint))
+        return null;
+    if (!isNonEmptyString(options.endpoint)) {
+        warn(`invalid endpoint option "${options.endpoint}" - must be a non-empty string`);
+        return null;
+    }
+    return options.endpoint;
+}, _Checkout_resolveCloseOnClickOutside = function _Checkout_resolveCloseOnClickOutside(options) {
+    if (isNullOrUndefined(options.closeOnClickOutside))
+        return null;
+    if (!isBoolean(options.closeOnClickOutside)) {
+        warn(`invalid closeOnClickOutside option "${options.closeOnClickOutside}" - must be a boolean`);
+        return null;
+    }
+    return options.closeOnClickOutside;
+}, _Checkout_resolveCloseOnEsc = function _Checkout_resolveCloseOnEsc(options) {
+    if (isNullOrUndefined(options.closeOnEsc))
+        return null;
+    if (!isBoolean(options.closeOnEsc)) {
+        warn(`invalid closeOnEsc option "${options.closeOnEsc}" - must be a boolean`);
+        return null;
+    }
+    return options.closeOnEsc;
+}, _Checkout_showLightbox = async function _Checkout_showLightbox() {
     if (!this.lightbox)
         this.lightbox = new Lightbox();
     if (this.closeOnClickOutside)
@@ -12695,7 +12785,7 @@ _Checkout_didRender = new WeakMap(), _Checkout_onRender = new WeakMap(), _Checko
         origin: url.origin,
         path: url.pathname,
         params: url.search,
-        version: "1.5.0",
+        version: "1.6.0",
     });
     await this.zoid.renderTo(window, container, popup ? "popup" : "iframe");
     __classPrivateFieldSet(this, _Checkout_didRender, true, "f");
@@ -12730,177 +12820,181 @@ var legacy = /*#__PURE__*/Object.freeze({
     events: events
 });
 
-var _TebexCheckout_instances, _TebexCheckout_init, _TebexCheckout_attachClickHandlers, _TebexCheckout_updatePopupState, _TebexCheckout_updateSize;
-class TebexCheckout extends HTMLElement {
-    get ident() {
-        return this.checkout.ident;
-    }
-    set ident(ident) {
-        setAttribute(this, "ident", ident);
-    }
-    get open() {
-        return this._open;
-    }
-    set open(open) {
-        setAttribute(this, "open", open);
-    }
-    get height() {
-        return this._height;
-    }
-    set height(height) {
-        setAttribute(this, "height", height);
-    }
-    static get observedAttributes() {
-        return [
-            "ident",
-            "open",
-            "height"
-        ];
-    }
-    constructor() {
-        super();
-        _TebexCheckout_instances.add(this);
-        this.checkout = new Checkout();
-        this._root = null;
-        this._slot = null;
-        this._shadow = null;
-        this._mode = "popover";
-        this._height = 700;
-        this._open = false;
-        this._didInit = false;
-        this._didConnect = false;
-        _TebexCheckout_attachClickHandlers.set(this, () => {
-            if (this._mode === "inline" && this._slot.assignedElements().length > 0)
-                warn("<tebex-checkout> does not support child elements in inline mode");
-            if (this._mode === "inline")
-                return;
-            let oldElements = [];
-            const clickHandler = () => this.setAttribute("open", "");
-            const updateHandlers = () => {
-                const newElements = this._slot.assignedElements();
-                for (let el of oldElements)
-                    el.removeEventListener("click", clickHandler);
-                for (let el of newElements)
-                    el.addEventListener("click", clickHandler);
-                oldElements = newElements;
-            };
-            updateHandlers();
-            this._slot.addEventListener("slotchange", updateHandlers);
-        });
-        this._shadow = this.attachShadow({ mode: "open" });
-        this._root = createElement("div");
-        this._slot = createElement("slot");
-        this._root.append(this._slot);
-        this._shadow.append(this._root);
-    }
-    connectedCallback() {
-        this._didConnect = true;
-        // Emit checkout events as DOM events on the element
-        for (let event of EVENT_NAMES) {
-            this.checkout.on(event, (e) => {
-                this.dispatchEvent(new CustomEvent(event, { detail: e }));
+const defineTebexCheckout = () => {
+    var _TebexCheckoutElement_instances, _TebexCheckoutElement_init, _TebexCheckoutElement_attachClickHandlers, _TebexCheckoutElement_updatePopupState, _TebexCheckoutElement_updateSize;
+    class TebexCheckoutElement extends HTMLElement {
+        get ident() {
+            return this.checkout.ident;
+        }
+        set ident(ident) {
+            setAttribute(this, "ident", ident);
+        }
+        get open() {
+            return this._open;
+        }
+        set open(open) {
+            setAttribute(this, "open", open);
+        }
+        get height() {
+            return this._height;
+        }
+        set height(height) {
+            setAttribute(this, "height", height);
+        }
+        static get observedAttributes() {
+            return [
+                "ident",
+                "open",
+                "height"
+            ];
+        }
+        constructor() {
+            super();
+            _TebexCheckoutElement_instances.add(this);
+            this.checkout = new Checkout();
+            this._root = null;
+            this._slot = null;
+            this._shadow = null;
+            this._mode = "popover";
+            this._height = 700;
+            this._open = false;
+            this._didInit = false;
+            this._didConnect = false;
+            _TebexCheckoutElement_attachClickHandlers.set(this, () => {
+                if (this._mode === "inline" && this._slot.assignedElements().length > 0)
+                    warn("<tebex-checkout> does not support child elements in inline mode");
+                if (this._mode === "inline")
+                    return;
+                let oldElements = [];
+                const clickHandler = () => this.setAttribute("open", "");
+                const updateHandlers = () => {
+                    const newElements = this._slot.assignedElements();
+                    for (let el of oldElements)
+                        el.removeEventListener("click", clickHandler);
+                    for (let el of newElements)
+                        el.addEventListener("click", clickHandler);
+                    oldElements = newElements;
+                };
+                updateHandlers();
+                this._slot.addEventListener("slotchange", updateHandlers);
             });
+            this._shadow = this.attachShadow({ mode: "open" });
+            this._root = createElement("div");
+            this._slot = createElement("slot");
+            this._root.append(this._slot);
+            this._shadow.append(this._root);
         }
-        if (getAttribute(this, "ident"))
-            __classPrivateFieldGet(this, _TebexCheckout_instances, "m", _TebexCheckout_init).call(this);
+        connectedCallback() {
+            this._didConnect = true;
+            // Emit checkout events as DOM events on the element
+            for (let event of EVENT_NAMES) {
+                this.checkout.on(event, (e) => {
+                    this.dispatchEvent(new CustomEvent(event, { detail: e }));
+                });
+            }
+            if (getAttribute(this, "ident"))
+                __classPrivateFieldGet(this, _TebexCheckoutElement_instances, "m", _TebexCheckoutElement_init).call(this);
+        }
+        disconnectedCallback() {
+            this.checkout.destroy();
+            this.checkout = new Checkout();
+            // Go back to initial state
+            this._didConnect = false;
+            this._open = false;
+            this._didInit = false;
+            this._didConnect = false;
+        }
+        attributeChangedCallback(key, oldVal, newVal) {
+            if (oldVal === newVal)
+                return;
+            switch (key) {
+                case "ident":
+                    assert(!this._didInit, "This checkout element already has an ident - to use a new ident, create a new element");
+                    __classPrivateFieldGet(this, _TebexCheckoutElement_instances, "m", _TebexCheckoutElement_init).call(this);
+                    break;
+                case "open":
+                    this._open = (oldVal === "false" || !oldVal) && (newVal === "" || !!newVal);
+                    __classPrivateFieldGet(this, _TebexCheckoutElement_instances, "m", _TebexCheckoutElement_updatePopupState).call(this);
+                    break;
+                case "height":
+                    this._height = parseInt(newVal);
+                    __classPrivateFieldGet(this, _TebexCheckoutElement_instances, "m", _TebexCheckoutElement_updateSize).call(this);
+                    break;
+            }
+        }
+        async renderFinished() {
+            if (!this.checkout)
+                return;
+            await this.checkout.renderFinished();
+        }
     }
-    disconnectedCallback() {
-        this.checkout.destroy();
-        this.checkout = new Checkout();
-        // Go back to initial state
-        this._didConnect = false;
-        this._open = false;
-        this._didInit = false;
-        this._didConnect = false;
-    }
-    attributeChangedCallback(key, oldVal, newVal) {
-        if (oldVal === newVal)
+    _TebexCheckoutElement_attachClickHandlers = new WeakMap(), _TebexCheckoutElement_instances = new WeakSet(), _TebexCheckoutElement_init = async function _TebexCheckoutElement_init() {
+        if (this._didInit || !this._didConnect)
             return;
-        switch (key) {
-            case "ident":
-                assert(!this._didInit, "This checkout element already has an ident - to use a new ident, create a new element");
-                __classPrivateFieldGet(this, _TebexCheckout_instances, "m", _TebexCheckout_init).call(this);
-                break;
-            case "open":
-                this._open = (oldVal === "false" || !oldVal) && (newVal === "" || !!newVal);
-                __classPrivateFieldGet(this, _TebexCheckout_instances, "m", _TebexCheckout_updatePopupState).call(this);
-                break;
-            case "height":
-                this._height = parseInt(newVal);
-                __classPrivateFieldGet(this, _TebexCheckout_instances, "m", _TebexCheckout_updateSize).call(this);
-                break;
+        this._didInit = true;
+        let colors = [];
+        if (this.hasAttribute("color-primary"))
+            colors.push({ name: "primary", color: getAttribute(this, "color-primary") });
+        if (this.hasAttribute("color-secondary"))
+            colors.push({ name: "secondary", color: getAttribute(this, "color-secondary") });
+        this.checkout.init({
+            ident: getAttribute(this, "ident"),
+            locale: getAttribute(this, "locale"),
+            theme: getAttribute(this, "theme"),
+            colors: colors,
+            closeOnClickOutside: getAttribute(this, "close-on-click-outside") !== null,
+            closeOnEsc: getAttribute(this, "close-on-esc") !== null,
+            popupOnMobile: getAttribute(this, "popup-on-mobile") !== null,
+            endpoint: getAttribute(this, "endpoint"),
+        });
+        this._mode = this.hasAttribute("inline") ? "inline" : "popover";
+        if (this._mode === "inline")
+            await this.checkout.render(this._root, "100%", this._height, false);
+        else if (this._mode === "popover") {
+            this.checkout.on("close", () => this.removeAttribute("open"));
+            __classPrivateFieldGet(this, _TebexCheckoutElement_instances, "m", _TebexCheckoutElement_updatePopupState).call(this);
         }
-    }
-    async renderFinished() {
-        if (!this.checkout)
+        this.checkout.on("payment:complete", () => {
+            if (this.hasAttribute("redirect-on-complete")) {
+                const url = this.getAttribute("redirect-on-complete");
+                location.href = url;
+            }
+        });
+        __classPrivateFieldGet(this, _TebexCheckoutElement_attachClickHandlers, "f").call(this);
+    }, _TebexCheckoutElement_updatePopupState = function _TebexCheckoutElement_updatePopupState() {
+        // Opening and closing the checkout is only for "popover" mode
+        if (this._mode !== "popover")
             return;
-        await this.checkout.renderFinished();
-    }
-}
-_TebexCheckout_attachClickHandlers = new WeakMap(), _TebexCheckout_instances = new WeakSet(), _TebexCheckout_init = async function _TebexCheckout_init() {
-    if (this._didInit || !this._didConnect)
-        return;
-    this._didInit = true;
-    let colors = [];
-    if (this.hasAttribute("color-primary"))
-        colors.push({ name: "primary", color: getAttribute(this, "color-primary") });
-    if (this.hasAttribute("color-secondary"))
-        colors.push({ name: "secondary", color: getAttribute(this, "color-secondary") });
-    this.checkout.init({
-        ident: getAttribute(this, "ident"),
-        locale: getAttribute(this, "locale"),
-        theme: getAttribute(this, "theme"),
-        colors: colors,
-        closeOnClickOutside: getAttribute(this, "close-on-click-outside") !== null,
-        closeOnEsc: getAttribute(this, "close-on-esc") !== null,
-        popupOnMobile: getAttribute(this, "popup-on-mobile") !== null,
-        endpoint: getAttribute(this, "endpoint"),
-    });
-    this._mode = this.hasAttribute("inline") ? "inline" : "popover";
-    if (this._mode === "inline")
-        await this.checkout.render(this._root, "100%", this._height, false);
-    else if (this._mode === "popover") {
-        this.checkout.on("close", () => this.removeAttribute("open"));
-        __classPrivateFieldGet(this, _TebexCheckout_instances, "m", _TebexCheckout_updatePopupState).call(this);
-    }
-    this.checkout.on("payment:complete", () => {
-        if (this.hasAttribute("redirect-on-complete")) {
-            const url = this.getAttribute("redirect-on-complete");
-            location.href = url;
-        }
-    });
-    __classPrivateFieldGet(this, _TebexCheckout_attachClickHandlers, "f").call(this);
-}, _TebexCheckout_updatePopupState = function _TebexCheckout_updatePopupState() {
-    // Opening and closing the checkout is only for "popover" mode
-    if (this._mode !== "popover")
-        return;
-    // Checkout isn't in DOM yet, can't render
-    if (!this._didConnect)
-        return;
-    // Checkout didn't init with an ident yet! Do nothing; this function will be called again after init
-    if (!this._didInit)
-        return;
-    if (this._open && !this.checkout.isOpen)
-        this.checkout.launch();
-    if (!this._open && this.checkout.isOpen)
-        this.checkout.close();
-}, _TebexCheckout_updateSize = function _TebexCheckout_updateSize() {
-    // Resizing only makes sense in "inline" mode
-    if (this._mode !== "inline")
-        return;
-    // Check that a Zoid instance is actually available
-    const zoid = this.checkout.zoid;
-    if (!zoid)
-        return;
-    zoid.resize({ height: this._height });
+        // Checkout isn't in DOM yet, can't render
+        if (!this._didConnect)
+            return;
+        // Checkout didn't init with an ident yet! Do nothing; this function will be called again after init
+        if (!this._didInit)
+            return;
+        if (this._open && !this.checkout.isOpen)
+            this.checkout.launch();
+        if (!this._open && this.checkout.isOpen)
+            this.checkout.close();
+    }, _TebexCheckoutElement_updateSize = function _TebexCheckoutElement_updateSize() {
+        // Resizing only makes sense in "inline" mode
+        if (this._mode !== "inline")
+            return;
+        // Check that a Zoid instance is actually available
+        const zoid = this.checkout.zoid;
+        if (!zoid)
+            return;
+        zoid.resize({ height: this._height });
+    };
+    customElements.define("tebex-checkout", TebexCheckoutElement);
+    return TebexCheckoutElement;
 };
 if (isEnvBrowser())
-    customElements.define("tebex-checkout", TebexCheckout);
+    defineTebexCheckout();
 
 /**
  * Current Tebex.js package version
  */
-const version = "1.5.0";
+const version = "1.6.0";
 /**
  * Tebex checkout API
  */

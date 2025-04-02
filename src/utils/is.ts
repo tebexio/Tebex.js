@@ -21,6 +21,11 @@ export const isString = (value: unknown): value is string => typeof value === "s
 /**
  * @internal
  */
+export const isNonEmptyString = (value: unknown): value is string => typeof value === "string" && value !== "";
+
+/**
+ * @internal
+ */
 export const isNumberNaN = Number.isNaN;
 
 /**

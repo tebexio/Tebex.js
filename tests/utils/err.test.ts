@@ -21,13 +21,13 @@ describe("err", () => {
 describe("warn", () => {
 
     test("Logs a prefixed warning", () => {
-        const spy = vi.spyOn(console, "warn");
+        const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
         warn();
         expect(spy).toHaveBeenCalledWith("Tebex.js warning");
     });
 
     test("Logs a prefixed warning with a given message", () => {
-        const spy = vi.spyOn(console, "warn");
+        const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
         warn("Warning message");
         expect(spy).toHaveBeenCalledWith("Tebex.js warning: Warning message");
     });

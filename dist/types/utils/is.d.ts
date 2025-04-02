@@ -17,6 +17,10 @@ export declare const isString: (value: unknown) => value is string;
 /**
  * @internal
  */
+export declare const isNonEmptyString: (value: unknown) => value is string;
+/**
+ * @internal
+ */
 export declare const isNumberNaN: (number: unknown) => boolean;
 /**
  * @internal
