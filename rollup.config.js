@@ -50,6 +50,19 @@ export default [
                 include: "node_modules/zoid/**/*",
                 window: path.resolve("src/stubs/window.ts"),
             }),
+            replace({
+                // required for zoid support in nuxt
+                // Nuxt tries to change instances of "global" to "globalThis", however it's a little overzealous
+                // It ends up breaking zoid/postrobot since it replaces a local variable named "global" inside the getWildcard function
+                // This particular line in Nuxt is the culprit:
+                // https://github.com/nuxt/nuxt/blob/a69751b96d35b0b2a4d7674652c604e45370f60c/packages/vite/src/vite.ts#L243
+                include: "node_modules/zoid/**/*",
+                values: {
+                    "var global = global_getGlobal();": "var zoidGlobal = global_getGlobal();",
+                    "global.WINDOW_WILDCARD": "zoidGlobal.WINDOW_WILDCARD"
+                },
+                delimiters: ["", ""]
+            }),
             typescript({
                 outputToFilesystem: true,
                 exclude: "tests/**/*",
