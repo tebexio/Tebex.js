@@ -3986,9 +3986,9 @@ function requireZoid_frame () {
 		        }
 		        var WildCard = function() {};
 		        function getWildcard() {
-		            var global = global_getGlobal();
-		            global.WINDOW_WILDCARD = global.WINDOW_WILDCARD || new WildCard;
-		            return global.WINDOW_WILDCARD;
+		            var zoidGlobal = global_getGlobal();
+		            zoidGlobal.WINDOW_WILDCARD = zoidGlobal.WINDOW_WILDCARD || new WildCard;
+		            return zoidGlobal.WINDOW_WILDCARD;
 		        }
 		        function windowStore(key, defStore) {
 		            void 0 === key && (key = "store");
@@ -8767,9 +8767,9 @@ function requireZoid () {
 		        }
 		        var WildCard = function() {};
 		        function getWildcard() {
-		            var global = global_getGlobal();
-		            global.WINDOW_WILDCARD = global.WINDOW_WILDCARD || new WildCard;
-		            return global.WINDOW_WILDCARD;
+		            var zoidGlobal = global_getGlobal();
+		            zoidGlobal.WINDOW_WILDCARD = zoidGlobal.WINDOW_WILDCARD || new WildCard;
+		            return zoidGlobal.WINDOW_WILDCARD;
 		        }
 		        function windowStore(key, defStore) {
 		            void 0 === key && (key = "store");
@@ -12785,7 +12785,7 @@ _Checkout_didRender = new WeakMap(), _Checkout_onRender = new WeakMap(), _Checko
         origin: url.origin,
         path: url.pathname,
         params: url.search,
-        version: "1.6.0",
+        version: "1.6.1",
     });
     await this.zoid.renderTo(window, container, popup ? "popup" : "iframe");
     __classPrivateFieldSet(this, _Checkout_didRender, true, "f");
@@ -12994,7 +12994,7 @@ if (isEnvBrowser())
 /**
  * Current Tebex.js package version
  */
-const version = "1.6.0";
+const version = "1.6.1";
 /**
  * Tebex checkout API
  */
