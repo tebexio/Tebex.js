@@ -54,9 +54,16 @@ declare module "zoid" {
         | "zoid-resize"
         | "zoid-focus";
 
+    // TODO: flesh out this type
+    export type ZoidComponentInstance = any;
+
+    export type ZoidComponent<Props> = {
+        (props: Props): ZoidComponentInstance;
+    };
+
     export type Zoid = {
         // https://github.com/krakenjs/zoid/blob/main/docs/api/create.md
-        create: (opts?: Partial<ComponentConfig>) => any;
+        create: <Props>(opts?: Partial<ComponentConfig>) => ZoidComponent<Props>;
         destroy: any;
         destroyComponents: any;
         destroyAll: any;
@@ -104,7 +111,7 @@ declare module "zoid" {
     }
 
     export function PopupOpenError(): void;
-    export function create(config: ComponentConfig): Zoid;
+    export function create<Props>(config: ComponentConfig): ZoidComponent<Props>;
     export function destroy(): void;
     export function destroyComponents(): void;
     export function destroyAll(): void;

@@ -82,6 +82,14 @@ describe("<tebex-checkout> Web component", () => {
             expect(el.checkout.closeOnEsc).toEqual(true);
         });
 
+        test("Default payment method can be set with the default-payment-method attribute", () => {
+            const el = document.createElement("tebex-checkout") as TebexCheckout;
+            document.body.append(el);
+            el.setAttribute("default-payment-method", "test");
+            el.setAttribute("ident", __TEST_BASKET_IDENT__);
+            expect(el.checkout.defaultPaymentMethod).toEqual("test");
+        });
+
         test("Colors can be set with the color-primary and color-secondary attributes", () => {
             const el = document.createElement("tebex-checkout") as TebexCheckout;
             document.body.append(el);

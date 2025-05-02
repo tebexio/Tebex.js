@@ -279,6 +279,27 @@ describe("Checkout", () => {
                 expect(checkout.closeOnEsc).toBe(false);
             });
         });
+
+        describe("defaultPaymentMethod option", () => {
+
+            test("Can set defaultPaymentMethod, which defaults to undefined", () => {
+                checkout.init({ ident: "test" });
+                expect(checkout.defaultPaymentMethod).toBe(undefined);
+                checkout.init({ ident: "test", defaultPaymentMethod: "paypal" });
+                expect(checkout.defaultPaymentMethod).toBe("paypal");
+            });
+
+            test("Warns if defaultPaymentMethod option isn't valid, and falls back to default", () => {
+                const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
+                checkout.init({
+                    ident: "test",
+                    defaultPaymentMethod: 123 as any
+                });
+                expect(spy).toHaveBeenCalledOnce();
+                expect(spy.mock.lastCall[0]).toContain("invalid default payment method option");
+                expect(checkout.defaultPaymentMethod).toBe(undefined);
+            });
+        });
     });
 
     describe("Checkout on()", () => {

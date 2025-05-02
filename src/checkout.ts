@@ -1,5 +1,12 @@
-import zoid from "zoid";
-import { createNanoEvents, Unsubscribe } from "nanoevents";
+import zoid, { 
+    type ZoidComponent,
+    type ZoidComponentInstance 
+} from "zoid";
+
+import {
+    createNanoEvents,
+    type Unsubscribe
+} from "nanoevents";
 
 import { Lightbox } from "./lightbox";
 import { spinnerRender } from "./spinner";
@@ -76,9 +83,13 @@ export type CheckoutOptions = {
      */
     closeOnEsc?: boolean;
     /**
+     * Select a payment method to highlight on the checkout by passing its ident.
+     * @default undefined
+     */
+    defaultPaymentMethod?: string;
+    /**
      * Whether to still display a popup on mobile or not. If `false` or undefined, then calling `launch()` will open a new window on mobile devices.
      * @default false
-     * @internal
      */
     popupOnMobile?: boolean;
     /**
@@ -118,6 +129,30 @@ export type CheckoutEventMap = Implements<Record<CheckoutEvent, Function>, {
 }>;
 
 /**
+ * Props passed through Zoid component.
+ * @internal
+ */
+export type CheckoutZoidProps = {
+    locale: string;
+    colors: CheckoutColorDefinition[];
+    closeOnClickOutside: boolean;
+    closeOnEsc: boolean;
+    defaultPaymentMethod?: string;
+    theme: CheckoutTheme;
+    onOpenWindow: (url: string) => void;
+    onClosePopup: () => Promise<void>;
+    onPaymentComplete: (e: any) => void;
+    onPaymentError: (e: any) => void;
+    isApplePayAvailable: boolean;
+    isEmbedded: boolean;
+    referrer: string;
+    origin: string;
+    path: string;
+    params: string;
+    version: string;
+};
+
+/**
  * Tebex checkout instance. 
  */
 export default class Checkout {
@@ -125,9 +160,10 @@ export default class Checkout {
     ident: string = null;
     locale: string = null;
     theme: CheckoutTheme = "default";
-    colors: CheckoutColorDefinition[] =  [];
+    colors: CheckoutColorDefinition[] = [];
     closeOnClickOutside = false;
     closeOnEsc = false;
+    defaultPaymentMethod?: string = undefined;
     popupOnMobile = false;
     endpoint = "https://pay.tebex.io";
 
@@ -135,8 +171,8 @@ export default class Checkout {
     emitter = createNanoEvents<CheckoutEventMap>();
     lightbox: Lightbox = null;
 
-    component: any = null;
-    zoid: any = null;
+    component: ZoidComponent<CheckoutZoidProps> = null;
+    zoid: ZoidComponentInstance = null;
 
     #didRender = false;
     #onRender: Function;
@@ -154,6 +190,7 @@ export default class Checkout {
         this.endpoint = this.#resolveEndpoint(options) ?? this.endpoint;
         this.closeOnClickOutside = this.#resolveCloseOnClickOutside(options) ?? this.closeOnClickOutside;
         this.closeOnEsc = this.#resolveCloseOnEsc(options) ?? this.closeOnEsc;
+        this.defaultPaymentMethod = this.#resolveDefaultPaymentMethod(options) ?? this.defaultPaymentMethod;
     }
     
     /**
@@ -367,6 +404,18 @@ export default class Checkout {
         return options.closeOnEsc;
     }
 
+    #resolveDefaultPaymentMethod(options: CheckoutOptions) {
+        if (isNullOrUndefined(options.defaultPaymentMethod))
+            return null;
+
+        if (!isNonEmptyString(options.defaultPaymentMethod)) {
+            warn(`invalid default payment method option "${ options.defaultPaymentMethod }" - must be a non-empty string`);
+            return null;
+        }
+
+        return options.defaultPaymentMethod;
+    }
+
     #onRequestLightboxClose = async () => {
         if (this.isOpen)
             await this.close();
@@ -421,6 +470,7 @@ export default class Checkout {
             colors: this.colors,
             closeOnClickOutside: this.closeOnClickOutside,
             closeOnEsc: this.closeOnEsc,
+            defaultPaymentMethod: this.defaultPaymentMethod,
             theme: this.theme,
             onOpenWindow: (url) => {
                 window.open(url);
