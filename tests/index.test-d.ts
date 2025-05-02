@@ -3,7 +3,13 @@ import { describe, test, expectTypeOf } from "vitest";
 import tebex, {
     checkout,
     events,
-    version
+    version,
+    type CheckoutOptions,
+    type CheckoutColorDefinition,
+    type CheckoutEvent,
+    type CheckoutEventMap,
+    type CheckoutTheme,
+    type CheckoutZoidProps
 } from "../src/index";
 
 describe("Typechecks", () => {
@@ -21,7 +27,90 @@ describe("Typechecks", () => {
         expectTypeOf(tebex.checkout).toMatchTypeOf<typeof checkout>();
     });
 
-    describe("Exports match publicly documented API", () => {
+    describe("Type exports match publicly documented API", () => {
+
+        test("CheckoutOptions", () => {
+            expectTypeOf<CheckoutOptions>().toBeObject();
+            expectTypeOf<CheckoutOptions>().toMatchTypeOf<{
+                ident: string;
+                theme?: "light" | "dark" | "default" | "auto";
+                closeOnClickOutside?: boolean;
+                closeOnEsc?: boolean;
+                colors?: {
+                    name: "primary" | "secondary",
+                    color: string
+                }[];
+                defaultPaymentMethod?: string;
+                popupOnMobile?: boolean;
+                endpoint?: string;
+            }>();
+        });
+
+        test("CheckoutColorDefinition", () => {
+            expectTypeOf<CheckoutColorDefinition>().toBeObject();
+            expectTypeOf<CheckoutColorDefinition>().toMatchTypeOf<{
+                name: "primary" | "secondary",
+                color: string
+            }>();
+        });
+
+        test("CheckoutEvent", () => {
+            expectTypeOf<CheckoutEvent>().toBeString();
+            expectTypeOf<CheckoutEvent>().toMatchTypeOf<
+                | "open"
+                | "close"
+                | "payment:complete"
+                | "payment:error"
+            >();
+        });
+
+        test("CheckoutEventMap", () => {
+            expectTypeOf<CheckoutEventMap>().toBeObject();
+            expectTypeOf<CheckoutEventMap>().toMatchTypeOf<
+                Record<
+                    | "open"
+                    | "close"
+                    | "payment:complete"
+                    | "payment:error", 
+                    Function
+                >
+            >();
+        });
+
+        test("CheckoutTheme", () => {
+            expectTypeOf<CheckoutTheme>().toBeString();
+            expectTypeOf<CheckoutTheme>().toMatchTypeOf<"light" | "dark" | "default" | "auto">();
+        });
+
+        test("CheckoutZoidProps", () => {
+            expectTypeOf<CheckoutZoidProps>().toBeObject();
+            expectTypeOf<CheckoutZoidProps>().toMatchTypeOf<{
+                locale: string;
+                colors: {
+                    name: "primary" | "secondary",
+                    color: string
+                }[];
+                closeOnClickOutside: boolean;
+                closeOnEsc: boolean;
+                defaultPaymentMethod?: string;
+                theme: "light" | "dark" | "default" | "auto";
+                onOpenWindow: (url: string) => void;
+                onClosePopup: () => Promise<void>;
+                onPaymentComplete: (e: any) => void;
+                onPaymentError: (e: any) => void;
+                isApplePayAvailable: boolean;
+                isEmbedded: boolean;
+                referrer: string;
+                origin: string;
+                path: string;
+                params: string;
+                version: string;
+            }>();
+        });
+
+    });
+
+    describe("JS exports match publicly documented API", () => {
 
         test("Tebex.version", () => {
             expectTypeOf(tebex.version).toBeString();
@@ -58,6 +147,7 @@ describe("Typechecks", () => {
                     name: "primary" | "secondary",
                     color: string
                 }[];
+                defaultPaymentMethod?: string;
                 popupOnMobile?: boolean;
                 endpoint?: string;
             }>();

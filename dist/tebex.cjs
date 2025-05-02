@@ -12506,7 +12506,7 @@
         return html;
     };
 
-    var _Checkout_instances, _Checkout_didRender, _Checkout_onRender, _Checkout_resolveLocale, _Checkout_resolveTheme, _Checkout_resolveColors, _Checkout_resolvePopupOnMobile, _Checkout_resolveEndpoint, _Checkout_resolveCloseOnClickOutside, _Checkout_resolveCloseOnEsc, _Checkout_onRequestLightboxClose, _Checkout_showLightbox, _Checkout_buildComponent, _Checkout_renderComponent;
+    var _Checkout_instances, _Checkout_didRender, _Checkout_onRender, _Checkout_resolveLocale, _Checkout_resolveTheme, _Checkout_resolveColors, _Checkout_resolvePopupOnMobile, _Checkout_resolveEndpoint, _Checkout_resolveCloseOnClickOutside, _Checkout_resolveCloseOnEsc, _Checkout_resolveDefaultPaymentMethod, _Checkout_onRequestLightboxClose, _Checkout_showLightbox, _Checkout_buildComponent, _Checkout_renderComponent;
     const DEFAULT_WIDTH = "800px";
     const DEFAULT_HEIGHT = "760px";
     const THEME_NAMES = [
@@ -12537,6 +12537,7 @@
             this.colors = [];
             this.closeOnClickOutside = false;
             this.closeOnEsc = false;
+            this.defaultPaymentMethod = undefined;
             this.popupOnMobile = false;
             this.endpoint = "https://pay.tebex.io";
             this.isOpen = false;
@@ -12564,6 +12565,7 @@
             this.endpoint = __classPrivateFieldGet(this, _Checkout_instances, "m", _Checkout_resolveEndpoint).call(this, options) ?? this.endpoint;
             this.closeOnClickOutside = __classPrivateFieldGet(this, _Checkout_instances, "m", _Checkout_resolveCloseOnClickOutside).call(this, options) ?? this.closeOnClickOutside;
             this.closeOnEsc = __classPrivateFieldGet(this, _Checkout_instances, "m", _Checkout_resolveCloseOnEsc).call(this, options) ?? this.closeOnEsc;
+            this.defaultPaymentMethod = __classPrivateFieldGet(this, _Checkout_instances, "m", _Checkout_resolveDefaultPaymentMethod).call(this, options) ?? this.defaultPaymentMethod;
         }
         /**
          * Subscribe to Tebex checkout events, such as when the embed is closed or when a payment is completed.
@@ -12729,6 +12731,14 @@
             return null;
         }
         return options.closeOnEsc;
+    }, _Checkout_resolveDefaultPaymentMethod = function _Checkout_resolveDefaultPaymentMethod(options) {
+        if (isNullOrUndefined(options.defaultPaymentMethod))
+            return null;
+        if (!isNonEmptyString(options.defaultPaymentMethod)) {
+            warn(`invalid default payment method option "${options.defaultPaymentMethod}" - must be a non-empty string`);
+            return null;
+        }
+        return options.defaultPaymentMethod;
     }, _Checkout_showLightbox = async function _Checkout_showLightbox() {
         if (!this.lightbox)
             this.lightbox = new Lightbox();
@@ -12768,6 +12778,7 @@
             colors: this.colors,
             closeOnClickOutside: this.closeOnClickOutside,
             closeOnEsc: this.closeOnEsc,
+            defaultPaymentMethod: this.defaultPaymentMethod,
             theme: this.theme,
             onOpenWindow: (url) => {
                 window.open(url);
@@ -12791,7 +12802,7 @@
             origin: url.origin,
             path: url.pathname,
             params: url.search,
-            version: "1.6.1",
+            version: "1.7.0",
         });
         await this.zoid.renderTo(window, container, popup ? "popup" : "iframe");
         __classPrivateFieldSet(this, _Checkout_didRender, true, "f");
@@ -12950,6 +12961,7 @@
                 colors: colors,
                 closeOnClickOutside: getAttribute(this, "close-on-click-outside") !== null,
                 closeOnEsc: getAttribute(this, "close-on-esc") !== null,
+                defaultPaymentMethod: getAttribute(this, "default-payment-method"),
                 popupOnMobile: getAttribute(this, "popup-on-mobile") !== null,
                 endpoint: getAttribute(this, "endpoint"),
             });
@@ -13000,7 +13012,7 @@
     /**
      * Current Tebex.js package version
      */
-    const version = "1.6.1";
+    const version = "1.7.0";
     /**
      * Tebex checkout API
      */

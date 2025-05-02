@@ -8,6 +8,7 @@ export declare const version: string;
  * Tebex checkout API
  */
 export declare const checkout: Checkout;
+export type { CheckoutOptions, CheckoutColorDefinition, CheckoutEvent, CheckoutEventMap, CheckoutTheme, CheckoutZoidProps } from "./checkout";
 /**
  * Legacy APIs
  * @deprecated

@@ -1,4 +1,6 @@
-import { Unsubscribe } from "nanoevents";
+/// <reference path="../../src/types/zoid.d.ts" />
+import { type ZoidComponent, type ZoidComponentInstance } from "zoid";
+import { type Unsubscribe } from "nanoevents";
 import { Lightbox } from "./lightbox";
 import { type CssDimension, type Implements } from "./utils";
 export declare const THEME_NAMES: readonly ["auto", "default", "light", "dark"];
@@ -38,9 +40,13 @@ export type CheckoutOptions = {
      */
     closeOnEsc?: boolean;
     /**
+     * Select a payment method to highlight on the checkout by passing its ident.
+     * @default undefined
+     */
+    defaultPaymentMethod?: string;
+    /**
      * Whether to still display a popup on mobile or not. If `false` or undefined, then calling `launch()` will open a new window on mobile devices.
      * @default false
-     * @internal
      */
     popupOnMobile?: boolean;
     /**
@@ -75,6 +81,29 @@ export type CheckoutEventMap = Implements<Record<CheckoutEvent, Function>, {
     "payment:error": (e: Event) => void;
 }>;
 /**
+ * Props passed through Zoid component.
+ * @internal
+ */
+export type CheckoutZoidProps = {
+    locale: string;
+    colors: CheckoutColorDefinition[];
+    closeOnClickOutside: boolean;
+    closeOnEsc: boolean;
+    defaultPaymentMethod?: string;
+    theme: CheckoutTheme;
+    onOpenWindow: (url: string) => void;
+    onClosePopup: () => Promise<void>;
+    onPaymentComplete: (e: any) => void;
+    onPaymentError: (e: any) => void;
+    isApplePayAvailable: boolean;
+    isEmbedded: boolean;
+    referrer: string;
+    origin: string;
+    path: string;
+    params: string;
+    version: string;
+};
+/**
  * Tebex checkout instance.
  */
 export default class Checkout {
@@ -85,6 +114,7 @@ export default class Checkout {
     colors: CheckoutColorDefinition[];
     closeOnClickOutside: boolean;
     closeOnEsc: boolean;
+    defaultPaymentMethod?: string;
     popupOnMobile: boolean;
     endpoint: string;
     isOpen: boolean;
@@ -95,8 +125,8 @@ export default class Checkout {
         "payment:error": (e: Event) => void;
     }>;
     lightbox: Lightbox;
-    component: any;
-    zoid: any;
+    component: ZoidComponent<CheckoutZoidProps>;
+    zoid: ZoidComponentInstance;
     /**
      * Configure the Tebex checkout settings.
      */
