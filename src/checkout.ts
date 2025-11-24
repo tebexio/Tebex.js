@@ -39,7 +39,17 @@ export const THEME_NAMES = [
 
 export const COLOR_NAMES = [
     "primary",
-    "secondary"
+    "secondary",
+    "background",
+    "surface",
+    "surface-variant",
+    "success",
+    "warning",
+    "error",
+    "green",
+    "red",
+    "fields",
+    "field-border",
 ] as const;
 
 export const EVENT_NAMES = [
