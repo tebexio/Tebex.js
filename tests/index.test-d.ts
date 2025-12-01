@@ -37,7 +37,7 @@ describe("Typechecks", () => {
                 closeOnClickOutside?: boolean;
                 closeOnEsc?: boolean;
                 colors?: {
-                    name: "primary" | "secondary",
+                    name: "primary" | "secondary" | "background" | "surface" | "surface-variant" | "success" | "warning" | "error" | "green" | "red" | "fields" | "field-border",
                     color: string
                 }[];
                 defaultPaymentMethod?: string;
@@ -49,7 +49,7 @@ describe("Typechecks", () => {
         test("CheckoutColorDefinition", () => {
             expectTypeOf<CheckoutColorDefinition>().toBeObject();
             expectTypeOf<CheckoutColorDefinition>().toMatchTypeOf<{
-                name: "primary" | "secondary",
+                name: "primary" | "secondary" | "background" | "surface" | "surface-variant" | "success" | "warning" | "error" | "green" | "red" | "fields" | "field-border",
                 color: string
             }>();
         });
@@ -87,7 +87,7 @@ describe("Typechecks", () => {
             expectTypeOf<CheckoutZoidProps>().toMatchTypeOf<{
                 locale: string;
                 colors: {
-                    name: "primary" | "secondary",
+                    name: "primary" | "secondary" | "background" | "surface" | "surface-variant" | "success" | "warning" | "error" | "green" | "red" | "fields" | "field-border",
                     color: string
                 }[];
                 closeOnClickOutside: boolean;
@@ -144,7 +144,7 @@ describe("Typechecks", () => {
                 closeOnClickOutside?: boolean;
                 closeOnEsc?: boolean;
                 colors?: {
-                    name: "primary" | "secondary",
+                    name: "primary" | "secondary" | "background" | "surface" | "surface-variant" | "success" | "warning" | "error" | "green" | "red" | "fields" | "field-border",
                     color: string
                 }[];
                 defaultPaymentMethod?: string;

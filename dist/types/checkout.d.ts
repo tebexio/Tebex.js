@@ -4,7 +4,7 @@ import { type Unsubscribe } from "nanoevents";
 import { Lightbox } from "./lightbox";
 import { type CssDimension, type Implements } from "./utils";
 export declare const THEME_NAMES: readonly ["auto", "default", "light", "dark"];
-export declare const COLOR_NAMES: readonly ["primary", "secondary"];
+export declare const COLOR_NAMES: readonly ["primary", "secondary", "background", "surface", "surface-variant", "success", "warning", "error", "green", "red", "fields", "field-border"];
 export declare const EVENT_NAMES: readonly ["open", "close", "payment:complete", "payment:error"];
 /**
  * Configuration options for `Tebex.checkout.init()`.

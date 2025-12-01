@@ -6,6 +6,7 @@ function launch() {
         theme: document.getElementById("popup-theme")?.value,
         colors: [],
         endpoint: __ENDPOINT__,
+        defaultPaymentMethod: "paypal",
     };
 
     Array.prototype.forEach.call(

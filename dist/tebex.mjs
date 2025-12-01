@@ -12511,7 +12511,17 @@ const THEME_NAMES = [
 ];
 const COLOR_NAMES = [
     "primary",
-    "secondary"
+    "secondary",
+    "background",
+    "surface",
+    "surface-variant",
+    "success",
+    "warning",
+    "error",
+    "green",
+    "red",
+    "fields",
+    "field-border",
 ];
 const EVENT_NAMES = [
     "open",
