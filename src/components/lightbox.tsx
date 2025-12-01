@@ -5,12 +5,14 @@ import {
     isEnvBrowser,
     nextFrame,
     transitionEnd,
-} from "./utils";
+} from "../utils";
 
-import styles from "./styles/lightbox.css?inline";
+import styles from "./lightbox.css?inline";
 
 export type LightboxClickOutsideHandler = (e: MouseEvent) => void;
 export type LightboxEscKeyHandler = (e: KeyboardEvent) => void;
+
+let globalIsLightboxOpen = false;
 
 export class Lightbox {
 
@@ -18,9 +20,11 @@ export class Lightbox {
     root: HTMLElement;
     holder: HTMLElement;
 
+    name: string | null = null;
     clickOutsideHandler: LightboxClickOutsideHandler | null = null;
     escKeyHandler: LightboxEscKeyHandler | null = null;
 
+    // TODO: add options here to configure name, click handling, etc
     constructor() {
         assert(isEnvBrowser());
 
@@ -35,13 +39,15 @@ export class Lightbox {
 
     render() {
         return (
-            <div class="tebex-js-lightbox">
+            <div class={[ "tebex-js-lightbox", this.name ? `tebex-js-lightbox--${this.name}` : null ]}>
                 <div class="tebex-js-lightbox__holder" role="dialog"></div>
             </div>
         );
     }
 
     async show() {
+        assert(!globalIsLightboxOpen, "There is already a lightbox open");
+        globalIsLightboxOpen = true;
         this.body.append(this.root);
         await nextFrame();
         this.root.classList.add("tebex-js-lightbox--visible");
@@ -50,22 +56,22 @@ export class Lightbox {
         this.body.addEventListener("keydown", this.#onKeyPress);
     }
 
-    async hide() {
+    async hide(transition = true) {
         this.body.removeEventListener("click", this.#onClickOutside);
         this.body.removeEventListener("keydown", this.#onKeyPress);
         this.root.classList.remove("tebex-js-lightbox--visible");
-        await nextFrame();
-        await transitionEnd(this.root);
+        if (transition) {
+            await nextFrame();
+            await transitionEnd(this.root);
+        }
         this.body.removeChild(this.root);
+        globalIsLightboxOpen = false;
     }
 
     destroy() {
         if (!this.root.parentNode)
             return;
-        this.body.removeEventListener("click", this.#onClickOutside);
-        this.body.removeEventListener("keydown", this.#onKeyPress);
-        this.root.classList.remove("tebex-js-lightbox--visible");
-        this.body.removeChild(this.root);
+        this.hide(false);
     }
 
     #onClickOutside = (e: MouseEvent) => {

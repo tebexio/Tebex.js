@@ -1,4 +1,5 @@
 import Checkout from "./checkout";
+import Portal from "./portal";
 import * as legacy from "./legacy";
 
 import "./webComponents";
@@ -23,6 +24,15 @@ export type {
 } from "./checkout";
 
 /**
+ * Tebex payment portal API
+ */
+export const portal = new Portal();
+
+export type {
+    // TODO
+} from "./portal";
+
+/**
  * Legacy APIs
  * @deprecated
  */
@@ -31,5 +41,6 @@ export * from "./legacy";
 export default {
     version,
     checkout,
+    portal,
     ...legacy
 };

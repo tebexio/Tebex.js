@@ -1,6 +1,6 @@
 import { describe, test, expect, beforeEach } from "vitest";
 
-import { Lightbox } from "../src/lightbox";
+import { Lightbox } from "../../src/components/lightbox";
 
 describe("Lightbox", () => {
 
@@ -22,6 +22,8 @@ describe("Lightbox", () => {
         expect(lightbox.root.outerHTML).toEqual(`<div class="tebex-js-lightbox"><div class="tebex-js-lightbox__holder" role="dialog"></div></div>`);
     });
 
+    // TODO: name is seen to lightbox root class list
+
     test("Holder element is assigned to lightbox.holder", () => {
         expect(lightbox.holder.outerHTML).toEqual(`<div class="tebex-js-lightbox__holder" role="dialog"></div>`);
     });
@@ -33,6 +35,8 @@ describe("Lightbox", () => {
             await lightbox.show();
             expect(document.body.querySelector('.tebex-js-lightbox')).not.toBeNull();
         });
+
+        // TODO: doesn't allow more than one lightbox at a time
 
         test("Only resolves once transition has finished", async() => {
             const start = performance.now();
@@ -66,6 +70,8 @@ describe("Lightbox", () => {
             const end = performance.now();
             expect(end - start).toBeGreaterThan(390); // default duration is 410ms, but test timing isn't super precise
         });
+        
+        // TODO: can pass true to skip transition
 
         test("CSS var --tebex-js-duration can be used to adjust the duration time", async () => {
             await lightbox.show();

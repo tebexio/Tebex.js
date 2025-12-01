@@ -8,8 +8,8 @@ import {
     type Unsubscribe
 } from "nanoevents";
 
-import { Lightbox } from "./lightbox";
-import { spinnerRender } from "./spinner";
+import { Lightbox } from "./components/lightbox";
+import { spinnerRender } from "./components/spinner";
 
 import {
     type CssDimension,
@@ -432,8 +432,9 @@ export default class Checkout {
     };
 
     async #showLightbox() {
+        // TODO: way to pass props/options, maybe via separate method? so that click handlers can be updated after lightbox instanciation
         if (!this.lightbox)
-            this.lightbox = new Lightbox();
+            this.lightbox = new Lightbox({});
 
         if (this.closeOnClickOutside)
             this.lightbox.clickOutsideHandler = this.#onRequestLightboxClose;
@@ -441,6 +442,7 @@ export default class Checkout {
         if (this.closeOnEsc)
             this.lightbox.escKeyHandler = this.#onRequestLightboxClose;
 
+        // TODO: handle error?
         await this.lightbox.show();
         await this.#renderComponent(this.lightbox.holder, false);
 

@@ -2,6 +2,7 @@ import { describe, test, expectTypeOf } from "vitest";
 
 import tebex, {
     checkout,
+    portal,
     events,
     version,
     type CheckoutOptions,
@@ -19,12 +20,14 @@ describe("Typechecks", () => {
         expectTypeOf(tebex).toHaveProperty("version");
         expectTypeOf(tebex).toHaveProperty("events");
         expectTypeOf(tebex).toHaveProperty("checkout");
+        expectTypeOf(tebex).toHaveProperty("portal");
     });
 
     test("Named export types match their Tebex object equivalents", () => {
         expectTypeOf(tebex.version).toMatchTypeOf<typeof version>();
         expectTypeOf(tebex.events).toMatchTypeOf<typeof events>();
         expectTypeOf(tebex.checkout).toMatchTypeOf<typeof checkout>();
+        expectTypeOf(tebex.portal).toMatchTypeOf<typeof portal>();
     });
 
     describe("Type exports match publicly documented API", () => {
