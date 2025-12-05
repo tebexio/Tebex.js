@@ -26,6 +26,7 @@ import {
     isObject,
     isBoolean,
 } from "./utils";
+import { TebexTheme } from "./common";
 
 const DEFAULT_WIDTH = "800px";
 const DEFAULT_HEIGHT = "760px";
@@ -76,7 +77,7 @@ export type CheckoutOptions = {
      * Tebex checkout panel color theme.
      * @default "light"
      */
-    theme?: CheckoutTheme;
+    theme?: TebexTheme;
     /**
      * Tebex checkout panel UI brand colors.
      * @default []
@@ -111,11 +112,6 @@ export type CheckoutOptions = {
 };
 
 /**
- * Color theme for the embedded Tebex checkout panel.
- */
-export type CheckoutTheme = typeof THEME_NAMES[number];
-
-/**
  * Color definition. The `color` property can be set to any valid CSS color, so long as it does not rely on CSS Variables.
  */
 export type CheckoutColorDefinition = {
@@ -148,7 +144,7 @@ export type CheckoutZoidProps = {
     closeOnClickOutside: boolean;
     closeOnEsc: boolean;
     defaultPaymentMethod?: string;
-    theme: CheckoutTheme;
+    theme: TebexTheme;
     onOpenWindow: (url: string) => void;
     onClosePopup: () => Promise<void>;
     onPaymentComplete: (e: any) => void;
@@ -169,7 +165,7 @@ export default class Checkout {
 
     ident: string = null;
     locale: string = null;
-    theme: CheckoutTheme = "default";
+    theme: TebexTheme = "default";
     colors: CheckoutColorDefinition[] = [];
     closeOnClickOutside = false;
     closeOnEsc = false;
@@ -181,7 +177,7 @@ export default class Checkout {
     emitter = createNanoEvents<CheckoutEventMap>();
     lightbox: Lightbox = null;
 
-    component: ZoidComponent<CheckoutZoidProps> = null;
+    componentFactory: ZoidComponent<CheckoutZoidProps> = null;
     zoid: ZoidComponentInstance = null;
 
     #didRender = false;
@@ -230,7 +226,7 @@ export default class Checkout {
      */
     async launch() {
         if (!this.popupOnMobile && isMobile(DEFAULT_WIDTH, DEFAULT_HEIGHT)) {
-            await this.#renderComponent(document.body, true);
+            await this.#createComponentInstance(document.body, true);
             this.isOpen = true;
             this.emitter.emit("open");
             return;
@@ -278,8 +274,8 @@ export default class Checkout {
         width = isString(width) ? width : `${ width }px`;
         height = isString(height) ? height : `${ height }px`;
         
-        this.#buildComponent(width, height);
-        await this.#renderComponent(element, popupOnMobile && isMobile(width, height));
+        this.#createComponentFactory(width, height);
+        await this.#createComponentInstance(element, popupOnMobile && isMobile(width, height));
         this.isOpen = true;
         this.emitter.emit("open");
     }
@@ -432,26 +428,25 @@ export default class Checkout {
     };
 
     async #showLightbox() {
-        // TODO: way to pass props/options, maybe via separate method? so that click handlers can be updated after lightbox instanciation
         if (!this.lightbox)
-            this.lightbox = new Lightbox({});
+            this.lightbox = new Lightbox();
 
-        if (this.closeOnClickOutside)
-            this.lightbox.clickOutsideHandler = this.#onRequestLightboxClose;
+        this.lightbox.setOptions({
+            name: "checkout",
+            closeOnClickOutside: this.closeOnClickOutside,
+            closeOnEsc: this.closeOnEsc,
+            closeHandler: this.#onRequestLightboxClose
+        });
 
-        if (this.closeOnEsc)
-            this.lightbox.escKeyHandler = this.#onRequestLightboxClose;
-
-        // TODO: handle error?
         await this.lightbox.show();
-        await this.#renderComponent(this.lightbox.holder, false);
+        await this.#createComponentInstance(this.lightbox.holder, false);
 
         this.isOpen = true;
         this.emitter.emit("open");
     }
 
-    #buildComponent(width: CssDimension = DEFAULT_WIDTH, height: CssDimension = DEFAULT_HEIGHT) {
-        this.component = zoid.create({
+    #createComponentFactory(width: CssDimension = DEFAULT_WIDTH, height: CssDimension = DEFAULT_HEIGHT) {
+        this.componentFactory = zoid.create({
             tag: "tebex-js-checkout-component",
             url: () => this.endpoint + "/" + this.ident,
             autoResize: {
@@ -471,13 +466,13 @@ export default class Checkout {
         });
     }
 
-    async #renderComponent(container: HTMLElement, popup: boolean) {
+    async #createComponentInstance(container: HTMLElement, popup: boolean) {
         const url = new URL(window.location.href);
 
-        if (!this.component)
-            this.#buildComponent();
+        if (!this.componentFactory)
+            this.#createComponentFactory();
 
-        this.zoid = this.component({
+        this.zoid = this.componentFactory({
             locale: this.locale,
             colors: this.colors,
             closeOnClickOutside: this.closeOnClickOutside,

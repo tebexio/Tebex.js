@@ -9,8 +9,14 @@ import {
 
 import styles from "./lightbox.css?inline";
 
-export type LightboxClickOutsideHandler = (e: MouseEvent) => void;
-export type LightboxEscKeyHandler = (e: KeyboardEvent) => void;
+export type LightboxCloseHandler = (e: MouseEvent | KeyboardEvent) => void;
+
+export type LightboxOptions = {
+    name: string;
+    closeOnClickOutside: boolean;
+    closeOnEsc: boolean;
+    closeHandler: LightboxCloseHandler;
+};
 
 let globalIsLightboxOpen = false;
 
@@ -20,12 +26,12 @@ export class Lightbox {
     root: HTMLElement;
     holder: HTMLElement;
 
-    name: string | null = null;
-    clickOutsideHandler: LightboxClickOutsideHandler | null = null;
-    escKeyHandler: LightboxEscKeyHandler | null = null;
+    #name: string | null = null;
+    #closeOnClickOutside = false;
+    #closeOnEsc = false;
+    #closeHandler: LightboxCloseHandler | null = null;
 
-    // TODO: add options here to configure name, click handling, etc
-    constructor() {
+    constructor(options: Partial<LightboxOptions> = {}) {
         assert(isEnvBrowser());
 
         this.body = document.body;
@@ -33,13 +39,21 @@ export class Lightbox {
         stylesheet.append(styles);
         this.body.append(stylesheet);
 
+        this.setOptions(options);
         this.root = this.render();
         this.holder = this.root.querySelector(".tebex-js-lightbox__holder");
     }
 
+    setOptions(options: Partial<LightboxOptions>) {
+        this.#name = options?.name ?? "";
+        this.#closeOnClickOutside = options?.closeOnClickOutside ?? false;
+        this.#closeOnEsc = options?.closeOnEsc ?? false;
+        this.#closeHandler = options?.closeHandler;
+    }
+
     render() {
         return (
-            <div class={[ "tebex-js-lightbox", this.name ? `tebex-js-lightbox--${this.name}` : null ]}>
+            <div class={[ "tebex-js-lightbox", this.#name ? `tebex-js-lightbox--${this.#name}` : null ]}>
                 <div class="tebex-js-lightbox__holder" role="dialog"></div>
             </div>
         );
@@ -75,17 +89,17 @@ export class Lightbox {
     }
 
     #onClickOutside = (e: MouseEvent) => {
-        if (!this.clickOutsideHandler)
+        if (!this.#closeOnClickOutside)
             return;
         // @ts-expect-error: e.target type isn't necessarily Element 
         if (!this.holder.contains(e.target))
-            this.clickOutsideHandler(e);
+            this.#closeHandler(e);
     }
 
     #onKeyPress = (e: KeyboardEvent) => {
-        if (!this.escKeyHandler)
+        if (!this.#closeOnEsc)
             return;
         if (e.key === "Escape")
-            this.escKeyHandler(e);
+            this.#closeHandler(e);
     }
 };

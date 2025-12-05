@@ -10,7 +10,8 @@ import tebex, {
     type CheckoutEvent,
     type CheckoutEventMap,
     type CheckoutTheme,
-    type CheckoutZoidProps
+    type CheckoutZoidProps,
+    type TebexTheme
 } from "../src/index";
 
 describe("Typechecks", () => {
@@ -80,9 +81,9 @@ describe("Typechecks", () => {
             >();
         });
 
-        test("CheckoutTheme", () => {
-            expectTypeOf<CheckoutTheme>().toBeString();
-            expectTypeOf<CheckoutTheme>().toMatchTypeOf<"light" | "dark" | "default" | "auto">();
+        test("TebexTheme", () => {
+            expectTypeOf<TebexTheme>().toBeString();
+            expectTypeOf<TebexTheme>().toMatchTypeOf<"light" | "dark" | "default" | "auto">();
         });
 
         test("CheckoutZoidProps", () => {
@@ -111,6 +112,13 @@ describe("Typechecks", () => {
             }>();
         });
 
+    });
+
+    describe("Legacy type exports match legacy API", () => {
+        test("CheckoutTheme", () => {
+            expectTypeOf<CheckoutTheme>().toBeString();
+            expectTypeOf<CheckoutTheme>().toMatchTypeOf<"light" | "dark" | "default" | "auto">();
+        });
     });
 
     describe("JS exports match publicly documented API", () => {

@@ -9,6 +9,10 @@ import "./webComponents";
  */
 export const version = __VERSION__;
 
+export type {
+    TebexTheme
+} from "./common";
+
 /**
  * Tebex checkout API
  */
@@ -19,7 +23,6 @@ export type {
     CheckoutColorDefinition,
     CheckoutEvent,
     CheckoutEventMap,
-    CheckoutTheme,
     CheckoutZoidProps
 } from "./checkout";
 
