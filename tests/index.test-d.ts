@@ -13,6 +13,7 @@ import tebex, {
     type CheckoutZoidProps,
     type TebexTheme
 } from "../src/index";
+import { TebexColorDefinition } from "../src/common";
 
 describe("Typechecks", () => {
 
@@ -50,13 +51,15 @@ describe("Typechecks", () => {
             }>();
         });
 
-        test("CheckoutColorDefinition", () => {
-            expectTypeOf<CheckoutColorDefinition>().toBeObject();
-            expectTypeOf<CheckoutColorDefinition>().toMatchTypeOf<{
+        test("TebexColorDefinition", () => {
+            expectTypeOf<TebexColorDefinition>().toBeObject();
+            expectTypeOf<TebexColorDefinition>().toMatchTypeOf<{
                 name: "primary" | "secondary" | "background" | "surface" | "surface-variant" | "success" | "warning" | "error" | "green" | "red" | "fields" | "field-border",
                 color: string
             }>();
         });
+
+        // TODO: TebexColorConfig
 
         test("CheckoutEvent", () => {
             expectTypeOf<CheckoutEvent>().toBeString();
@@ -118,6 +121,14 @@ describe("Typechecks", () => {
         test("CheckoutTheme", () => {
             expectTypeOf<CheckoutTheme>().toBeString();
             expectTypeOf<CheckoutTheme>().toMatchTypeOf<"light" | "dark" | "default" | "auto">();
+        });
+
+        test("CheckoutColorDefinition", () => {
+            expectTypeOf<CheckoutColorDefinition>().toBeObject();
+            expectTypeOf<CheckoutColorDefinition>().toMatchTypeOf<{
+                name: "primary" | "secondary" | "background" | "surface" | "surface-variant" | "success" | "warning" | "error" | "green" | "red" | "fields" | "field-border",
+                color: string
+            }>();
         });
     });
 

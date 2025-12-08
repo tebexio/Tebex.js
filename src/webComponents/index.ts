@@ -1,2 +1,2 @@
 export * from "./TebexCheckout";
-export * from "./TebexPortal";x
+export * from "./TebexPortal";

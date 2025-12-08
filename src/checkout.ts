@@ -1,12 +1,18 @@
 import zoid, { 
     type ZoidComponent,
-    type ZoidComponentInstance 
+    type ZoidComponentInstance,
 } from "zoid";
 
 import {
     createNanoEvents,
-    type Unsubscribe
+    type Unsubscribe,
 } from "nanoevents";
+
+import {
+    type TebexColorConfig,
+    type TebexColorDefinition,
+    type TebexTheme,
+} from "./common";
 
 import { Lightbox } from "./components/lightbox";
 import { spinnerRender } from "./components/spinner";
@@ -26,7 +32,6 @@ import {
     isObject,
     isBoolean,
 } from "./utils";
-import { TebexTheme } from "./common";
 
 const DEFAULT_WIDTH = "800px";
 const DEFAULT_HEIGHT = "760px";
@@ -82,7 +87,7 @@ export type CheckoutOptions = {
      * Tebex checkout panel UI brand colors.
      * @default []
      */
-    colors?: CheckoutColorDefinition[];
+    colors?: TebexColorConfig;
     /**
      * Whether to close the Tebex.js popup when the user clicks outside of the modal.
      * @default false
@@ -112,14 +117,6 @@ export type CheckoutOptions = {
 };
 
 /**
- * Color definition. The `color` property can be set to any valid CSS color, so long as it does not rely on CSS Variables.
- */
-export type CheckoutColorDefinition = {
-    name: typeof COLOR_NAMES[number];
-    color: string;
-}; // TODO: might make this legacy (but still supported), and just define colors as an object of { name: color }
-
-/**
  * Checkout event type. You can subscribe to checkout events with `Tebex.checkout.on()`.
  */
 export type CheckoutEvent = typeof EVENT_NAMES[number];
@@ -140,7 +137,7 @@ export type CheckoutEventMap = Implements<Record<CheckoutEvent, Function>, {
  */
 export type CheckoutZoidProps = {
     locale: string;
-    colors: CheckoutColorDefinition[];
+    colors: TebexColorConfig;
     closeOnClickOutside: boolean;
     closeOnEsc: boolean;
     defaultPaymentMethod?: string;
@@ -166,7 +163,7 @@ export default class Checkout {
     ident: string = null;
     locale: string = null;
     theme: TebexTheme = "default";
-    colors: CheckoutColorDefinition[] = [];
+    colors: TebexColorDefinition[] = [];
     closeOnClickOutside = false;
     closeOnEsc = false;
     defaultPaymentMethod?: string = undefined;
@@ -321,12 +318,16 @@ export default class Checkout {
         if (isNullOrUndefined(options.colors))
             return null;
 
-        if (!isArray(options.colors)) {
-            warn(`invalid colors option "${ options.colors }" - must be an array`);
+        if (!(isArray(options.colors) || isObject(options.colors))) {
+            warn(`invalid colors option "${ options.colors }" - must be an array or object`);
             return null;
         }
 
-        for (let entry of options.colors) {
+        const colorList = isArray(options.colors) ? 
+            options.colors : 
+            Object.entries(options.colors).map(([name, color]) => ({ name, color } as TebexColorDefinition));
+
+        for (let entry of colorList) {
             if (!isObject(entry)) {
                 warn(`invalid colors option item ${ entry } - must be an object`);
                 return null;
@@ -358,8 +359,8 @@ export default class Checkout {
                 return null;
             }
         }
-        
-        return options.colors;
+
+        return colorList;
     }
 
     #resolvePopupOnMobile(options: CheckoutOptions) {

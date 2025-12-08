@@ -85,25 +85,33 @@ describe("Checkout", () => {
 
         describe("colors option", () => {
 
-            test("Colors can be set with colors option, and defaults to empty array", () => {
+            test("Colors defaults to empty array", () => {
                 checkout.init({ ident: "test" });
                 expect(checkout.colors).toEqual([]);
+            });
+
+            test("Colors can be set by passing an array to the colors option", () => {
                 checkout.init({ ident: "test", colors: [ { name: "primary", color: "#ff0000" } ] });
                 expect(checkout.colors).toEqual([ { name: "primary", color: "#ff0000" } ]);
             });
 
-            test("Warns if colors option isn't valid array, and falls back to default", () => {
+            test("Colors can be set by passing an object to the colors option", () => {
+                checkout.init({ ident: "test", colors: { primary: "#ff0000" } });
+                expect(checkout.colors).toEqual([ { name: "primary", color: "#ff0000" } ]);
+            });
+
+            test("Warns if colors option isn't array or object, and falls back to default", () => {
                 const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
                 checkout.init({
                     ident: "test",
-                    colors: {} as any
+                    colors: "invalid" as any
                 });
                 expect(spy).toHaveBeenCalledOnce();
                 expect(spy.mock.lastCall[0]).toContain("invalid colors option");
                 expect(checkout.colors).toMatchObject([]);
             });
 
-            test("Warns if color entry isn't an object, and falls back to default", () => {
+            test("Warns if color array entry isn't an object, and falls back to default", () => {
                 const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
                 checkout.init({
                     ident: "test",
@@ -116,7 +124,7 @@ describe("Checkout", () => {
                 expect(checkout.colors).toMatchObject([]);
             });
 
-            test("Warns if color name is missing, and falls back to default", () => {
+            test("Warns if color array entry name is missing, and falls back to default", () => {
                 const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
                 checkout.init({
                     ident: "test",
@@ -131,7 +139,7 @@ describe("Checkout", () => {
                 expect(checkout.colors).toMatchObject([]);
             });
 
-            test("Warns if color value is missing, and falls back to default", () => {
+            test("Warns if color array entry value is missing, and falls back to default", () => {
                 const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
                 checkout.init({
                     ident: "test",
@@ -146,7 +154,7 @@ describe("Checkout", () => {
                 expect(checkout.colors).toMatchObject([]);
             });
 
-            test("Warns if color name isn't valid, and falls back to default", () => {
+            test("Warns if color array entry name isn't valid, and falls back to default", () => {
                 const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
                 checkout.init({
                     ident: "test",
@@ -162,7 +170,20 @@ describe("Checkout", () => {
                 expect(checkout.colors).toMatchObject([]);
             });
 
-            test("Warns if color value isn't valid, and falls back to default", () => {
+            test("Warns if color object key isn't valid, and falls back to default", () => {
+                const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
+                checkout.init({
+                    ident: "test",
+                    colors: {
+                        invalid: "#fff"
+                    } as any
+                });
+                expect(spy).toHaveBeenCalledOnce();
+                expect(spy.mock.lastCall[0]).toContain("invalid color name");
+                expect(checkout.colors).toMatchObject([]);
+            });
+
+            test("Warns if color array entry value isn't valid, and falls back to default", () => {
                 const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
                 checkout.init({
                     ident: "test",
@@ -178,7 +199,20 @@ describe("Checkout", () => {
                 expect(checkout.colors).toMatchObject([]);
             });
 
-            test("Warns if color value includes CSS variable, and falls back to default", () => {
+            test("Warns if color object value isn't valid, and falls back to default", () => {
+                const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
+                checkout.init({
+                    ident: "test",
+                    colors: {
+                        primary: 123
+                    } as any
+                });
+                expect(spy).toHaveBeenCalledOnce();
+                expect(spy.mock.lastCall[0]).toContain("invalid color value \"123\"");
+                expect(checkout.colors).toMatchObject([]);
+            });
+
+            test("Warns if color array entry value includes CSS variable, and falls back to default", () => {
                 const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
                 checkout.init({
                     ident: "test",
@@ -188,6 +222,20 @@ describe("Checkout", () => {
                             color: "var(--color-primary)"
                         }
                     ]
+                });
+                expect(spy).toHaveBeenCalledOnce();
+                expect(spy.mock.lastCall[0]).toContain("invalid color value");
+                expect(spy.mock.lastCall[0]).toContain("cannot include CSS variables");
+                expect(checkout.colors).toMatchObject([]);
+            });
+
+            test("Warns if color object value includes CSS variable, and falls back to default", () => {
+                const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
+                checkout.init({
+                    ident: "test",
+                    colors: {
+                        primary: "var(--color-primary)"
+                    }
                 });
                 expect(spy).toHaveBeenCalledOnce();
                 expect(spy.mock.lastCall[0]).toContain("invalid color value");
