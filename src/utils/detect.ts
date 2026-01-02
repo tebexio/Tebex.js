@@ -18,6 +18,8 @@ export const isApplePayAvailable = () =>
     // @ts-ignore
     typeof window.ApplePaySession !== "undefined" && 
     // @ts-ignore
+    window.ApplePaySession !== null &&
+    // @ts-ignore
     window.ApplePaySession.canMakePayments();
 
 /**
