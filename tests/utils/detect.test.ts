@@ -49,6 +49,12 @@ describe("isApplePayAvailable", () => {
         vi.unstubAllGlobals();
     });
 
+    test("Returns false if ApplePaySession is null", () => {
+        vi.stubGlobal('ApplePaySession', null);
+        expect(isApplePayAvailable()).toEqual(false);
+        vi.unstubAllGlobals();
+    });
+
 });
 
 describe("isMobile", () => {
