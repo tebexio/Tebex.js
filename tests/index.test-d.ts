@@ -36,6 +36,7 @@ describe("Typechecks", () => {
                 theme?: "light" | "dark" | "default" | "auto";
                 closeOnClickOutside?: boolean;
                 closeOnEsc?: boolean;
+                closeOnPaymentComplete?: boolean;
                 colors?: {
                     name: "primary" | "secondary" | "background" | "surface" | "surface-variant" | "success" | "warning" | "error" | "green" | "red" | "fields" | "field-border",
                     color: string
@@ -92,6 +93,7 @@ describe("Typechecks", () => {
                 }[];
                 closeOnClickOutside: boolean;
                 closeOnEsc: boolean;
+                closeOnPaymentComplete: boolean;
                 defaultPaymentMethod?: string;
                 theme: "light" | "dark" | "default" | "auto";
                 onOpenWindow: (url: string) => void;
@@ -143,6 +145,7 @@ describe("Typechecks", () => {
                 theme?: "light" | "dark" | "default" | "auto";
                 closeOnClickOutside?: boolean;
                 closeOnEsc?: boolean;
+                closeOnPaymentComplete?: boolean;
                 colors?: {
                     name: "primary" | "secondary" | "background" | "surface" | "surface-variant" | "success" | "warning" | "error" | "green" | "red" | "fields" | "field-border",
                     color: string
