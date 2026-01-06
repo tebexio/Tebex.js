@@ -138,8 +138,11 @@ export default [
             commonjs(),
             replace({
                 preventAssignment: true,
-                __ENDPOINT__: `"${
+                __CHECKOUT_ENDPOINT__: `"${
                     process.env.CHECKOUT_HOST_ENDPOINT || "https://pay.tebex.io"
+                }"`,
+                __PORTAL_ENDPOINT__: `"${
+                    process.env.PORTAL_HOST_ENDPOINT || "https://portal.tebex.io"
                 }"`,
             }),
             copy({

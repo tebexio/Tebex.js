@@ -20,7 +20,6 @@ export const checkout = new Checkout();
 
 export type {
     CheckoutOptions,
-    CheckoutColorDefinition,
     CheckoutEvent,
     CheckoutEventMap,
     CheckoutZoidProps

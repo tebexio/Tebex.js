@@ -35,7 +35,8 @@ export async function onRequest(request) {
 
         const { data } = await response.json();
 
-        console.log("Basket created", data);
+        // console.log("Basket created", data);
+        console.log("Test basket created");
 
         basketIdent = data.ident;
     } catch (e) {
@@ -62,7 +63,7 @@ export async function onRequest(request) {
             );
 
             if (!response.ok) {
-                console.log(await response.text());
+                // console.log(await response.text());
                 throw new Error("Failed to add package to basket");
             }
         } catch (e) {

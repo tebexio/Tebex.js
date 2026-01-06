@@ -18,10 +18,10 @@ export declare const defineTebexCheckout: () => {
         disconnectedCallback(): void;
         attributeChangedCallback(key: string, oldVal: string, newVal: string): void;
         renderFinished(): Promise<void>;
-        "__#3@#init"(): Promise<void>;
-        "__#3@#attachClickHandlers": () => void;
-        "__#3@#updatePopupState"(): void;
-        "__#3@#updateSize"(): void;
+        "__#4@#init"(): Promise<void>;
+        "__#4@#attachClickHandlers": () => void;
+        "__#4@#updatePopupState"(): void;
+        "__#4@#updateSize"(): void;
         accessKey: string;
         readonly accessKeyLabel: string;
         autocapitalize: string;

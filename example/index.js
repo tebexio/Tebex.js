@@ -1,27 +1,54 @@
 let ident = null;
 
-function launch() {
-    const config = {
+window.launchCheckout = function launchCheckout() {
+    const colorInputs = Array.from(document.querySelectorAll(".checkout-demo .color-selections"));
+    const colors = [];
+
+    colorInputs.forEach(el => {
+        if (!el.value) return;
+        colors.push({
+            name: el.name,
+            color: el.value,
+        });
+    });
+
+    const themeInput = document.querySelector(".checkout-demo .popup-theme");
+    const theme = themeInput?.value ?? "default";
+
+    Tebex.checkout.init({
         ident: ident,
-        theme: document.getElementById("popup-theme")?.value,
-        colors: [],
-        endpoint: __ENDPOINT__,
+        theme: theme,
+        colors: colors,
+        endpoint: __CHECKOUT_ENDPOINT__,
         defaultPaymentMethod: "paypal",
-    };
+    });
 
-    Array.prototype.forEach.call(
-        document.getElementsByClassName("color-selections"),
-        function (el) {
-            if (!el.value) return;
-            config.colors.push({
-                name: el.name,
-                color: el.value,
-            });
-        }
-    );
-
-    Tebex.checkout.init(config);
     Tebex.checkout.launch();
+}
+
+window.launchPortal = function launchPortal() {
+    const colorInputs = Array.from(document.querySelectorAll(".portal-demo .color-selections"));
+    const colors = [];
+
+    colorInputs.forEach(el => {
+        if (!el.value) return;
+        colors.push({
+            name: el.name,
+            color: el.value,
+        });
+    });
+
+    const themeInput = document.querySelector(".portal-demo .popup-theme");
+    const theme = themeInput?.value ?? "default";
+
+    Tebex.portal.init({
+        ident: ident,
+        theme: theme,
+        colors: colors,
+        endpoint: __PORTAL_ENDPOINT__,
+    });
+
+    Tebex.portal.launch();
 }
 
 addEventListener("load", function (e) {
@@ -51,5 +78,3 @@ addEventListener("load", function (e) {
         console.log("payment errored", event);
     });
 });
-
-window.launch = launch;
