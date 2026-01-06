@@ -31,7 +31,10 @@ export type {
 export const portal = new Portal();
 
 export type {
-    // TODO
+    PortalOptions,
+    PortalEvent,
+    PortalEventMap,
+    PortalZoidProps
 } from "./portal";
 
 /**

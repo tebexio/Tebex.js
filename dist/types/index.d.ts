@@ -15,7 +15,7 @@ export type { CheckoutOptions, CheckoutEvent, CheckoutEventMap, CheckoutZoidProp
  * Tebex payment portal API
  */
 export declare const portal: Portal;
-export type {} from "./portal";
+export type { PortalOptions, PortalEvent, PortalEventMap, PortalZoidProps } from "./portal";
 /**
  * Legacy APIs
  * @deprecated

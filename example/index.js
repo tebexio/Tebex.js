@@ -42,9 +42,11 @@ window.launchPortal = function launchPortal() {
     const theme = themeInput?.value ?? "default";
 
     Tebex.portal.init({
-        ident: ident,
+        token: "1234",
         theme: theme,
         colors: colors,
+        // closeOnClickOutside: true,
+        // closeOnEsc: true,
         endpoint: __PORTAL_ENDPOINT__,
     });
 

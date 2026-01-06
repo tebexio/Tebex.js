@@ -99,6 +99,7 @@ export type PortalEventMap = Implements<Record<PortalEvent, Function>, {
  * @internal
  */
 export type PortalZoidProps = {
+    token: string;
     locale: string;
     colors: TebexColorConfig;
     closeOnClickOutside: boolean;
@@ -118,6 +119,7 @@ export type PortalZoidProps = {
 
 export default class Portal {
 
+    token: string = null;
     locale: string = null;
     theme: TebexTheme = "default";
     colors: TebexColorDefinition[] = [];
@@ -140,15 +142,15 @@ export default class Portal {
      * Configure the Tebex portal settings.
      */
     init(options: PortalOptions) {
+        assert(options.token && isString(options.token), "token option is required, and must be a string");
+        this.token = options.token;
         this.locale = this.#resolveLocale(options) ?? this.locale;
         this.theme = this.#resolveTheme(options) ?? this.theme;
         this.colors = this.#resolveColors(options) ?? this.colors;
         this.popupOnMobile = this.#resolvePopupOnMobile(options) ?? this.popupOnMobile;
         this.endpoint = this.#resolveEndpoint(options) ?? this.endpoint;
         this.closeOnClickOutside = this.#resolveCloseOnClickOutside(options) ?? this.closeOnClickOutside;
-        this.closeOnEsc = this.#resolveCloseOnEsc(options) ?? this.closeOnEsc;
-
-        console.log(this.endpoint)
+        this.closeOnEsc = this.#resolveCloseOnEsc(options) ?? this.closeOnEsc;)
     }
 
     /**
@@ -408,6 +410,7 @@ export default class Portal {
             this.#createComponentFactory();
 
         this.zoid = this.componentFactory({
+            token: this.token,
             locale: this.locale,
             colors: this.colors,
             closeOnClickOutside: this.closeOnClickOutside,

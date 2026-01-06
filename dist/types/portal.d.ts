@@ -68,6 +68,7 @@ export type PortalEventMap = Implements<Record<PortalEvent, Function>, {
  * @internal
  */
 export type PortalZoidProps = {
+    token: string;
     locale: string;
     colors: TebexColorConfig;
     closeOnClickOutside: boolean;
@@ -86,6 +87,7 @@ export type PortalZoidProps = {
 };
 export default class Portal {
     #private;
+    token: string;
     locale: string;
     theme: TebexTheme;
     colors: TebexColorDefinition[];
