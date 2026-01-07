@@ -12502,7 +12502,7 @@ const spinnerRender = ({ doc, props }) => {
     return html;
 };
 
-var _Checkout_instances, _Checkout_didRender, _Checkout_onRender, _Checkout_resolveLocale, _Checkout_resolveTheme, _Checkout_resolveColors, _Checkout_resolvePopupOnMobile, _Checkout_resolveEndpoint, _Checkout_resolveCloseOnClickOutside, _Checkout_resolveCloseOnEsc, _Checkout_resolveDefaultPaymentMethod, _Checkout_onRequestLightboxClose, _Checkout_showLightbox, _Checkout_buildComponent, _Checkout_renderComponent;
+var _Checkout_instances, _Checkout_didRender, _Checkout_onRender, _Checkout_resolveLocale, _Checkout_resolveTheme, _Checkout_resolveColors, _Checkout_resolvePopupOnMobile, _Checkout_resolveEndpoint, _Checkout_resolveCloseOnClickOutside, _Checkout_resolveCloseOnEsc, _Checkout_resolveCloseOnPaymentComplete, _Checkout_resolveDefaultPaymentMethod, _Checkout_onRequestLightboxClose, _Checkout_showLightbox, _Checkout_buildComponent, _Checkout_renderComponent;
 const DEFAULT_WIDTH = "800px";
 const DEFAULT_HEIGHT = "760px";
 const THEME_NAMES = [
@@ -12543,6 +12543,7 @@ class Checkout {
         this.colors = [];
         this.closeOnClickOutside = false;
         this.closeOnEsc = false;
+        this.closeOnPaymentComplete = false;
         this.defaultPaymentMethod = undefined;
         this.popupOnMobile = false;
         this.endpoint = "https://pay.tebex.io";
@@ -12571,6 +12572,7 @@ class Checkout {
         this.endpoint = __classPrivateFieldGet(this, _Checkout_instances, "m", _Checkout_resolveEndpoint).call(this, options) ?? this.endpoint;
         this.closeOnClickOutside = __classPrivateFieldGet(this, _Checkout_instances, "m", _Checkout_resolveCloseOnClickOutside).call(this, options) ?? this.closeOnClickOutside;
         this.closeOnEsc = __classPrivateFieldGet(this, _Checkout_instances, "m", _Checkout_resolveCloseOnEsc).call(this, options) ?? this.closeOnEsc;
+        this.closeOnPaymentComplete = __classPrivateFieldGet(this, _Checkout_instances, "m", _Checkout_resolveCloseOnPaymentComplete).call(this, options) ?? this.closeOnPaymentComplete;
         this.defaultPaymentMethod = __classPrivateFieldGet(this, _Checkout_instances, "m", _Checkout_resolveDefaultPaymentMethod).call(this, options) ?? this.defaultPaymentMethod;
     }
     /**
@@ -12737,6 +12739,14 @@ _Checkout_didRender = new WeakMap(), _Checkout_onRender = new WeakMap(), _Checko
         return null;
     }
     return options.closeOnEsc;
+}, _Checkout_resolveCloseOnPaymentComplete = function _Checkout_resolveCloseOnPaymentComplete(options) {
+    if (isNullOrUndefined(options.closeOnPaymentComplete))
+        return null;
+    if (!isBoolean(options.closeOnPaymentComplete)) {
+        warn(`invalid closeOnPaymentComplete option "${options.closeOnPaymentComplete}" - must be a boolean`);
+        return null;
+    }
+    return options.closeOnPaymentComplete;
 }, _Checkout_resolveDefaultPaymentMethod = function _Checkout_resolveDefaultPaymentMethod(options) {
     if (isNullOrUndefined(options.defaultPaymentMethod))
         return null;
@@ -12784,6 +12794,7 @@ _Checkout_didRender = new WeakMap(), _Checkout_onRender = new WeakMap(), _Checko
         colors: this.colors,
         closeOnClickOutside: this.closeOnClickOutside,
         closeOnEsc: this.closeOnEsc,
+        closeOnPaymentComplete: this.closeOnPaymentComplete,
         defaultPaymentMethod: this.defaultPaymentMethod,
         theme: this.theme,
         onOpenWindow: (url) => {
@@ -12967,6 +12978,7 @@ const defineTebexCheckout = () => {
             colors: colors,
             closeOnClickOutside: getAttribute(this, "close-on-click-outside") !== null,
             closeOnEsc: getAttribute(this, "close-on-esc") !== null,
+            closeOnPaymentComplete: getAttribute(this, "close-on-payment-complete") !== null,
             defaultPaymentMethod: getAttribute(this, "default-payment-method"),
             popupOnMobile: getAttribute(this, "popup-on-mobile") !== null,
             endpoint: getAttribute(this, "endpoint"),
