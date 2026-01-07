@@ -93,7 +93,7 @@ export type CheckoutOptions = {
      */
     closeOnEsc?: boolean;
     /**
-     * Whether to close the Tebex.js popup when payment is completed.
+     * Whether to automatically close the Tebex.js popup as soon as the payment is completed; `payment:complete` and `close` events will still be emitted.
      * @default false
      */
     closeOnPaymentComplete?: boolean;
