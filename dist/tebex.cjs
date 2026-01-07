@@ -12825,7 +12825,7 @@
             origin: url.origin,
             path: url.pathname,
             params: url.search,
-            version: "1.8.1",
+            version: "1.9.0",
         });
         await this.zoid.renderTo(window, container, popup ? "popup" : "iframe");
         __classPrivateFieldSet(this, _Checkout_didRender, true, "f");
@@ -13036,7 +13036,7 @@
     /**
      * Current Tebex.js package version
      */
-    const version = "1.8.1";
+    const version = "1.9.0";
     /**
      * Tebex checkout API
      */
