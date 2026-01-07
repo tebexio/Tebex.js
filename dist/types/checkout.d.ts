@@ -41,6 +41,11 @@ export type CheckoutOptions = {
      */
     closeOnEsc?: boolean;
     /**
+     * Whether to automatically close the Tebex.js popup as soon as the payment is completed; `payment:complete` and `close` events will still be emitted.
+     * @default false
+     */
+    closeOnPaymentComplete?: boolean;
+    /**
      * Select a payment method to highlight on the checkout by passing its ident.
      * @default undefined
      */
@@ -79,6 +84,7 @@ export type CheckoutZoidProps = {
     colors: TebexColorConfig;
     closeOnClickOutside: boolean;
     closeOnEsc: boolean;
+    closeOnPaymentComplete: boolean;
     defaultPaymentMethod?: string;
     theme: TebexTheme;
     onOpenWindow: (url: string) => void;
@@ -104,6 +110,7 @@ export default class Checkout {
     colors: TebexColorDefinition[];
     closeOnClickOutside: boolean;
     closeOnEsc: boolean;
+    closeOnPaymentComplete: boolean;
     defaultPaymentMethod?: string;
     popupOnMobile: boolean;
     endpoint: string;

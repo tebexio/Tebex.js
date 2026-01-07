@@ -99,6 +99,11 @@ export type CheckoutOptions = {
      */
     closeOnEsc?: boolean;
     /**
+     * Whether to automatically close the Tebex.js popup as soon as the payment is completed; `payment:complete` and `close` events will still be emitted.
+     * @default false
+     */
+    closeOnPaymentComplete?: boolean;
+    /**
      * Select a payment method to highlight on the checkout by passing its ident.
      * @default undefined
      */
@@ -140,6 +145,7 @@ export type CheckoutZoidProps = {
     colors: TebexColorConfig;
     closeOnClickOutside: boolean;
     closeOnEsc: boolean;
+    closeOnPaymentComplete: boolean;
     defaultPaymentMethod?: string;
     theme: TebexTheme;
     onOpenWindow: (url: string) => void;
@@ -166,6 +172,7 @@ export default class Checkout {
     colors: TebexColorDefinition[] = [];
     closeOnClickOutside = false;
     closeOnEsc = false;
+    closeOnPaymentComplete = false;
     defaultPaymentMethod?: string = undefined;
     popupOnMobile = false;
     endpoint = "https://pay.tebex.io";
@@ -193,6 +200,7 @@ export default class Checkout {
         this.endpoint = this.#resolveEndpoint(options) ?? this.endpoint;
         this.closeOnClickOutside = this.#resolveCloseOnClickOutside(options) ?? this.closeOnClickOutside;
         this.closeOnEsc = this.#resolveCloseOnEsc(options) ?? this.closeOnEsc;
+        this.closeOnPaymentComplete = this.#resolveCloseOnPaymentComplete(options) ?? this.closeOnPaymentComplete;
         this.defaultPaymentMethod = this.#resolveDefaultPaymentMethod(options) ?? this.defaultPaymentMethod;
     }
     
@@ -411,6 +419,18 @@ export default class Checkout {
         return options.closeOnEsc;
     }
 
+    #resolveCloseOnPaymentComplete(options: CheckoutOptions) {
+        if (isNullOrUndefined(options.closeOnPaymentComplete))
+            return null;
+
+        if (!isBoolean(options.closeOnPaymentComplete)) {
+            warn(`invalid closeOnPaymentComplete option "${ options.closeOnPaymentComplete }" - must be a boolean`);
+            return null;
+        }
+
+        return options.closeOnPaymentComplete;
+    }
+
     #resolveDefaultPaymentMethod(options: CheckoutOptions) {
         if (isNullOrUndefined(options.defaultPaymentMethod))
             return null;
@@ -478,6 +498,7 @@ export default class Checkout {
             colors: this.colors,
             closeOnClickOutside: this.closeOnClickOutside,
             closeOnEsc: this.closeOnEsc,
+            closeOnPaymentComplete: this.closeOnPaymentComplete,
             defaultPaymentMethod: this.defaultPaymentMethod,
             theme: this.theme,
             onOpenWindow: (url) => {
