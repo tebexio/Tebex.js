@@ -5,7 +5,7 @@ function launch() {
         ident: ident,
         theme: document.getElementById("popup-theme")?.value,
         colors: [],
-        endpoint: "https://pay.dev.tebex.io",
+        endpoint: "https://pay.tebex.io",
         defaultPaymentMethod: "paypal",
     };
 
