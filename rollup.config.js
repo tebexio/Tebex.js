@@ -17,12 +17,12 @@ import copy from "rollup-plugin-copy";
 import dev from "rollup-plugin-dev";
 import dotenv from "dotenv";
 
-dotenv.config({ path: ".dev.vars" });
-
 const build = process.env.BUILD ?? "browser";
 const isBrowser = build === "browser";
 const isNpm = build === "npm";
-const isServer = process.env.SERVER ?? false;
+const isDevServer = process.env.SERVER ?? false;
+
+dotenv.config({ path: isDevServer ? ".dev.vars" : ".build.vars" });
 
 const bannerMessage = readFileSync("./LICENSE")
     .toString()
@@ -35,7 +35,7 @@ const banner = `/**!
 ${bannerMessage}
  */`;
 
-const exampleDist = isServer ? "example/.dist" : "example/dist";
+const exampleDist = isDevServer ? "example/.dist" : "example/dist";
 
 export default [
     // Main Tebex.js build
@@ -155,7 +155,7 @@ export default [
                 target: `${exampleDist}/components.html`,
                 attrs: ["defer"],
             }),
-            isServer &&
+            isDevServer &&
                 dev({
                     silent: true,
                     host: "localhost",
