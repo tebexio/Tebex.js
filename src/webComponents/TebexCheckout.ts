@@ -141,6 +141,7 @@ export const defineTebexCheckout = () => {
                 colors: colors,
                 closeOnClickOutside: getAttribute(this, "close-on-click-outside") !== null,
                 closeOnEsc: getAttribute(this, "close-on-esc") !== null,
+                closeOnPaymentComplete: getAttribute(this, "close-on-payment-complete") !== null,
                 defaultPaymentMethod: getAttribute(this, "default-payment-method"),
                 popupOnMobile: getAttribute(this, "popup-on-mobile") !== null,
                 endpoint: getAttribute(this, "endpoint"),

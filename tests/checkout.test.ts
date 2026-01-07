@@ -280,6 +280,27 @@ describe("Checkout", () => {
             });
         });
 
+        describe("closeOnPaymentComplete option", () => {
+
+            test("Can set closeOnPaymentComplete, which defaults to false", () => {
+                checkout.init({ ident: "test" });
+                expect(checkout.closeOnPaymentComplete).toBe(false);
+                checkout.init({ ident: "test", closeOnPaymentComplete: true });
+                expect(checkout.closeOnPaymentComplete).toBe(true);
+            });
+
+            test("Warns if closeOnPaymentComplete option isn't valid, and falls back to default", () => {
+                const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
+                checkout.init({
+                    ident: "test",
+                    closeOnPaymentComplete: 123 as any
+                });
+                expect(spy).toHaveBeenCalledOnce();
+                expect(spy.mock.lastCall[0]).toContain("invalid closeOnPaymentComplete option");
+                expect(checkout.closeOnPaymentComplete).toBe(false);
+            });
+        });
+
         describe("defaultPaymentMethod option", () => {
 
             test("Can set defaultPaymentMethod, which defaults to undefined", () => {
