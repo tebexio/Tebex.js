@@ -144,6 +144,9 @@ export default [
                 __PORTAL_ENDPOINT__: `"${
                     process.env.PORTAL_HOST_ENDPOINT || "https://portal.tebex.io"
                 }"`,
+                __ACCOUNT_ID__: `"${
+                    process.env.ACCOUNT_ID || "missing account id"
+                }"`,
             }),
             copy({
                 targets: [{ src: ["./example/*", '!./example/*.html', '!./example/index.js', '!./example/dist'], dest: exampleDist }],

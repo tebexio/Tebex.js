@@ -8,6 +8,13 @@ export declare const EVENT_NAMES: readonly ["open", "close"];
 export declare const THEME_NAMES: readonly ["auto", "default", "light", "dark"];
 export declare const COLOR_NAMES: readonly ["primary", "secondary", "background", "surface", "surface-variant", "success", "warning", "error", "green", "red", "fields", "field-border"];
 /**
+ * Logo configuration for the portal. Can be a single image URL string, or an object with `light` and `dark` properties for theme-specific logos.
+ */
+export type PortalLogo = string | {
+    light: string;
+    dark: string;
+};
+/**
  * Configuration options for `Tebex.portal.init()`.
  */
 export type PortalOptions = {
@@ -51,6 +58,10 @@ export type PortalOptions = {
      * @internal
      */
     endpoint?: string;
+    /**
+     * Logo to display in the portal. Can be a single image URL string, or an object with `light` and `dark` properties for theme-specific logos.
+     */
+    logo?: PortalLogo;
 };
 /**
  * Portal event type. You can subscribe to portal events with `Tebex.portal.on()`.
@@ -75,6 +86,7 @@ export type PortalZoidProps = {
     closeOnEsc: boolean;
     defaultPaymentMethod?: string;
     theme: TebexTheme;
+    logo?: PortalLogo;
     onOpenWindow: (url: string) => void;
     onClosePopup: () => Promise<void>;
     isApplePayAvailable: boolean;
@@ -95,6 +107,10 @@ export default class Portal {
     closeOnEsc: boolean;
     popupOnMobile: boolean;
     endpoint: string;
+    logo: {
+        light: string;
+        dark: string;
+    };
     isOpen: boolean;
     emitter: import("nanoevents").Emitter<{
         open: () => void;

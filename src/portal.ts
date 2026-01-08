@@ -36,6 +36,11 @@ const DEFAULT_WIDTH = "800px";
 const DEFAULT_HEIGHT = "760px";
 
 /**
+ * Logo configuration for the portal. Can be a single image URL string, or an object with `light` and `dark` properties for theme-specific logos.
+ */
+export type PortalLogo = string | { light: string; dark: string };
+
+/**
  * Configuration options for `Tebex.portal.init()`.
  */
 export type PortalOptions = {
@@ -79,6 +84,10 @@ export type PortalOptions = {
      * @internal
      */
     endpoint?: string;
+    /**
+     * Logo to display in the portal. Can be a single image URL string, or an object with `light` and `dark` properties for theme-specific logos.
+     */
+    logo?: PortalLogo;
 };
 
 /**
@@ -106,6 +115,7 @@ export type PortalZoidProps = {
     closeOnEsc: boolean;
     defaultPaymentMethod?: string;
     theme: TebexTheme;
+    logo?: PortalLogo;
     onOpenWindow: (url: string) => void;
     onClosePopup: () => Promise<void>;
     isApplePayAvailable: boolean;
@@ -127,6 +137,7 @@ export default class Portal {
     closeOnEsc = false;
     popupOnMobile = false;
     endpoint = "https://portal.tebex.io";
+    logo: { light: string; dark: string } = null;
 
     isOpen = false;
     emitter = createNanoEvents<PortalEventMap>();
@@ -150,7 +161,8 @@ export default class Portal {
         this.popupOnMobile = this.#resolvePopupOnMobile(options) ?? this.popupOnMobile;
         this.endpoint = this.#resolveEndpoint(options) ?? this.endpoint;
         this.closeOnClickOutside = this.#resolveCloseOnClickOutside(options) ?? this.closeOnClickOutside;
-        this.closeOnEsc = this.#resolveCloseOnEsc(options) ?? this.closeOnEsc;)
+        this.closeOnEsc = this.#resolveCloseOnEsc(options) ?? this.closeOnEsc;
+        this.logo = this.#resolveLogo(options) ?? this.logo;
     }
 
     /**
@@ -359,6 +371,49 @@ export default class Portal {
         return options.closeOnEsc;
     }
 
+    #resolveLogo(options: PortalOptions) {
+        if (isNullOrUndefined(options.logo))
+            return null;
+
+        if (isString(options.logo)) {
+            if (!isNonEmptyString(options.logo)) {
+                warn(`invalid logo option "${ options.logo }" - must be a non-empty string`);
+                return null;
+            }
+            return {
+                light: options.logo,
+                dark: options.logo
+            };
+        }
+
+        if (isObject(options.logo)) {
+            if (!options.logo.hasOwnProperty("light")) {
+                warn(`invalid logo option - missing 'light' field`);
+                return null;
+            }
+
+            if (!options.logo.hasOwnProperty("dark")) {
+                warn(`invalid logo option - missing 'dark' field`);
+                return null;
+            }
+
+            if (!isNonEmptyString(options.logo.light)) {
+                warn(`invalid logo option light property "${ options.logo.light }" - must be a non-empty string`);
+                return null;
+            }
+
+            if (!isNonEmptyString(options.logo.dark)) {
+                warn(`invalid logo option dark property "${ options.logo.dark }" - must be a non-empty string`);
+                return null;
+            }
+
+            return options.logo;
+        }
+
+        warn(`invalid logo option "${ options.logo }" - must be a string or an object with 'light' and 'dark' properties`);
+        return null;
+    }
+
     #onRequestLightboxClose = async () => {
         if (this.isOpen)
             await this.close();
@@ -416,6 +471,7 @@ export default class Portal {
             closeOnClickOutside: this.closeOnClickOutside,
             closeOnEsc: this.closeOnEsc,
             theme: this.theme,
+            logo: this.logo,
             onOpenWindow: (url) => {
                 window.open(url);
             },
