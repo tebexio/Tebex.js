@@ -1,6 +1,6 @@
 import { describe, test, expect, beforeEach } from "vitest";
 
-import { Lightbox } from "../../src/components/lightbox";
+import { Lightbox, __clearGlobalLightboxOpen } from "../../src/components/lightbox";
 
 describe("Lightbox", () => {
 
@@ -9,7 +9,10 @@ describe("Lightbox", () => {
     beforeEach(() => {
         document.body.innerHTML = "";
         document.body.style.cssText = "";
-        lightbox = new Lightbox();
+        lightbox = new Lightbox({
+            name: "test-lightbox",
+        });
+        __clearGlobalLightboxOpen();
     });
 
     test("Class members are all defined after construction", () => {
@@ -19,10 +22,12 @@ describe("Lightbox", () => {
     });
 
     test("Root element is assigned to lightbox.root", () => {
-        expect(lightbox.root.outerHTML).toEqual(`<div class="tebex-js-lightbox"><div class="tebex-js-lightbox__holder" role="dialog"></div></div>`);
+        expect(lightbox.root.outerHTML).toEqual(`<div class="tebex-js-lightbox tebex-js-lightbox--test-lightbox"><div class="tebex-js-lightbox__holder" role="dialog"></div></div>`);
     });
 
-    // TODO: name is seen to lightbox root class list
+    test("Root element class contains the lightbox name", () => {
+        expect(lightbox.root.className).toContain("tebex-js-lightbox--test-lightbox");
+    });
 
     test("Holder element is assigned to lightbox.holder", () => {
         expect(lightbox.holder.outerHTML).toEqual(`<div class="tebex-js-lightbox__holder" role="dialog"></div>`);

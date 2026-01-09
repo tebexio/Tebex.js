@@ -2,6 +2,7 @@ import { describe, test, expect, beforeEach, afterEach, vi } from "vitest";
 import { destroy } from "zoid";
 
 import Portal from "../src/portal";
+import { __clearGlobalLightboxOpen } from "../src/components/lightbox";
 
 describe("Portal", () => {
 
@@ -15,6 +16,7 @@ describe("Portal", () => {
         destroy();
         document.body.innerHTML = "";
         vi.clearAllMocks();
+        __clearGlobalLightboxOpen();
     });
 
     describe("Portal init()", () => {

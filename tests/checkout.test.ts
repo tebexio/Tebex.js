@@ -2,6 +2,7 @@ import { describe, test, expect, beforeEach, afterEach, vi, MockInstance } from 
 import { destroy } from "zoid"; 
 
 import Checkout from "../src/checkout";
+import { __clearGlobalLightboxOpen } from "../src/components/lightbox";
 
 describe("Checkout", () => {
 
@@ -15,6 +16,7 @@ describe("Checkout", () => {
         destroy();
         document.body.innerHTML = "";
         vi.clearAllMocks();
+        __clearGlobalLightboxOpen();
     });
 
     describe("Checkout init()", () => {

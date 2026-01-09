@@ -17,3 +17,9 @@ export declare class Lightbox {
     hide(transition?: boolean): Promise<void>;
     destroy(): void;
 }
+/**
+ * Clears the global lightbox open state - used for testing.
+ * @internal
+ * @ignore
+ */
+export declare const __clearGlobalLightboxOpen: () => void;

@@ -103,3 +103,12 @@ export class Lightbox {
             this.#closeHandler(e);
     }
 };
+
+/**
+ * Clears the global lightbox open state - used for testing.
+ * @internal
+ * @ignore
+ */
+export const __clearGlobalLightboxOpen = () => {
+    globalIsLightboxOpen = false;
+}
