@@ -45,8 +45,6 @@ window.launchPortal = function launchPortal() {
         token: __ACCOUNT_ID__,
         theme: theme,
         colors: colors,
-        // closeOnClickOutside: true,
-        // closeOnEsc: true,
         endpoint: __PORTAL_ENDPOINT__,
     });
 
