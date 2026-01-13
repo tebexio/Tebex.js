@@ -77,4 +77,12 @@ addEventListener("load", function (e) {
     Tebex.checkout.on("payment:error", (event) => {
         console.log("payment errored", event);
     });
+
+    Tebex.portal.on("open", () => {
+        console.log("portal opened");
+    });
+
+    Tebex.portal.on("close", () => {
+        console.log("portal closed");
+    });
 });
