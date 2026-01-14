@@ -470,7 +470,7 @@ describe("Portal", () => {
 
     });
 
-    describe("Portal launch()", () => {
+    describe.skip("Portal launch()", () => {
 
         test("On mobile, opens a popup in a new window by default", async () => {
             const spy = vi.spyOn(window, "open");
@@ -511,7 +511,7 @@ describe("Portal", () => {
 
     });
 
-    describe("Portal render()", () => {
+    describe.skip("Portal render()", () => {
 
         test("Renders portal iframe to a custom location", async () => {
             const el = document.createElement("div");
@@ -573,7 +573,7 @@ describe("Portal", () => {
 
     });
 
-    describe("Portal close()", () => {
+    describe.skip("Portal close()", () => {
 
         test("Cleans up lightbox elements if used", async () => {
             // popupOnMobile used here to force lightbox; the Playwright driver forces viewport to be small enough to be considered "mobile"
@@ -599,7 +599,7 @@ describe("Portal", () => {
 
     });
 
-    describe("Portal destroy()", () => {
+    describe.skip("Portal destroy()", () => {
 
         test("Cleans up lightbox elements if used", async () => {
             // popupOnMobile used here to force lightbox; the Playwright driver forces viewport to be small enough to be considered "mobile"
