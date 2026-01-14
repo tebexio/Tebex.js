@@ -45,11 +45,11 @@ export type PortalLogo = string | { light: string; dark: string };
  */
 export type PortalOptions = {
     /**
-     * TODO
+     * This should be your store's Public Token, as found on your store's API Keys page at https://creator.tebex.io/developers/api-keys
      */
     token: string;
     /**
-     * The default language to use, defined as an ISO locale code - e.g. `"en_US" for American English, "de_DE" for German, etc.
+     * The default language to use, defined as an ISO locale code - e.g. `"en_US"` for American English, "de_DE" for German, etc.
      * @default `navigator.language`
      */
     locale?: string;
@@ -365,7 +365,7 @@ export default class Portal {
 
         if (!isBoolean(options.closeOnEsc)) {
             warn(`invalid closeOnEsc option "${ options.closeOnEsc }" - must be a boolean`);
-            return null
+            return null;
         }
 
         return options.closeOnEsc;

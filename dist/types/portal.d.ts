@@ -23,7 +23,7 @@ export type PortalOptions = {
      */
     token: string;
     /**
-     * The default language to use, defined as an ISO locale code - e.g. `"en_US" for American English, "de_DE" for German, etc.
+     * The default language to use, defined as an ISO locale code - e.g. `"en_US"` for American English, "de_DE" for German, etc.
      * @default `navigator.language`
      */
     locale?: string;

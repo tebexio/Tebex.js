@@ -74,7 +74,7 @@ export type CheckoutOptions = {
      */
     ident: string;
     /**
-     * The default language to use, defined as an ISO locale code - e.g. `"en_US" for American English, "de_DE" for German, etc.
+     * The default language to use, defined as an ISO locale code - e.g. `"en_US"` for American English, "de_DE" for German, etc.
      * @default `navigator.language`
      */
     locale?: string;
@@ -413,7 +413,7 @@ export default class Checkout {
 
         if (!isBoolean(options.closeOnEsc)) {
             warn(`invalid closeOnEsc option "${ options.closeOnEsc }" - must be a boolean`);
-            return null
+            return null;
         }
 
         return options.closeOnEsc;

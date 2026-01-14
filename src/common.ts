@@ -39,6 +39,10 @@ export type TebexColorDefinition = {
 };
 
 /**
- * 
+ * Configuration for theming colors in the embedded Tebex UI.
+ *
+ * Accepts either:
+ * - an array of {@link TebexColorDefinition} objects, or
+ * - an object mapping {@link TebexColorName} keys mapped to string color values.
  */
 export type TebexColorConfig = TebexColorDefinition[] | Partial<Record<TebexColorName, string>>;
