@@ -19,7 +19,7 @@ export type PortalLogo = string | {
  */
 export type PortalOptions = {
     /**
-     * TODO
+     * This should be your store's Public Token, as found on your store's API Keys page at https://creator.tebex.io/developers/api-keys
      */
     token: string;
     /**
