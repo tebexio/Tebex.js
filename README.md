@@ -52,12 +52,11 @@ We recommend using `defer` on the script to prevent it from blocking your websit
 
 The `Tebex` object contains the following properties:
 - [`Tebex.checkout`](#-tebex-checkout)
-- [`Tebex.portal`](#-tebex-portal)
+- [`Tebex.portal`](#-tebex-payment-portal)
 
 ### 🛒 Tebex Checkout
 
 `Tebex.checkout` provides a seamless checkout experience where customers can purchase items directly from within your website or game.
-
 
 #### Config
 
