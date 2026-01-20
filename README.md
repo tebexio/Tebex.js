@@ -1,6 +1,6 @@
 # Tebex.js
 
-Integrate Tebex Checkout directly into your own website or game using our embedded checkout experience.
+Tebex.js allows developers to integrate Tebex's Checkout and Payment Portal experiences directly within their own websites.
 
 ## Demo
 
@@ -48,9 +48,20 @@ We recommend using `defer` on the script to prevent it from blocking your websit
 </script>
 ```
 
-### ⚙️ Config
+### 💻 API
 
-Before your checkout can be launched, it must first be configured by calling the ```Tebex.checkout.init()``` method:
+The `Tebex` object contains the following properties:
+- [`Tebex.checkout`](#-tebex-checkout)
+- [`Tebex.portal`](#-tebex-portal)
+
+### 🛒 Tebex Checkout
+
+`Tebex.checkout` provides a seamless checkout experience where customers can purchase items directly from within your website or game.
+
+
+#### Config
+
+Before your checkout can be launched, it must first be configured by calling the `Tebex.checkout.init()` method:
 
 ```js
 Tebex.checkout.init({
@@ -62,11 +73,11 @@ The only required option is `ident`, which you must replace with the checkout re
 
 For further information regarding configuration options - such as checkout branding colors - please refer to the [Tebex.js Documentation](https://docs.tebex.io/developers/tebex.js).
 
-### 🚀 Launch
+#### Launch
 
 When you are ready to show the Tebex.js checkout to your user, you can call the `Tebex.checkout.launch()` method. On desktop devices this will open the checkout as a popup, while on mobile devices it will open as a new tab.
 
-### 🧩 Web Components
+#### Web Components
 
 As an alternative to using the `Tebex.checkout` JavaScript API, Tebex.js also provides a `tebex-checkout` [Web Component](https://developer.mozilla.org/en-US/docs/Web/API/Web_components).
 
@@ -88,6 +99,28 @@ With this, you can embed a Tebex Checkout into your page by placing the `<tebex-
 In the example above, we also add a `<button>` element inside the `tebex-checkout` element. Tebex.js can automatically attach click handlers to any elements you place inside the `tebex-checkout` element, so that when they're clicked, the checkout will launch as a popup.
 
 The `tebex-checkout` element also has an "inline" mode for rendering the checkout directly inline with the rest of the page content, along with various HTML attributes for checkout configuration. For more details, please refer to the [Tebex.js Web Components Documentation](https://docs.tebex.io/developers/tebex.js).
+
+### 🧾 Tebex Payment Portal
+
+`Tebex.portal` provides a way for your customers to review their subscription and purchase history directly from within your website or game.
+
+#### Config
+
+Before your portal can be launched, it must first be configured by calling the `Tebex.portal.init()` method:
+
+```js
+Tebex.portal.init({
+    token: ""
+});
+```
+
+The only required option is `token`, which you must replace with your project's **Public Token** - this can be found on the [API Keys page](https://creator.tebex.io/developers/api-keys) in your project settings.
+
+For further information regarding configuration options - such as UI branding colors - please refer to the [Tebex.js Documentation](https://docs.tebex.io/developers/tebex.js).
+
+#### Launch
+
+When you are ready to show the Tebex.js Payment Portal to your user, you can call the `Tebex.portal.launch()` method. On desktop devices this will open the Payment Portal as a popup, while on mobile devices it will open as a new tab.
 
 ### ❓ What's Next?
 
