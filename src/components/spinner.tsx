@@ -1,6 +1,6 @@
-import { h } from "./utils";
+import { h } from "../utils";
 
-import styles from "./styles/spinner.css?inline";
+import styles from "./spinner.css?inline";
 
 type SpinnerOptions = {
     doc?: Document,

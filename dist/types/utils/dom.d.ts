@@ -9,7 +9,7 @@ export declare const getAttribute: (el: Element, name: string) => string;
 /**
  * @internal
  */
-export declare const setAttribute: (el: Element, name: string, value: number | string | boolean | null) => void;
+export declare const setAttribute: (el: Element, name: string, value: number | string | boolean | null | string[]) => void;
 /**
  * @internal
  */

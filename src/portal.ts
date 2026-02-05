@@ -1,40 +1,14 @@
-import zoid, { 
-    type ZoidComponent,
-    type ZoidComponentInstance,
-} from "zoid";
-
-import {
-    createNanoEvents,
-    type Unsubscribe,
-} from "nanoevents";
-
-import {
-    type TebexColorConfig,
-    type TebexColorDefinition,
-    type TebexTheme,
-} from "./common";
-
+import { createNanoEvents, Unsubscribe } from "nanoevents";
+import type { TebexColorConfig, TebexColorDefinition, TebexTheme } from "./common";
 import { Lightbox } from "./components/lightbox";
+import zoid, { ZoidComponent, ZoidComponentInstance } from "zoid";
+import { assert, CssDimension, Implements, isApplePayAvailable, isArray, isBoolean, isInDocument, isMobile, isNonEmptyString, isNullOrUndefined, isObject, isString, warn } from "./utils";
 import { spinnerRender } from "./components/spinner";
 
-import {
-    type CssDimension,
-    type Implements,
-    assert,
-    warn,
-    isInDocument,
-    isApplePayAvailable,
-    isMobile,
-    isNullOrUndefined,
-    isString,
-    isArray,
-    isNonEmptyString,
-    isObject,
-    isBoolean,
-} from "./utils";
-
-const DEFAULT_WIDTH = "800px";
-const DEFAULT_HEIGHT = "760px";
+export const EVENT_NAMES = [
+    "open",
+    "close"
+] as const;
 
 export const THEME_NAMES = [
     "auto",
@@ -58,56 +32,47 @@ export const COLOR_NAMES = [
     "field-border",
 ] as const;
 
-export const EVENT_NAMES = [
-    "open",
-    "close",
-    "payment:complete",
-    "payment:error"
-] as const;
+const DEFAULT_WIDTH = "800px";
+const DEFAULT_HEIGHT = "760px";
 
 /**
- * Configuration options for `Tebex.checkout.init()`.
+ * Logo configuration for the portal. Can be a single image URL string, or an object with `light` and `dark` properties for theme-specific logos.
  */
-export type CheckoutOptions = {
+export type PortalLogo = string | { light: string; dark: string };
+
+/**
+ * Configuration options for `Tebex.portal.init()`.
+ */
+export type PortalOptions = {
     /**
-     * The checkout request ident received from either the Headless or Checkout APIs.
+     * This should be your store's Public Token, as found on your store's API Keys page at https://creator.tebex.io/developers/api-keys
      */
-    ident: string;
+    token: string;
     /**
      * The default language to use, defined as an ISO locale code - e.g. `"en_US"` for American English, "de_DE" for German, etc.
      * @default `navigator.language`
      */
     locale?: string;
     /**
-     * Tebex checkout panel color theme.
+     * Tebex portal theme preset.
      * @default "light"
      */
     theme?: TebexTheme;
     /**
-     * Tebex checkout panel UI brand colors.
+     * Tebex portal theme colors.
      * @default []
      */
     colors?: TebexColorConfig;
     /**
-     * Whether to close the Tebex.js popup when the user clicks outside of the modal.
+     * Whether to close the popup when the user clicks outside of the modal.
      * @default false
      */
     closeOnClickOutside?: boolean;
     /**
-     * Whether to close the Tebex.js popup when the user presses the Escape key.
+     * Whether to close the popup when the user presses the Escape key.
      * @default false
      */
     closeOnEsc?: boolean;
-    /**
-     * Whether to automatically close the Tebex.js popup as soon as the payment is completed; `payment:complete` and `close` events will still be emitted.
-     * @default false
-     */
-    closeOnPaymentComplete?: boolean;
-    /**
-     * Select a payment method to highlight on the checkout by passing its ident.
-     * @default undefined
-     */
-    defaultPaymentMethod?: string;
     /**
      * Whether to still display a popup on mobile or not. If `false` or undefined, then calling `launch()` will open a new window on mobile devices.
      * @default false
@@ -119,39 +84,40 @@ export type CheckoutOptions = {
      * @internal
      */
     endpoint?: string;
+    /**
+     * Logo to display in the portal. Can be a single image URL string, or an object with `light` and `dark` properties for theme-specific logos.
+     */
+    logo?: PortalLogo;
 };
 
 /**
- * Checkout event type. You can subscribe to checkout events with `Tebex.checkout.on()`.
+ * Portal event type. You can subscribe to portal events with `Tebex.portal.on()`.
  */
-export type CheckoutEvent = typeof EVENT_NAMES[number];
+export type PortalEvent = typeof EVENT_NAMES[number];
 
 /**
- * Maps a {@link CheckoutEvent} to its event callback type.
+ * Maps a {@link PortalEvent} to its event callback type.
  */
-export type CheckoutEventMap = Implements<Record<CheckoutEvent, Function>, {
+export type PortalEventMap = Implements<Record<PortalEvent, Function>, {
     "open": () => void;
     "close": () => void;
-    "payment:complete": (e: Event) => void;
-    "payment:error": (e: Event) => void;
 }>;
 
 /**
  * Props passed through Zoid component.
  * @internal
  */
-export type CheckoutZoidProps = {
+export type PortalZoidProps = {
+    token: string;
     locale: string;
     colors: TebexColorConfig;
     closeOnClickOutside: boolean;
     closeOnEsc: boolean;
-    closeOnPaymentComplete: boolean;
     defaultPaymentMethod?: string;
     theme: TebexTheme;
+    logo?: PortalLogo;
     onOpenWindow: (url: string) => void;
     onClosePopup: () => Promise<void>;
-    onPaymentComplete: (e: any) => void;
-    onPaymentError: (e: any) => void;
     isApplePayAvailable: boolean;
     isEmbedded: boolean;
     referrer: string;
@@ -161,38 +127,34 @@ export type CheckoutZoidProps = {
     version: string;
 };
 
-/**
- * Tebex checkout instance. 
- */
-export default class Checkout {
+export default class Portal {
 
-    ident: string = null;
+    token: string = null;
     locale: string = null;
     theme: TebexTheme = "default";
     colors: TebexColorDefinition[] = [];
     closeOnClickOutside = false;
     closeOnEsc = false;
-    closeOnPaymentComplete = false;
-    defaultPaymentMethod?: string = undefined;
     popupOnMobile = false;
-    endpoint = "https://pay.tebex.io";
+    endpoint = "https://portal.tebex.io";
+    logo: { light: string; dark: string } = null;
 
     isOpen = false;
-    emitter = createNanoEvents<CheckoutEventMap>();
+    emitter = createNanoEvents<PortalEventMap>();
     lightbox: Lightbox = null;
 
-    componentFactory: ZoidComponent<CheckoutZoidProps> = null;
+    componentFactory: ZoidComponent<PortalZoidProps> = null;
     zoid: ZoidComponentInstance = null;
 
     #didRender = false;
     #onRender: Function;
 
     /**
-     * Configure the Tebex checkout settings.
+     * Configure the Tebex portal settings.
      */
-    init(options: CheckoutOptions) {
-        assert(options.ident && isString(options.ident), "ident option is required, and must be a string");
-        this.ident = options.ident;
+    init(options: PortalOptions) {
+        assert(options.token && isString(options.token), "token option is required, and must be a string");
+        this.token = options.token;
         this.locale = this.#resolveLocale(options) ?? this.locale;
         this.theme = this.#resolveTheme(options) ?? this.theme;
         this.colors = this.#resolveColors(options) ?? this.colors;
@@ -200,23 +162,13 @@ export default class Checkout {
         this.endpoint = this.#resolveEndpoint(options) ?? this.endpoint;
         this.closeOnClickOutside = this.#resolveCloseOnClickOutside(options) ?? this.closeOnClickOutside;
         this.closeOnEsc = this.#resolveCloseOnEsc(options) ?? this.closeOnEsc;
-        this.closeOnPaymentComplete = this.#resolveCloseOnPaymentComplete(options) ?? this.closeOnPaymentComplete;
-        this.defaultPaymentMethod = this.#resolveDefaultPaymentMethod(options) ?? this.defaultPaymentMethod;
+        this.logo = this.#resolveLogo(options) ?? this.logo;
     }
-    
+
     /**
-     * Subscribe to Tebex checkout events, such as when the embed is closed or when a payment is completed.
-     * NOTE: None of these events should not be used to confirm actual receipt of payment - you should use Webhooks for that.
+     * Subscribe to Tebex portal events, such as when the embed is opened or closed.
      */
-    on<T extends CheckoutEvent>(event: T, callback: CheckoutEventMap[T]): Unsubscribe {
-        // @ts-ignore - handles legacy event name
-        if (event === "payment_complete")
-            event = "payment:complete" as T;
-
-        // @ts-ignore - handles legacy event name
-        if (event === "payment_error")
-            event = "payment:error" as T;
-
+    on<E extends PortalEvent>(event: E, callback: PortalEventMap[E]): Unsubscribe {
         if (!EVENT_NAMES.includes(event)) {
             warn(`invalid event name "${ event }"`);
             return () => {};
@@ -226,7 +178,7 @@ export default class Checkout {
     }
 
     /**
-     * Launch the Tebex checkout panel.
+     * Launch the Tebex portal panel.
      * On desktop, the panel will launch in a "lightbox" mode that covers the screen. On mobile, it will be opened as a new page.
      */
     async launch() {
@@ -241,7 +193,7 @@ export default class Checkout {
     }
 
     /**
-     * Close the Tebex checkout panel.
+     * Close the Tebex portal panel.
      */
     async close() {
         if (this.lightbox)
@@ -269,8 +221,8 @@ export default class Checkout {
     }
 
     /**
-     * Render the Tebex checkout panel immediately, into a specified HTML element.
-     * If `popupOnMobile` is true, then on mobile devices the checkout will be immediately opened as a new page instead.
+     * Render the Tebex portal panel immediately, into a specified HTML element.
+     * If `popupOnMobile` is true, then on mobile devices the portal will be immediately opened as a new page instead.
      */
     async render(element: HTMLElement, width: CssDimension, height: CssDimension, popupOnMobile = this.popupOnMobile) {
         // Zoid requires that elements are already in the page, otherwise it throws a confusing error.
@@ -296,8 +248,8 @@ export default class Checkout {
                 resolve();
         });
     }
-    
-    #resolveLocale(options: CheckoutOptions) {
+
+    #resolveLocale(options: PortalOptions) {
         if (isNullOrUndefined(options.locale))
             return null;
 
@@ -309,10 +261,10 @@ export default class Checkout {
         return options.locale;
     }
 
-    #resolveTheme(options: CheckoutOptions) {
+    #resolveTheme(options: PortalOptions) {
         if (isNullOrUndefined(options.theme))
             return null;
- 
+
         if(!THEME_NAMES.includes(options.theme)) {
             const list = THEME_NAMES.map(n => `"${ n }"`).join(", ");
             warn(`invalid theme option "${ options.theme }" - must be one of ${ list }`);
@@ -322,7 +274,7 @@ export default class Checkout {
         return options.theme;
     }
 
-    #resolveColors(options: CheckoutOptions) {
+    #resolveColors(options: PortalOptions) {
         if (isNullOrUndefined(options.colors))
             return null;
 
@@ -371,7 +323,7 @@ export default class Checkout {
         return colorList;
     }
 
-    #resolvePopupOnMobile(options: CheckoutOptions) {
+    #resolvePopupOnMobile(options: PortalOptions) {
         if (isNullOrUndefined(options.popupOnMobile))
             return null;
 
@@ -383,7 +335,7 @@ export default class Checkout {
         return options.popupOnMobile;
     }
 
-    #resolveEndpoint(options: CheckoutOptions) {
+    #resolveEndpoint(options: PortalOptions) {
         if (isNullOrUndefined(options.endpoint))
             return null;
 
@@ -395,7 +347,7 @@ export default class Checkout {
         return options.endpoint;
     }
 
-    #resolveCloseOnClickOutside(options: CheckoutOptions) {
+    #resolveCloseOnClickOutside(options: PortalOptions) {
         if (isNullOrUndefined(options.closeOnClickOutside))
             return null;
 
@@ -407,7 +359,7 @@ export default class Checkout {
         return options.closeOnClickOutside;
     }
 
-    #resolveCloseOnEsc(options: CheckoutOptions) {
+    #resolveCloseOnEsc(options: PortalOptions) {
         if (isNullOrUndefined(options.closeOnEsc))
             return null;
 
@@ -419,28 +371,47 @@ export default class Checkout {
         return options.closeOnEsc;
     }
 
-    #resolveCloseOnPaymentComplete(options: CheckoutOptions) {
-        if (isNullOrUndefined(options.closeOnPaymentComplete))
+    #resolveLogo(options: PortalOptions) {
+        if (isNullOrUndefined(options.logo))
             return null;
 
-        if (!isBoolean(options.closeOnPaymentComplete)) {
-            warn(`invalid closeOnPaymentComplete option "${ options.closeOnPaymentComplete }" - must be a boolean`);
-            return null;
+        if (isString(options.logo)) {
+            if (!isNonEmptyString(options.logo)) {
+                warn(`invalid logo option "${ options.logo }" - must be a non-empty string`);
+                return null;
+            }
+            return {
+                light: options.logo,
+                dark: options.logo
+            };
         }
 
-        return options.closeOnPaymentComplete;
-    }
+        if (isObject(options.logo)) {
+            if (!options.logo.hasOwnProperty("light")) {
+                warn(`invalid logo option - missing 'light' field`);
+                return null;
+            }
 
-    #resolveDefaultPaymentMethod(options: CheckoutOptions) {
-        if (isNullOrUndefined(options.defaultPaymentMethod))
-            return null;
+            if (!options.logo.hasOwnProperty("dark")) {
+                warn(`invalid logo option - missing 'dark' field`);
+                return null;
+            }
 
-        if (!isNonEmptyString(options.defaultPaymentMethod)) {
-            warn(`invalid default payment method option "${ options.defaultPaymentMethod }" - must be a non-empty string`);
-            return null;
+            if (!isNonEmptyString(options.logo.light)) {
+                warn(`invalid logo option light property "${ options.logo.light }" - must be a non-empty string`);
+                return null;
+            }
+
+            if (!isNonEmptyString(options.logo.dark)) {
+                warn(`invalid logo option dark property "${ options.logo.dark }" - must be a non-empty string`);
+                return null;
+            }
+
+            return options.logo;
         }
 
-        return options.defaultPaymentMethod;
+        warn(`invalid logo option "${ options.logo }" - must be a string or an object with 'light' and 'dark' properties`);
+        return null;
     }
 
     #onRequestLightboxClose = async () => {
@@ -453,7 +424,7 @@ export default class Checkout {
             this.lightbox = new Lightbox();
 
         this.lightbox.setOptions({
-            name: "checkout",
+            name: "portal",
             closeOnClickOutside: this.closeOnClickOutside,
             closeOnEsc: this.closeOnEsc,
             closeHandler: this.#onRequestLightboxClose
@@ -468,8 +439,8 @@ export default class Checkout {
 
     #createComponentFactory(width: CssDimension = DEFAULT_WIDTH, height: CssDimension = DEFAULT_HEIGHT) {
         this.componentFactory = zoid.create({
-            tag: "tebex-js-checkout-component",
-            url: () => this.endpoint + "/" + this.ident,
+            tag: "tebex-js-portal-component",
+            url: () => this.endpoint,
             autoResize: {
                 width: false,
                 height: false,
@@ -494,13 +465,13 @@ export default class Checkout {
             this.#createComponentFactory();
 
         this.zoid = this.componentFactory({
+            token: this.token,
             locale: this.locale,
             colors: this.colors,
             closeOnClickOutside: this.closeOnClickOutside,
             closeOnEsc: this.closeOnEsc,
-            closeOnPaymentComplete: this.closeOnPaymentComplete,
-            defaultPaymentMethod: this.defaultPaymentMethod,
             theme: this.theme,
+            logo: this.logo,
             onOpenWindow: (url) => {
                 window.open(url);
             },
@@ -511,12 +482,6 @@ export default class Checkout {
                 
                 this.isOpen = false;
                 this.emitter.emit("close");
-            },
-            onPaymentComplete: (e) => {
-                this.emitter.emit("payment:complete", e);
-            },
-            onPaymentError: (e) => {
-                this.emitter.emit("payment:error", e);
             },
             isApplePayAvailable: isApplePayAvailable(),
             isEmbedded: !popup,

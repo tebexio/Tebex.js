@@ -1,4 +1,4 @@
-import pkg from "./package.json" assert { type: "json" };
+import pkg from "./package.json" with { type: "json" };
 
 import { readdirSync, readFileSync } from "fs";
 import path from "path";
@@ -138,8 +138,14 @@ export default [
             commonjs(),
             replace({
                 preventAssignment: true,
-                __ENDPOINT__: `"${
+                __CHECKOUT_ENDPOINT__: `"${
                     process.env.CHECKOUT_HOST_ENDPOINT || "https://pay.tebex.io"
+                }"`,
+                __PORTAL_ENDPOINT__: `"${
+                    process.env.PORTAL_HOST_ENDPOINT || "https://portal.tebex.io"
+                }"`,
+                __ACCOUNT_ID__: `"${
+                    process.env.ACCOUNT_ID || "missing account id"
                 }"`,
             }),
             copy({

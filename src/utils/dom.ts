@@ -18,15 +18,19 @@ export const getAttribute = (el: Element, name: string) =>
 /**
  * @internal
  */
-export const setAttribute = (el: Element, name: string, value: number | string | boolean | null) => {
+export const setAttribute = (el: Element, name: string, value: number | string | boolean | null | string[]) => {
     const attr = camelToDash(name);
 
     if (value === true)
         el.setAttribute(attr, "");
     else if (value === false || value === null || value === undefined)
         el.removeAttribute(attr);
-    else
+    else {
+        if (Array.isArray(value))
+            value = value.filter(Boolean).join(" ");
+        // Cast value to string
         el.setAttribute(attr, value + "");
+    }
 };
 
 /**

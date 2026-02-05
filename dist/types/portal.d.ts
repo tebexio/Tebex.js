@@ -1,55 +1,52 @@
 /// <reference path="../../src/types/zoid.d.ts" />
-import { type ZoidComponent, type ZoidComponentInstance } from "zoid";
-import { type Unsubscribe } from "nanoevents";
-import { type TebexColorConfig, type TebexColorDefinition, type TebexTheme } from "./common";
+import { Unsubscribe } from "nanoevents";
+import type { TebexColorConfig, TebexColorDefinition, TebexTheme } from "./common";
 import { Lightbox } from "./components/lightbox";
-import { type CssDimension, type Implements } from "./utils";
+import { ZoidComponent, ZoidComponentInstance } from "zoid";
+import { CssDimension, Implements } from "./utils";
+export declare const EVENT_NAMES: readonly ["open", "close"];
 export declare const THEME_NAMES: readonly ["auto", "default", "light", "dark"];
 export declare const COLOR_NAMES: readonly ["primary", "secondary", "background", "surface", "surface-variant", "success", "warning", "error", "green", "red", "fields", "field-border"];
-export declare const EVENT_NAMES: readonly ["open", "close", "payment:complete", "payment:error"];
 /**
- * Configuration options for `Tebex.checkout.init()`.
+ * Logo configuration for the portal. Can be a single image URL string, or an object with `light` and `dark` properties for theme-specific logos.
  */
-export type CheckoutOptions = {
+export type PortalLogo = string | {
+    light: string;
+    dark: string;
+};
+/**
+ * Configuration options for `Tebex.portal.init()`.
+ */
+export type PortalOptions = {
     /**
-     * The checkout request ident received from either the Headless or Checkout APIs.
+     * This should be your store's Public Token, as found on your store's API Keys page at https://creator.tebex.io/developers/api-keys
      */
-    ident: string;
+    token: string;
     /**
      * The default language to use, defined as an ISO locale code - e.g. `"en_US"` for American English, "de_DE" for German, etc.
      * @default `navigator.language`
      */
     locale?: string;
     /**
-     * Tebex checkout panel color theme.
+     * Tebex portal theme preset.
      * @default "light"
      */
     theme?: TebexTheme;
     /**
-     * Tebex checkout panel UI brand colors.
+     * Tebex portal theme colors.
      * @default []
      */
     colors?: TebexColorConfig;
     /**
-     * Whether to close the Tebex.js popup when the user clicks outside of the modal.
+     * Whether to close the popup when the user clicks outside of the modal.
      * @default false
      */
     closeOnClickOutside?: boolean;
     /**
-     * Whether to close the Tebex.js popup when the user presses the Escape key.
+     * Whether to close the popup when the user presses the Escape key.
      * @default false
      */
     closeOnEsc?: boolean;
-    /**
-     * Whether to automatically close the Tebex.js popup as soon as the payment is completed; `payment:complete` and `close` events will still be emitted.
-     * @default false
-     */
-    closeOnPaymentComplete?: boolean;
-    /**
-     * Select a payment method to highlight on the checkout by passing its ident.
-     * @default undefined
-     */
-    defaultPaymentMethod?: string;
     /**
      * Whether to still display a popup on mobile or not. If `false` or undefined, then calling `launch()` will open a new window on mobile devices.
      * @default false
@@ -61,36 +58,37 @@ export type CheckoutOptions = {
      * @internal
      */
     endpoint?: string;
+    /**
+     * Logo to display in the portal. Can be a single image URL string, or an object with `light` and `dark` properties for theme-specific logos.
+     */
+    logo?: PortalLogo;
 };
 /**
- * Checkout event type. You can subscribe to checkout events with `Tebex.checkout.on()`.
+ * Portal event type. You can subscribe to portal events with `Tebex.portal.on()`.
  */
-export type CheckoutEvent = typeof EVENT_NAMES[number];
+export type PortalEvent = typeof EVENT_NAMES[number];
 /**
- * Maps a {@link CheckoutEvent} to its event callback type.
+ * Maps a {@link PortalEvent} to its event callback type.
  */
-export type CheckoutEventMap = Implements<Record<CheckoutEvent, Function>, {
+export type PortalEventMap = Implements<Record<PortalEvent, Function>, {
     "open": () => void;
     "close": () => void;
-    "payment:complete": (e: Event) => void;
-    "payment:error": (e: Event) => void;
 }>;
 /**
  * Props passed through Zoid component.
  * @internal
  */
-export type CheckoutZoidProps = {
+export type PortalZoidProps = {
+    token: string;
     locale: string;
     colors: TebexColorConfig;
     closeOnClickOutside: boolean;
     closeOnEsc: boolean;
-    closeOnPaymentComplete: boolean;
     defaultPaymentMethod?: string;
     theme: TebexTheme;
+    logo?: PortalLogo;
     onOpenWindow: (url: string) => void;
     onClosePopup: () => Promise<void>;
-    onPaymentComplete: (e: any) => void;
-    onPaymentError: (e: any) => void;
     isApplePayAvailable: boolean;
     isEmbedded: boolean;
     referrer: string;
@@ -99,47 +97,43 @@ export type CheckoutZoidProps = {
     params: string;
     version: string;
 };
-/**
- * Tebex checkout instance.
- */
-export default class Checkout {
+export default class Portal {
     #private;
-    ident: string;
+    token: string;
     locale: string;
     theme: TebexTheme;
     colors: TebexColorDefinition[];
     closeOnClickOutside: boolean;
     closeOnEsc: boolean;
-    closeOnPaymentComplete: boolean;
-    defaultPaymentMethod?: string;
     popupOnMobile: boolean;
     endpoint: string;
+    logo: {
+        light: string;
+        dark: string;
+    };
     isOpen: boolean;
     emitter: import("nanoevents").Emitter<{
         open: () => void;
         close: () => void;
-        "payment:complete": (e: Event) => void;
-        "payment:error": (e: Event) => void;
     }>;
     lightbox: Lightbox;
-    componentFactory: ZoidComponent<CheckoutZoidProps>;
+    componentFactory: ZoidComponent<PortalZoidProps>;
     zoid: ZoidComponentInstance;
     /**
-     * Configure the Tebex checkout settings.
+     * Configure the Tebex portal settings.
      */
-    init(options: CheckoutOptions): void;
+    init(options: PortalOptions): void;
     /**
-     * Subscribe to Tebex checkout events, such as when the embed is closed or when a payment is completed.
-     * NOTE: None of these events should not be used to confirm actual receipt of payment - you should use Webhooks for that.
+     * Subscribe to Tebex portal events, such as when the embed is opened or closed.
      */
-    on<T extends CheckoutEvent>(event: T, callback: CheckoutEventMap[T]): Unsubscribe;
+    on<E extends PortalEvent>(event: E, callback: PortalEventMap[E]): Unsubscribe;
     /**
-     * Launch the Tebex checkout panel.
+     * Launch the Tebex portal panel.
      * On desktop, the panel will launch in a "lightbox" mode that covers the screen. On mobile, it will be opened as a new page.
      */
     launch(): Promise<void>;
     /**
-     * Close the Tebex checkout panel.
+     * Close the Tebex portal panel.
      */
     close(): Promise<void>;
     /**
@@ -147,8 +141,8 @@ export default class Checkout {
      */
     destroy(): void;
     /**
-     * Render the Tebex checkout panel immediately, into a specified HTML element.
-     * If `popupOnMobile` is true, then on mobile devices the checkout will be immediately opened as a new page instead.
+     * Render the Tebex portal panel immediately, into a specified HTML element.
+     * If `popupOnMobile` is true, then on mobile devices the portal will be immediately opened as a new page instead.
      */
     render(element: HTMLElement, width: CssDimension, height: CssDimension, popupOnMobile?: boolean): Promise<void>;
     /**

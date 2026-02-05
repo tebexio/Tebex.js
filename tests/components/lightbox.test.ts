@@ -1,6 +1,6 @@
 import { describe, test, expect, beforeEach } from "vitest";
 
-import { Lightbox } from "../src/lightbox";
+import { Lightbox, __clearGlobalLightboxOpen } from "../../src/components/lightbox";
 
 describe("Lightbox", () => {
 
@@ -9,7 +9,10 @@ describe("Lightbox", () => {
     beforeEach(() => {
         document.body.innerHTML = "";
         document.body.style.cssText = "";
-        lightbox = new Lightbox();
+        lightbox = new Lightbox({
+            name: "test-lightbox",
+        });
+        __clearGlobalLightboxOpen();
     });
 
     test("Class members are all defined after construction", () => {
@@ -19,7 +22,11 @@ describe("Lightbox", () => {
     });
 
     test("Root element is assigned to lightbox.root", () => {
-        expect(lightbox.root.outerHTML).toEqual(`<div class="tebex-js-lightbox"><div class="tebex-js-lightbox__holder" role="dialog"></div></div>`);
+        expect(lightbox.root.outerHTML).toEqual(`<div class="tebex-js-lightbox tebex-js-lightbox--test-lightbox"><div class="tebex-js-lightbox__holder" role="dialog"></div></div>`);
+    });
+
+    test("Root element class contains the lightbox name", () => {
+        expect(lightbox.root.className).toContain("tebex-js-lightbox--test-lightbox");
     });
 
     test("Holder element is assigned to lightbox.holder", () => {
@@ -33,6 +40,8 @@ describe("Lightbox", () => {
             await lightbox.show();
             expect(document.body.querySelector('.tebex-js-lightbox')).not.toBeNull();
         });
+
+        // TODO: doesn't allow more than one lightbox at a time
 
         test("Only resolves once transition has finished", async() => {
             const start = performance.now();
@@ -66,6 +75,8 @@ describe("Lightbox", () => {
             const end = performance.now();
             expect(end - start).toBeGreaterThan(390); // default duration is 410ms, but test timing isn't super precise
         });
+        
+        // TODO: can pass true to skip transition
 
         test("CSS var --tebex-js-duration can be used to adjust the duration time", async () => {
             await lightbox.show();

@@ -3,6 +3,7 @@ import { destroy } from "zoid";
 
 import "../../src/webComponents/TebexCheckout";
 import type { TebexCheckout } from "../../src/webComponents/TebexCheckout";
+import { __clearGlobalLightboxOpen } from "../../src/components/lightbox";
 import { nextFrame } from "../../src/utils";
 
 describe("<tebex-checkout> Web component", () => {
@@ -11,6 +12,7 @@ describe("<tebex-checkout> Web component", () => {
         destroy();
         document.body.innerHTML = "";
         vi.clearAllMocks();
+        __clearGlobalLightboxOpen();
     });
 
     test("Is defined as a custom element", () => {

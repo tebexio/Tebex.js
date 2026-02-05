@@ -2,6 +2,7 @@ import { describe, test, expectTypeOf } from "vitest";
 
 import tebex, {
     checkout,
+    portal,
     events,
     version,
     type CheckoutOptions,
@@ -9,8 +10,14 @@ import tebex, {
     type CheckoutEvent,
     type CheckoutEventMap,
     type CheckoutTheme,
-    type CheckoutZoidProps
+    type CheckoutZoidProps,
+    type PortalOptions,
+    type PortalEvent,
+    type PortalEventMap,
+    type PortalZoidProps,
+    type TebexTheme
 } from "../src/index";
+import { TebexColorDefinition } from "../src/common";
 
 describe("Typechecks", () => {
 
@@ -19,12 +26,14 @@ describe("Typechecks", () => {
         expectTypeOf(tebex).toHaveProperty("version");
         expectTypeOf(tebex).toHaveProperty("events");
         expectTypeOf(tebex).toHaveProperty("checkout");
+        expectTypeOf(tebex).toHaveProperty("portal");
     });
 
     test("Named export types match their Tebex object equivalents", () => {
         expectTypeOf(tebex.version).toMatchTypeOf<typeof version>();
         expectTypeOf(tebex.events).toMatchTypeOf<typeof events>();
         expectTypeOf(tebex.checkout).toMatchTypeOf<typeof checkout>();
+        expectTypeOf(tebex.portal).toMatchTypeOf<typeof portal>();
     });
 
     describe("Type exports match publicly documented API", () => {
@@ -40,20 +49,35 @@ describe("Typechecks", () => {
                 colors?: {
                     name: "primary" | "secondary" | "background" | "surface" | "surface-variant" | "success" | "warning" | "error" | "green" | "red" | "fields" | "field-border",
                     color: string
-                }[];
+                }[] | {
+                    primary?: string;
+                    secondary?: string;
+                    background?: string;
+                    surface?: string;
+                    "surface-variant"?: string;
+                    success?: string;
+                    warning?: string;
+                    error?: string;
+                    green?: string;
+                    red?: string;
+                    fields?: string;
+                    "field-border"?: string;
+                };
                 defaultPaymentMethod?: string;
                 popupOnMobile?: boolean;
                 endpoint?: string;
             }>();
         });
 
-        test("CheckoutColorDefinition", () => {
-            expectTypeOf<CheckoutColorDefinition>().toBeObject();
-            expectTypeOf<CheckoutColorDefinition>().toMatchTypeOf<{
+        test("TebexColorDefinition", () => {
+            expectTypeOf<TebexColorDefinition>().toBeObject();
+            expectTypeOf<TebexColorDefinition>().toMatchTypeOf<{
                 name: "primary" | "secondary" | "background" | "surface" | "surface-variant" | "success" | "warning" | "error" | "green" | "red" | "fields" | "field-border",
                 color: string
             }>();
         });
+
+        // TODO: TebexColorConfig
 
         test("CheckoutEvent", () => {
             expectTypeOf<CheckoutEvent>().toBeString();
@@ -78,9 +102,9 @@ describe("Typechecks", () => {
             >();
         });
 
-        test("CheckoutTheme", () => {
-            expectTypeOf<CheckoutTheme>().toBeString();
-            expectTypeOf<CheckoutTheme>().toMatchTypeOf<"light" | "dark" | "default" | "auto">();
+        test("TebexTheme", () => {
+            expectTypeOf<TebexTheme>().toBeString();
+            expectTypeOf<TebexTheme>().toMatchTypeOf<"light" | "dark" | "default" | "auto">();
         });
 
         test("CheckoutZoidProps", () => {
@@ -90,7 +114,20 @@ describe("Typechecks", () => {
                 colors: {
                     name: "primary" | "secondary" | "background" | "surface" | "surface-variant" | "success" | "warning" | "error" | "green" | "red" | "fields" | "field-border",
                     color: string
-                }[];
+                }[] | {
+                    primary?: string;
+                    secondary?: string;
+                    background?: string;
+                    surface?: string;
+                    "surface-variant"?: string;
+                    success?: string;
+                    warning?: string;
+                    error?: string;
+                    green?: string;
+                    red?: string;
+                    fields?: string;
+                    "field-border"?: string;
+                };
                 closeOnClickOutside: boolean;
                 closeOnEsc: boolean;
                 closeOnPaymentComplete: boolean;
@@ -110,6 +147,110 @@ describe("Typechecks", () => {
             }>();
         });
 
+        test("PortalOptions", () => {
+            expectTypeOf<PortalOptions>().toBeObject();
+            expectTypeOf<PortalOptions>().toMatchTypeOf<{
+                token: string;
+                locale?: string;
+                theme?: "light" | "dark" | "default" | "auto";
+                closeOnClickOutside?: boolean;
+                closeOnEsc?: boolean;
+                popupOnMobile?: boolean;
+                endpoint?: string;
+                colors?: {
+                    name: "primary" | "secondary" | "background" | "surface" | "surface-variant" | "success" | "warning" | "error" | "green" | "red" | "fields" | "field-border",
+                    color: string
+                }[] | {
+                    primary?: string;
+                    secondary?: string;
+                    background?: string;
+                    surface?: string;
+                    "surface-variant"?: string;
+                    success?: string;
+                    warning?: string;
+                    error?: string;
+                    green?: string;
+                    red?: string;
+                    fields?: string;
+                    "field-border"?: string;
+                };
+                logo?: string | { light: string; dark: string };
+            }>();
+        });
+
+        test("PortalEvent", () => {
+            expectTypeOf<PortalEvent>().toBeString();
+            expectTypeOf<PortalEvent>().toMatchTypeOf<
+                | "open"
+                | "close"
+            >();
+        });
+
+        test("PortalEventMap", () => {
+            expectTypeOf<PortalEventMap>().toBeObject();
+            expectTypeOf<PortalEventMap>().toMatchTypeOf<
+                Record<
+                    | "open"
+                    | "close", 
+                    Function
+                >
+            >();
+        });
+
+        test("PortalZoidProps", () => {
+            expectTypeOf<PortalZoidProps>().toBeObject();
+            expectTypeOf<PortalZoidProps>().toMatchTypeOf<{
+                token: string;
+                locale: string;
+                colors: {
+                    name: "primary" | "secondary" | "background" | "surface" | "surface-variant" | "success" | "warning" | "error" | "green" | "red" | "fields" | "field-border",
+                    color: string
+                }[] | {
+                    primary?: string;
+                    secondary?: string;
+                    background?: string;
+                    surface?: string;
+                    "surface-variant"?: string;
+                    success?: string;
+                    warning?: string;
+                    error?: string;
+                    green?: string;
+                    red?: string;
+                    fields?: string;
+                    "field-border"?: string;
+                };
+                closeOnClickOutside: boolean;
+                closeOnEsc: boolean;
+                defaultPaymentMethod?: string;
+                theme: "light" | "dark" | "default" | "auto";
+                logo?: string | { light: string; dark: string };
+                onOpenWindow: (url: string) => void;
+                onClosePopup: () => Promise<void>;
+                isApplePayAvailable: boolean;
+                isEmbedded: boolean;
+                referrer: string;
+                origin: string;
+                path: string;
+                params: string;
+                version: string;
+            }>();
+        });
+
+    });
+
+    describe("Legacy type exports match legacy API", () => {
+        test("CheckoutTheme", () => {
+            expectTypeOf<CheckoutTheme>().toBeString();
+            expectTypeOf<CheckoutTheme>().toMatchTypeOf<"light" | "dark" | "default" | "auto">();
+        });
+
+        test("CheckoutColorDefinition", () => {
+            expectTypeOf<CheckoutColorDefinition>().toBeObject();
+            expectTypeOf<CheckoutColorDefinition>().toMatchTypeOf<{
+                name: "primary" | "secondary" | "background" | "surface" | "surface-variant" | "success" | "warning" | "error" | "green" | "red" | "fields" | "field-border",
+                color: string
+            }>();
+        });
     });
 
     describe("JS exports match publicly documented API", () => {
@@ -134,6 +275,7 @@ describe("Typechecks", () => {
                 init: Function;
                 launch: Function;
                 render: Function;
+                close: Function;
             }>();
         });
 
@@ -149,7 +291,21 @@ describe("Typechecks", () => {
                 colors?: {
                     name: "primary" | "secondary" | "background" | "surface" | "surface-variant" | "success" | "warning" | "error" | "green" | "red" | "fields" | "field-border",
                     color: string
-                }[];
+                }[] | {
+                    primary?: string;
+                    secondary?: string;
+                    background?: string;
+                    surface?: string;
+                    "surface-variant"?: string;
+                    success?: string;
+                    warning?: string;
+                    error?: string;
+                    green?: string;
+                    red?: string;
+                    fields?: string;
+                    "field-border"?: string;
+                };
+                locale?: string;
                 defaultPaymentMethod?: string;
                 popupOnMobile?: boolean;
                 endpoint?: string;
@@ -202,6 +358,88 @@ describe("Typechecks", () => {
             test("Event: payment:error", () => {
                 expectTypeOf(tebex.checkout.on<"payment:error">).parameter(0).toMatchTypeOf<"payment:error">();
                 expectTypeOf(tebex.checkout.on<"payment:error">).parameter(1).toMatchTypeOf<(e: Event) => void>();
+            });
+            
+        });
+
+        test("Tebex.portal", () => {
+            expectTypeOf(tebex.portal).toBeObject();
+            expectTypeOf(tebex.portal).toMatchTypeOf<{
+                init: Function;
+                launch: Function;
+                render: Function;
+                close: Function;
+            }>();
+        });
+
+        test("Tebex.portal.init", () => {
+            expectTypeOf(tebex.portal.init).toBeFunction();
+            expectTypeOf(tebex.portal.init).returns.toMatchTypeOf<void>();
+            expectTypeOf(tebex.portal.init).parameter(0).toMatchTypeOf<{
+                token: string;
+                locale?: string;
+                theme?: "light" | "dark" | "default" | "auto";
+                closeOnClickOutside?: boolean;
+                closeOnEsc?: boolean;
+                popupOnMobile?: boolean;
+                endpoint?: string;
+                colors?: {
+                    name: "primary" | "secondary" | "background" | "surface" | "surface-variant" | "success" | "warning" | "error" | "green" | "red" | "fields" | "field-border",
+                    color: string
+                }[] | {
+                    primary?: string;
+                    secondary?: string;
+                    background?: string;
+                    surface?: string;
+                    "surface-variant"?: string;
+                    success?: string;
+                    warning?: string;
+                    error?: string;
+                    green?: string;
+                    red?: string;
+                    fields?: string;
+                    "field-border"?: string;
+                };
+                logo?: string | { light: string; dark: string };
+            }>();
+        });
+
+        test("Tebex.portal.launch", () => {
+            expectTypeOf(tebex.portal.launch).toBeFunction();
+            expectTypeOf(tebex.portal.launch).returns.toMatchTypeOf<Promise<void>>();
+            expectTypeOf(tebex.portal.launch).parameter(0).toBeVoid;
+        });
+
+        test("Tebex.portal.render", () => {
+            expectTypeOf(tebex.portal.render).toBeFunction();
+            expectTypeOf(tebex.portal.render).returns.toMatchTypeOf<Promise<void>>();
+            expectTypeOf(tebex.portal.render).parameter(0).toMatchTypeOf<HTMLElement>();
+            expectTypeOf(tebex.portal.render).parameter(1).toMatchTypeOf<string | number>();
+            expectTypeOf(tebex.portal.render).parameter(2).toMatchTypeOf<string | number>();
+            expectTypeOf(tebex.portal.render).parameter(3).toMatchTypeOf<boolean>();
+        });
+
+        test("Tebex.portal.close", () => {
+            expectTypeOf(tebex.portal.close).toBeFunction();
+            expectTypeOf(tebex.portal.close).returns.toMatchTypeOf<Promise<void>>();
+            expectTypeOf(tebex.portal.close).parameter(0).toBeVoid;
+        });
+
+        describe("Tebex.portal.on", () => {
+
+            test("Base type", () => {
+                expectTypeOf(tebex.portal.on).toBeFunction();
+                expectTypeOf(tebex.portal.on).returns.toBeFunction();
+            });
+
+            test("Event: open", () => {
+                expectTypeOf(tebex.portal.on<"open">).parameter(0).toMatchTypeOf<"open">();
+                expectTypeOf(tebex.portal.on<"open">).parameter(1).toMatchTypeOf<() => void>();
+            });
+
+            test("Event: close", () => {
+                expectTypeOf(tebex.portal.on<"close">).parameter(0).toMatchTypeOf<"close">();
+                expectTypeOf(tebex.portal.on<"close">).parameter(1).toMatchTypeOf<() => void>();
             });
             
         });

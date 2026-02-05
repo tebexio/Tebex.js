@@ -2,6 +2,7 @@ import { describe, test, expect } from "vitest";
 
 import tebex, {
     checkout,
+    portal,
     events,
     version
 } from "../src/index";
@@ -13,12 +14,14 @@ describe("Exports", () => {
         expect(tebex).toHaveProperty("version");
         expect(tebex).toHaveProperty("events");
         expect(tebex).toHaveProperty("checkout");
+        expect(tebex).toHaveProperty("portal");
     });
 
     test("Named exports match Tebex object members:", () => {
         expect(tebex.version).toBe(version);
         expect(tebex.events).toBe(events);
         expect(tebex.checkout).toBe(checkout);
+        expect(tebex.portal).toBe(portal);
     });
 
 });

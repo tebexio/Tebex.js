@@ -1,5 +1,9 @@
+import type {
+    TebexColorDefinition,
+    TebexTheme
+} from "../common";
+
 import Checkout, {
-    type CheckoutTheme,
     EVENT_NAMES
 } from "../checkout";
 
@@ -126,7 +130,7 @@ export const defineTebexCheckout = () => {
             
             this._didInit = true;
 
-            let colors = [];
+            let colors: TebexColorDefinition[] = [];
 
             if (this.hasAttribute("color-primary"))
                 colors.push({ name: "primary", color: getAttribute(this, "color-primary") });
@@ -137,7 +141,7 @@ export const defineTebexCheckout = () => {
             this.checkout.init({
                 ident: getAttribute(this, "ident"),
                 locale: getAttribute(this, "locale"),
-                theme: getAttribute(this, "theme") as CheckoutTheme,
+                theme: getAttribute(this, "theme") as TebexTheme,
                 colors: colors,
                 closeOnClickOutside: getAttribute(this, "close-on-click-outside") !== null,
                 closeOnEsc: getAttribute(this, "close-on-esc") !== null,

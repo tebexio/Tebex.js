@@ -1,28 +1,55 @@
 let ident = null;
 
-function launch() {
-    const config = {
+window.launchCheckout = function launchCheckout() {
+    const colorInputs = Array.from(document.querySelectorAll(".checkout-demo .color-selections"));
+    const colors = [];
+
+    colorInputs.forEach(el => {
+        if (!el.value) return;
+        colors.push({
+            name: el.name,
+            color: el.value,
+        });
+    });
+
+    const themeInput = document.querySelector(".checkout-demo .popup-theme");
+    const theme = themeInput?.value ?? "default";
+
+    Tebex.checkout.init({
         ident: ident,
-        theme: document.getElementById("popup-theme")?.value,
-        colors: [],
+        theme: theme,
+        colors: colors,
         endpoint: "https://pay.tebex.io",
         defaultPaymentMethod: "paypal",
-    };
+    });
 
-    Array.prototype.forEach.call(
-        document.getElementsByClassName("color-selections"),
-        function (el) {
-            if (!el.value) return;
-            config.colors.push({
-                name: el.name,
-                color: el.value,
-            });
-        }
-    );
-
-    Tebex.checkout.init(config);
     Tebex.checkout.launch();
-}
+};
+
+window.launchPortal = function launchPortal() {
+    const colorInputs = Array.from(document.querySelectorAll(".portal-demo .color-selections"));
+    const colors = [];
+
+    colorInputs.forEach(el => {
+        if (!el.value) return;
+        colors.push({
+            name: el.name,
+            color: el.value,
+        });
+    });
+
+    const themeInput = document.querySelector(".portal-demo .popup-theme");
+    const theme = themeInput?.value ?? "default";
+
+    Tebex.portal.init({
+        token: "t6c9-0927595131662ac732bf5f1d9bd5570482db5316",
+        theme: theme,
+        colors: colors,
+        endpoint: "https://portal.tebex.io",
+    });
+
+    Tebex.portal.launch();
+};
 
 addEventListener("load", function (e) {
     fetch("/token")
@@ -50,6 +77,12 @@ addEventListener("load", function (e) {
     Tebex.checkout.on("payment:error", (event) => {
         console.log("payment errored", event);
     });
-});
 
-window.launch = launch;
+    Tebex.portal.on("open", () => {
+        console.log("portal opened");
+    });
+
+    Tebex.portal.on("close", () => {
+        console.log("portal closed");
+    });
+});

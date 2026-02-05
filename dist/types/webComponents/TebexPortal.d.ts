@@ -1,27 +1,5 @@
-import Checkout from "../checkout";
-export type TebexCheckout = InstanceType<ReturnType<typeof defineTebexCheckout>>;
-export declare const defineTebexCheckout: () => {
+export declare const defineTebexPortal: () => {
     new (): {
-        checkout: Checkout;
-        _root: HTMLElement;
-        _slot: HTMLSlotElement;
-        _shadow: ShadowRoot;
-        _mode: "inline" | "popover";
-        _height: number;
-        _open: boolean;
-        _didInit: boolean;
-        _didConnect: boolean;
-        ident: string;
-        open: boolean;
-        height: number;
-        connectedCallback(): void;
-        disconnectedCallback(): void;
-        attributeChangedCallback(key: string, oldVal: string, newVal: string): void;
-        renderFinished(): Promise<void>;
-        "__#4@#init"(): Promise<void>;
-        "__#4@#attachClickHandlers": () => void;
-        "__#4@#updatePopupState"(): void;
-        "__#4@#updateSize"(): void;
         accessKey: string;
         readonly accessKeyLabel: string;
         autocapitalize: string;
@@ -347,5 +325,4 @@ export declare const defineTebexCheckout: () => {
         blur(): void;
         focus(options?: FocusOptions): void;
     };
-    readonly observedAttributes: string[];
 };

@@ -43,6 +43,11 @@ describe("setAttribute", () => {
         expect(el.outerHTML).toEqual(`<div test=""></div>`);
     });
 
+     test("Adds attribute to a HTML element with array values", () => {
+        setAttribute(el, "test", ["one", "two", "three"]);
+        expect(el.outerHTML).toEqual(`<div test="one two three"></div>`);
+    });
+
     test("Removes attribute from a HTML element if the new value is null", () => {
         setAttribute(el, "test", true);
         expect(el.outerHTML).toEqual(`<div test=""></div>`);

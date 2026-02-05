@@ -389,8 +389,12 @@
             el.setAttribute(attr, "");
         else if (value === false || value === null || value === undefined)
             el.removeAttribute(attr);
-        else
+        else {
+            if (Array.isArray(value))
+                value = value.filter(Boolean).join(" ");
+            // Cast value to string
             el.setAttribute(attr, value + "");
+        }
     };
     /**
      * @internal
@@ -12438,37 +12442,49 @@
 
     var styles$1 = ".tebex-js-lightbox{all:unset;zoom:1;forced-color-adjust:none;position:fixed;left:0;top:0;width:100vw;height:100vh;z-index:var(--tebex-js-z-index,9999999);background:var(--tebex-js-lightbox-bg,rgba(0,0,0,.8));opacity:0;transition-property:opacity;transition-duration:var(--tebex-js-duration,.4s);transition-timing-function:var(--tebex-js-timing,ease);will-change:opacity;display:flex;justify-content:center;align-items:center;user-select:none;-webkit-user-select:none;-moz-user-select:none;}.tebex-js-lightbox--visible{opacity:1;}.tebex-js-lightbox__holder{display:block;border:0;overflow:hidden;border-radius:5px;}.tebex-js-lightbox__holder > div{display:block!important;}";
 
-    var _Lightbox_onClickOutside, _Lightbox_onKeyPress;
+    var _Lightbox_name, _Lightbox_closeOnClickOutside, _Lightbox_closeOnEsc, _Lightbox_closeHandler, _Lightbox_onClickOutside, _Lightbox_onKeyPress;
+    let globalIsLightboxOpen = false;
     class Lightbox {
-        constructor() {
-            this.clickOutsideHandler = null;
-            this.escKeyHandler = null;
+        constructor(options = {}) {
+            _Lightbox_name.set(this, null);
+            _Lightbox_closeOnClickOutside.set(this, false);
+            _Lightbox_closeOnEsc.set(this, false);
+            _Lightbox_closeHandler.set(this, null);
             _Lightbox_onClickOutside.set(this, (e) => {
-                if (!this.clickOutsideHandler)
+                if (!__classPrivateFieldGet(this, _Lightbox_closeOnClickOutside, "f"))
                     return;
                 // @ts-expect-error: e.target type isn't necessarily Element 
                 if (!this.holder.contains(e.target))
-                    this.clickOutsideHandler(e);
+                    __classPrivateFieldGet(this, _Lightbox_closeHandler, "f").call(this, e);
             });
             _Lightbox_onKeyPress.set(this, (e) => {
-                if (!this.escKeyHandler)
+                if (!__classPrivateFieldGet(this, _Lightbox_closeOnEsc, "f"))
                     return;
                 if (e.key === "Escape")
-                    this.escKeyHandler(e);
+                    __classPrivateFieldGet(this, _Lightbox_closeHandler, "f").call(this, e);
             });
             assert(isEnvBrowser());
             this.body = document.body;
             const stylesheet = createElement("style");
             stylesheet.append(styles$1);
             this.body.append(stylesheet);
+            this.setOptions(options);
             this.root = this.render();
             this.holder = this.root.querySelector(".tebex-js-lightbox__holder");
         }
+        setOptions(options) {
+            __classPrivateFieldSet(this, _Lightbox_name, options?.name ?? "", "f");
+            __classPrivateFieldSet(this, _Lightbox_closeOnClickOutside, options?.closeOnClickOutside ?? false, "f");
+            __classPrivateFieldSet(this, _Lightbox_closeOnEsc, options?.closeOnEsc ?? false, "f");
+            __classPrivateFieldSet(this, _Lightbox_closeHandler, options?.closeHandler, "f");
+        }
         render() {
-            return (h("div", { class: "tebex-js-lightbox" },
+            return (h("div", { class: ["tebex-js-lightbox", __classPrivateFieldGet(this, _Lightbox_name, "f") ? `tebex-js-lightbox--${__classPrivateFieldGet(this, _Lightbox_name, "f")}` : null] },
                 h("div", { class: "tebex-js-lightbox__holder", role: "dialog" })));
         }
         async show() {
+            assert(!globalIsLightboxOpen, "There is already a lightbox open");
+            globalIsLightboxOpen = true;
             this.body.append(this.root);
             await nextFrame();
             this.root.classList.add("tebex-js-lightbox--visible");
@@ -12476,24 +12492,24 @@
             this.body.addEventListener("click", __classPrivateFieldGet(this, _Lightbox_onClickOutside, "f"));
             this.body.addEventListener("keydown", __classPrivateFieldGet(this, _Lightbox_onKeyPress, "f"));
         }
-        async hide() {
+        async hide(transition = true) {
             this.body.removeEventListener("click", __classPrivateFieldGet(this, _Lightbox_onClickOutside, "f"));
             this.body.removeEventListener("keydown", __classPrivateFieldGet(this, _Lightbox_onKeyPress, "f"));
             this.root.classList.remove("tebex-js-lightbox--visible");
-            await nextFrame();
-            await transitionEnd(this.root);
+            if (transition) {
+                await nextFrame();
+                await transitionEnd(this.root);
+            }
             this.body.removeChild(this.root);
+            globalIsLightboxOpen = false;
         }
         destroy() {
             if (!this.root.parentNode)
                 return;
-            this.body.removeEventListener("click", __classPrivateFieldGet(this, _Lightbox_onClickOutside, "f"));
-            this.body.removeEventListener("keydown", __classPrivateFieldGet(this, _Lightbox_onKeyPress, "f"));
-            this.root.classList.remove("tebex-js-lightbox--visible");
-            this.body.removeChild(this.root);
+            this.hide(false);
         }
     }
-    _Lightbox_onClickOutside = new WeakMap(), _Lightbox_onKeyPress = new WeakMap();
+    _Lightbox_name = new WeakMap(), _Lightbox_closeOnClickOutside = new WeakMap(), _Lightbox_closeOnEsc = new WeakMap(), _Lightbox_closeHandler = new WeakMap(), _Lightbox_onClickOutside = new WeakMap(), _Lightbox_onKeyPress = new WeakMap();
 
     var styles = "html,body{width:100px;height:100px;overflow:hidden;}.tebex-js-spinner{position:fixed;max-height:60vmin;max-width:60vmin;height:40px;width:40px;top:50%;left:50%;box-sizing:border-box;border:3px solid rgba(0,0,0,.2);border-top-color:#FFF;border-radius:100%;animation:tebex-js-spinner-rotation .7s infinite linear;}@keyframes tebex-js-spinner-rotation{from{transform:translateX(-50%) translateY(-50%) rotate(0deg);}to{transform:translateX(-50%) translateY(-50%) rotate(359deg);}}";
 
@@ -12508,16 +12524,16 @@
         return html;
     };
 
-    var _Checkout_instances, _Checkout_didRender, _Checkout_onRender, _Checkout_resolveLocale, _Checkout_resolveTheme, _Checkout_resolveColors, _Checkout_resolvePopupOnMobile, _Checkout_resolveEndpoint, _Checkout_resolveCloseOnClickOutside, _Checkout_resolveCloseOnEsc, _Checkout_resolveCloseOnPaymentComplete, _Checkout_resolveDefaultPaymentMethod, _Checkout_onRequestLightboxClose, _Checkout_showLightbox, _Checkout_buildComponent, _Checkout_renderComponent;
-    const DEFAULT_WIDTH = "800px";
-    const DEFAULT_HEIGHT = "760px";
-    const THEME_NAMES = [
+    var _Checkout_instances, _Checkout_didRender, _Checkout_onRender, _Checkout_resolveLocale, _Checkout_resolveTheme, _Checkout_resolveColors, _Checkout_resolvePopupOnMobile, _Checkout_resolveEndpoint, _Checkout_resolveCloseOnClickOutside, _Checkout_resolveCloseOnEsc, _Checkout_resolveCloseOnPaymentComplete, _Checkout_resolveDefaultPaymentMethod, _Checkout_onRequestLightboxClose, _Checkout_showLightbox, _Checkout_createComponentFactory, _Checkout_createComponentInstance;
+    const DEFAULT_WIDTH$1 = "800px";
+    const DEFAULT_HEIGHT$1 = "760px";
+    const THEME_NAMES$1 = [
         "auto",
         "default",
         "light",
         "dark"
     ];
-    const COLOR_NAMES = [
+    const COLOR_NAMES$1 = [
         "primary",
         "secondary",
         "background",
@@ -12531,7 +12547,7 @@
         "fields",
         "field-border",
     ];
-    const EVENT_NAMES = [
+    const EVENT_NAMES$1 = [
         "open",
         "close",
         "payment:complete",
@@ -12556,7 +12572,7 @@
             this.isOpen = false;
             this.emitter = createNanoEvents();
             this.lightbox = null;
-            this.component = null;
+            this.componentFactory = null;
             this.zoid = null;
             _Checkout_didRender.set(this, false);
             _Checkout_onRender.set(this, void 0);
@@ -12592,7 +12608,7 @@
             // @ts-ignore - handles legacy event name
             if (event === "payment_error")
                 event = "payment:error";
-            if (!EVENT_NAMES.includes(event)) {
+            if (!EVENT_NAMES$1.includes(event)) {
                 warn(`invalid event name "${event}"`);
                 return () => { };
             }
@@ -12603,8 +12619,8 @@
          * On desktop, the panel will launch in a "lightbox" mode that covers the screen. On mobile, it will be opened as a new page.
          */
         async launch() {
-            if (!this.popupOnMobile && isMobile(DEFAULT_WIDTH, DEFAULT_HEIGHT)) {
-                await __classPrivateFieldGet(this, _Checkout_instances, "m", _Checkout_renderComponent).call(this, document.body, true);
+            if (!this.popupOnMobile && isMobile(DEFAULT_WIDTH$1, DEFAULT_HEIGHT$1)) {
+                await __classPrivateFieldGet(this, _Checkout_instances, "m", _Checkout_createComponentInstance).call(this, document.body, true);
                 this.isOpen = true;
                 this.emitter.emit("open");
                 return;
@@ -12644,8 +12660,8 @@
             assert(isInDocument(element), "Target element must already be inserted into the page before it can be used");
             width = isString(width) ? width : `${width}px`;
             height = isString(height) ? height : `${height}px`;
-            __classPrivateFieldGet(this, _Checkout_instances, "m", _Checkout_buildComponent).call(this, width, height);
-            await __classPrivateFieldGet(this, _Checkout_instances, "m", _Checkout_renderComponent).call(this, element, popupOnMobile && isMobile(width, height));
+            __classPrivateFieldGet(this, _Checkout_instances, "m", _Checkout_createComponentFactory).call(this, width, height);
+            await __classPrivateFieldGet(this, _Checkout_instances, "m", _Checkout_createComponentInstance).call(this, element, popupOnMobile && isMobile(width, height));
             this.isOpen = true;
             this.emitter.emit("open");
         }
@@ -12672,8 +12688,8 @@
     }, _Checkout_resolveTheme = function _Checkout_resolveTheme(options) {
         if (isNullOrUndefined(options.theme))
             return null;
-        if (!THEME_NAMES.includes(options.theme)) {
-            const list = THEME_NAMES.map(n => `"${n}"`).join(", ");
+        if (!THEME_NAMES$1.includes(options.theme)) {
+            const list = THEME_NAMES$1.map(n => `"${n}"`).join(", ");
             warn(`invalid theme option "${options.theme}" - must be one of ${list}`);
             return null;
         }
@@ -12681,11 +12697,14 @@
     }, _Checkout_resolveColors = function _Checkout_resolveColors(options) {
         if (isNullOrUndefined(options.colors))
             return null;
-        if (!isArray$1(options.colors)) {
-            warn(`invalid colors option "${options.colors}" - must be an array`);
+        if (!(isArray$1(options.colors) || isObject(options.colors))) {
+            warn(`invalid colors option "${options.colors}" - must be an array or object`);
             return null;
         }
-        for (let entry of options.colors) {
+        const colorList = isArray$1(options.colors) ?
+            options.colors :
+            Object.entries(options.colors).map(([name, color]) => ({ name, color }));
+        for (let entry of colorList) {
             if (!isObject(entry)) {
                 warn(`invalid colors option item ${entry} - must be an object`);
                 return null;
@@ -12698,8 +12717,8 @@
                 warn(`invalid colors option item - missing 'color' field`);
                 return null;
             }
-            if (!COLOR_NAMES.includes(entry.name)) {
-                const list = COLOR_NAMES.map(n => `"${n}"`).join(", ");
+            if (!COLOR_NAMES$1.includes(entry.name)) {
+                const list = COLOR_NAMES$1.map(n => `"${n}"`).join(", ");
                 warn(`invalid color name "${entry.name}" - must be one of ${list}`);
                 return null;
             }
@@ -12712,7 +12731,7 @@
                 return null;
             }
         }
-        return options.colors;
+        return colorList;
     }, _Checkout_resolvePopupOnMobile = function _Checkout_resolvePopupOnMobile(options) {
         if (isNullOrUndefined(options.popupOnMobile))
             return null;
@@ -12764,16 +12783,18 @@
     }, _Checkout_showLightbox = async function _Checkout_showLightbox() {
         if (!this.lightbox)
             this.lightbox = new Lightbox();
-        if (this.closeOnClickOutside)
-            this.lightbox.clickOutsideHandler = __classPrivateFieldGet(this, _Checkout_onRequestLightboxClose, "f");
-        if (this.closeOnEsc)
-            this.lightbox.escKeyHandler = __classPrivateFieldGet(this, _Checkout_onRequestLightboxClose, "f");
+        this.lightbox.setOptions({
+            name: "checkout",
+            closeOnClickOutside: this.closeOnClickOutside,
+            closeOnEsc: this.closeOnEsc,
+            closeHandler: __classPrivateFieldGet(this, _Checkout_onRequestLightboxClose, "f")
+        });
         await this.lightbox.show();
-        await __classPrivateFieldGet(this, _Checkout_instances, "m", _Checkout_renderComponent).call(this, this.lightbox.holder, false);
+        await __classPrivateFieldGet(this, _Checkout_instances, "m", _Checkout_createComponentInstance).call(this, this.lightbox.holder, false);
         this.isOpen = true;
         this.emitter.emit("open");
-    }, _Checkout_buildComponent = function _Checkout_buildComponent(width = DEFAULT_WIDTH, height = DEFAULT_HEIGHT) {
-        this.component = zoid.create({
+    }, _Checkout_createComponentFactory = function _Checkout_createComponentFactory(width = DEFAULT_WIDTH$1, height = DEFAULT_HEIGHT$1) {
+        this.componentFactory = zoid.create({
             tag: "tebex-js-checkout-component",
             url: () => this.endpoint + "/" + this.ident,
             autoResize: {
@@ -12791,11 +12812,11 @@
                 },
             },
         });
-    }, _Checkout_renderComponent = async function _Checkout_renderComponent(container, popup) {
+    }, _Checkout_createComponentInstance = async function _Checkout_createComponentInstance(container, popup) {
         const url = new URL(window.location.href);
-        if (!this.component)
-            __classPrivateFieldGet(this, _Checkout_instances, "m", _Checkout_buildComponent).call(this);
-        this.zoid = this.component({
+        if (!this.componentFactory)
+            __classPrivateFieldGet(this, _Checkout_instances, "m", _Checkout_createComponentFactory).call(this);
+        this.zoid = this.componentFactory({
             locale: this.locale,
             colors: this.colors,
             closeOnClickOutside: this.closeOnClickOutside,
@@ -12831,6 +12852,334 @@
         __classPrivateFieldSet(this, _Checkout_didRender, true, "f");
         if (__classPrivateFieldGet(this, _Checkout_onRender, "f"))
             __classPrivateFieldGet(this, _Checkout_onRender, "f").call(this);
+    };
+
+    var _Portal_instances, _Portal_didRender, _Portal_onRender, _Portal_resolveLocale, _Portal_resolveTheme, _Portal_resolveColors, _Portal_resolvePopupOnMobile, _Portal_resolveEndpoint, _Portal_resolveCloseOnClickOutside, _Portal_resolveCloseOnEsc, _Portal_resolveLogo, _Portal_onRequestLightboxClose, _Portal_showLightbox, _Portal_createComponentFactory, _Portal_createComponentInstance;
+    const EVENT_NAMES = [
+        "open",
+        "close"
+    ];
+    const THEME_NAMES = [
+        "auto",
+        "default",
+        "light",
+        "dark"
+    ];
+    const COLOR_NAMES = [
+        "primary",
+        "secondary",
+        "background",
+        "surface",
+        "surface-variant",
+        "success",
+        "warning",
+        "error",
+        "green",
+        "red",
+        "fields",
+        "field-border",
+    ];
+    const DEFAULT_WIDTH = "800px";
+    const DEFAULT_HEIGHT = "760px";
+    class Portal {
+        constructor() {
+            _Portal_instances.add(this);
+            this.token = null;
+            this.locale = null;
+            this.theme = "default";
+            this.colors = [];
+            this.closeOnClickOutside = false;
+            this.closeOnEsc = false;
+            this.popupOnMobile = false;
+            this.endpoint = "https://portal.tebex.io";
+            this.logo = null;
+            this.isOpen = false;
+            this.emitter = createNanoEvents();
+            this.lightbox = null;
+            this.componentFactory = null;
+            this.zoid = null;
+            _Portal_didRender.set(this, false);
+            _Portal_onRender.set(this, void 0);
+            _Portal_onRequestLightboxClose.set(this, async () => {
+                if (this.isOpen)
+                    await this.close();
+            });
+        }
+        /**
+         * Configure the Tebex portal settings.
+         */
+        init(options) {
+            assert(options.token && isString(options.token), "token option is required, and must be a string");
+            this.token = options.token;
+            this.locale = __classPrivateFieldGet(this, _Portal_instances, "m", _Portal_resolveLocale).call(this, options) ?? this.locale;
+            this.theme = __classPrivateFieldGet(this, _Portal_instances, "m", _Portal_resolveTheme).call(this, options) ?? this.theme;
+            this.colors = __classPrivateFieldGet(this, _Portal_instances, "m", _Portal_resolveColors).call(this, options) ?? this.colors;
+            this.popupOnMobile = __classPrivateFieldGet(this, _Portal_instances, "m", _Portal_resolvePopupOnMobile).call(this, options) ?? this.popupOnMobile;
+            this.endpoint = __classPrivateFieldGet(this, _Portal_instances, "m", _Portal_resolveEndpoint).call(this, options) ?? this.endpoint;
+            this.closeOnClickOutside = __classPrivateFieldGet(this, _Portal_instances, "m", _Portal_resolveCloseOnClickOutside).call(this, options) ?? this.closeOnClickOutside;
+            this.closeOnEsc = __classPrivateFieldGet(this, _Portal_instances, "m", _Portal_resolveCloseOnEsc).call(this, options) ?? this.closeOnEsc;
+            this.logo = __classPrivateFieldGet(this, _Portal_instances, "m", _Portal_resolveLogo).call(this, options) ?? this.logo;
+        }
+        /**
+         * Subscribe to Tebex portal events, such as when the embed is opened or closed.
+         */
+        on(event, callback) {
+            if (!EVENT_NAMES.includes(event)) {
+                warn(`invalid event name "${event}"`);
+                return () => { };
+            }
+            return this.emitter.on(event, callback);
+        }
+        /**
+         * Launch the Tebex portal panel.
+         * On desktop, the panel will launch in a "lightbox" mode that covers the screen. On mobile, it will be opened as a new page.
+         */
+        async launch() {
+            if (!this.popupOnMobile && isMobile(DEFAULT_WIDTH, DEFAULT_HEIGHT)) {
+                await __classPrivateFieldGet(this, _Portal_instances, "m", _Portal_createComponentInstance).call(this, document.body, true);
+                this.isOpen = true;
+                this.emitter.emit("open");
+                return;
+            }
+            await __classPrivateFieldGet(this, _Portal_instances, "m", _Portal_showLightbox).call(this);
+        }
+        /**
+         * Close the Tebex portal panel.
+         */
+        async close() {
+            if (this.lightbox)
+                await this.lightbox.hide();
+            if (this.zoid) {
+                await this.zoid.close();
+                this.isOpen = false;
+                this.emitter.emit("close");
+            }
+        }
+        /**
+         * Close and destroy the element immediately, without waiting for CSS transitions.
+         */
+        destroy() {
+            if (this.lightbox)
+                this.lightbox.destroy();
+            if (this.zoid) {
+                this.zoid.close();
+                this.isOpen = false;
+                this.emitter.emit("close");
+            }
+        }
+        /**
+         * Render the Tebex portal panel immediately, into a specified HTML element.
+         * If `popupOnMobile` is true, then on mobile devices the portal will be immediately opened as a new page instead.
+         */
+        async render(element, width, height, popupOnMobile = this.popupOnMobile) {
+            // Zoid requires that elements are already in the page, otherwise it throws a confusing error.
+            assert(isInDocument(element), "Target element must already be inserted into the page before it can be used");
+            width = isString(width) ? width : `${width}px`;
+            height = isString(height) ? height : `${height}px`;
+            __classPrivateFieldGet(this, _Portal_instances, "m", _Portal_createComponentFactory).call(this, width, height);
+            await __classPrivateFieldGet(this, _Portal_instances, "m", _Portal_createComponentInstance).call(this, element, popupOnMobile && isMobile(width, height));
+            this.isOpen = true;
+            this.emitter.emit("open");
+        }
+        /**
+         * Await internal Zoid render tests - primarily exposed for tests.
+         * @internal
+         */
+        async renderFinished() {
+            return new Promise(resolve => {
+                __classPrivateFieldSet(this, _Portal_onRender, resolve, "f");
+                if (__classPrivateFieldGet(this, _Portal_didRender, "f"))
+                    resolve();
+            });
+        }
+    }
+    _Portal_didRender = new WeakMap(), _Portal_onRender = new WeakMap(), _Portal_onRequestLightboxClose = new WeakMap(), _Portal_instances = new WeakSet(), _Portal_resolveLocale = function _Portal_resolveLocale(options) {
+        if (isNullOrUndefined(options.locale))
+            return null;
+        if (!isNonEmptyString(options.locale)) {
+            warn(`invalid locale option "${options.locale}" - must be a non-empty string`);
+            return null;
+        }
+        return options.locale;
+    }, _Portal_resolveTheme = function _Portal_resolveTheme(options) {
+        if (isNullOrUndefined(options.theme))
+            return null;
+        if (!THEME_NAMES.includes(options.theme)) {
+            const list = THEME_NAMES.map(n => `"${n}"`).join(", ");
+            warn(`invalid theme option "${options.theme}" - must be one of ${list}`);
+            return null;
+        }
+        return options.theme;
+    }, _Portal_resolveColors = function _Portal_resolveColors(options) {
+        if (isNullOrUndefined(options.colors))
+            return null;
+        if (!(isArray$1(options.colors) || isObject(options.colors))) {
+            warn(`invalid colors option "${options.colors}" - must be an array or object`);
+            return null;
+        }
+        const colorList = isArray$1(options.colors) ?
+            options.colors :
+            Object.entries(options.colors).map(([name, color]) => ({ name, color }));
+        for (let entry of colorList) {
+            if (!isObject(entry)) {
+                warn(`invalid colors option item ${entry} - must be an object`);
+                return null;
+            }
+            if (!entry.hasOwnProperty("name")) {
+                warn(`invalid colors option item - missing 'name' field`);
+                return null;
+            }
+            if (!entry.hasOwnProperty("color")) {
+                warn(`invalid colors option item - missing 'color' field`);
+                return null;
+            }
+            if (!COLOR_NAMES.includes(entry.name)) {
+                const list = COLOR_NAMES.map(n => `"${n}"`).join(", ");
+                warn(`invalid color name "${entry.name}" - must be one of ${list}`);
+                return null;
+            }
+            if (!isNonEmptyString(entry.color)) {
+                warn(`invalid color value "${entry.color}" - must be a non-empty string`);
+                return null;
+            }
+            if (entry.color.includes("var(")) {
+                warn(`invalid color value "${entry.color}" - cannot include CSS variables`);
+                return null;
+            }
+        }
+        return colorList;
+    }, _Portal_resolvePopupOnMobile = function _Portal_resolvePopupOnMobile(options) {
+        if (isNullOrUndefined(options.popupOnMobile))
+            return null;
+        if (!isBoolean(options.popupOnMobile)) {
+            warn(`invalid popupOnMobile option "${options.popupOnMobile}" - must be a boolean`);
+            return null;
+        }
+        return options.popupOnMobile;
+    }, _Portal_resolveEndpoint = function _Portal_resolveEndpoint(options) {
+        if (isNullOrUndefined(options.endpoint))
+            return null;
+        if (!isNonEmptyString(options.endpoint)) {
+            warn(`invalid endpoint option "${options.endpoint}" - must be a non-empty string`);
+            return null;
+        }
+        return options.endpoint;
+    }, _Portal_resolveCloseOnClickOutside = function _Portal_resolveCloseOnClickOutside(options) {
+        if (isNullOrUndefined(options.closeOnClickOutside))
+            return null;
+        if (!isBoolean(options.closeOnClickOutside)) {
+            warn(`invalid closeOnClickOutside option "${options.closeOnClickOutside}" - must be a boolean`);
+            return null;
+        }
+        return options.closeOnClickOutside;
+    }, _Portal_resolveCloseOnEsc = function _Portal_resolveCloseOnEsc(options) {
+        if (isNullOrUndefined(options.closeOnEsc))
+            return null;
+        if (!isBoolean(options.closeOnEsc)) {
+            warn(`invalid closeOnEsc option "${options.closeOnEsc}" - must be a boolean`);
+            return null;
+        }
+        return options.closeOnEsc;
+    }, _Portal_resolveLogo = function _Portal_resolveLogo(options) {
+        if (isNullOrUndefined(options.logo))
+            return null;
+        if (isString(options.logo)) {
+            if (!isNonEmptyString(options.logo)) {
+                warn(`invalid logo option "${options.logo}" - must be a non-empty string`);
+                return null;
+            }
+            return {
+                light: options.logo,
+                dark: options.logo
+            };
+        }
+        if (isObject(options.logo)) {
+            if (!options.logo.hasOwnProperty("light")) {
+                warn(`invalid logo option - missing 'light' field`);
+                return null;
+            }
+            if (!options.logo.hasOwnProperty("dark")) {
+                warn(`invalid logo option - missing 'dark' field`);
+                return null;
+            }
+            if (!isNonEmptyString(options.logo.light)) {
+                warn(`invalid logo option light property "${options.logo.light}" - must be a non-empty string`);
+                return null;
+            }
+            if (!isNonEmptyString(options.logo.dark)) {
+                warn(`invalid logo option dark property "${options.logo.dark}" - must be a non-empty string`);
+                return null;
+            }
+            return options.logo;
+        }
+        warn(`invalid logo option "${options.logo}" - must be a string or an object with 'light' and 'dark' properties`);
+        return null;
+    }, _Portal_showLightbox = async function _Portal_showLightbox() {
+        if (!this.lightbox)
+            this.lightbox = new Lightbox();
+        this.lightbox.setOptions({
+            name: "portal",
+            closeOnClickOutside: this.closeOnClickOutside,
+            closeOnEsc: this.closeOnEsc,
+            closeHandler: __classPrivateFieldGet(this, _Portal_onRequestLightboxClose, "f")
+        });
+        await this.lightbox.show();
+        await __classPrivateFieldGet(this, _Portal_instances, "m", _Portal_createComponentInstance).call(this, this.lightbox.holder, false);
+        this.isOpen = true;
+        this.emitter.emit("open");
+    }, _Portal_createComponentFactory = function _Portal_createComponentFactory(width = DEFAULT_WIDTH, height = DEFAULT_HEIGHT) {
+        this.componentFactory = zoid.create({
+            tag: "tebex-js-portal-component",
+            url: () => this.endpoint,
+            autoResize: {
+                width: false,
+                height: false,
+            },
+            dimensions: {
+                width,
+                height,
+            },
+            prerenderTemplate: spinnerRender,
+            attributes: {
+                iframe: {
+                    allow: "payment https://pay.tebex.io",
+                },
+            },
+        });
+    }, _Portal_createComponentInstance = async function _Portal_createComponentInstance(container, popup) {
+        const url = new URL(window.location.href);
+        if (!this.componentFactory)
+            __classPrivateFieldGet(this, _Portal_instances, "m", _Portal_createComponentFactory).call(this);
+        this.zoid = this.componentFactory({
+            token: this.token,
+            locale: this.locale,
+            colors: this.colors,
+            closeOnClickOutside: this.closeOnClickOutside,
+            closeOnEsc: this.closeOnEsc,
+            theme: this.theme,
+            logo: this.logo,
+            onOpenWindow: (url) => {
+                window.open(url);
+            },
+            onClosePopup: async () => {
+                await this.zoid.close();
+                if (this.lightbox)
+                    await this.lightbox.hide();
+                this.isOpen = false;
+                this.emitter.emit("close");
+            },
+            isApplePayAvailable: isApplePayAvailable(),
+            isEmbedded: !popup,
+            referrer: url.hostname,
+            origin: url.origin,
+            path: url.pathname,
+            params: url.search,
+            version: "1.9.0",
+        });
+        await this.zoid.renderTo(window, container, popup ? "popup" : "iframe");
+        __classPrivateFieldSet(this, _Portal_didRender, true, "f");
+        if (__classPrivateFieldGet(this, _Portal_onRender, "f"))
+            __classPrivateFieldGet(this, _Portal_onRender, "f").call(this);
     };
 
     /**
@@ -12927,7 +13276,7 @@
             connectedCallback() {
                 this._didConnect = true;
                 // Emit checkout events as DOM events on the element
-                for (let event of EVENT_NAMES) {
+                for (let event of EVENT_NAMES$1) {
                     this.checkout.on(event, (e) => {
                         this.dispatchEvent(new CustomEvent(event, { detail: e }));
                     });
@@ -13033,6 +13382,19 @@
     if (isEnvBrowser())
         defineTebexCheckout();
 
+    const defineTebexPortal = () => {
+        class TebexPortalElement extends HTMLElement {
+            constructor() {
+                super();
+                warn("the <tebex-portal> web component is not currently supported");
+            }
+        }
+        customElements.define("tebex-portal", TebexPortalElement);
+        return TebexPortalElement;
+    };
+    if (isEnvBrowser())
+        defineTebexPortal();
+
     /**
      * Current Tebex.js package version
      */
@@ -13041,15 +13403,21 @@
      * Tebex checkout API
      */
     const checkout = new Checkout();
+    /**
+     * Tebex payment portal API
+     */
+    const portal = new Portal();
     var index = {
         version,
         checkout,
+        portal,
         ...legacy
     };
 
     exports.checkout = checkout;
     exports.default = index;
     exports.events = events;
+    exports.portal = portal;
     exports.version = version;
 
     Object.defineProperty(exports, '__esModule', { value: true });

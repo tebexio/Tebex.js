@@ -2,7 +2,7 @@ import { existsSync } from 'fs';
 import { defineConfig } from 'vitest/config';
 import dotenv from 'dotenv';
 
-import pkg from './package.json' assert { type: 'json' };
+import pkg from './package.json' with { type: 'json' };
 import { onRequest } from './functions/token';
 
 if (existsSync('.dev.vars'))
