@@ -293,8 +293,8 @@ var zoid$2 = {exports: {}};
 /**
  * @internal
  */
-const err = (msg = "") => {
-    throw new Error("Tebex.js error" + (msg ? ": " : "") + msg.trim());
+const err = (msg = "", prefix = "Tebex.js error") => {
+    throw new Error(prefix + (msg && prefix ? ": " : "") + msg.trim());
 };
 /**
  * @internal
@@ -325,6 +325,14 @@ const isString = (value) => typeof value === "string";
  * @internal
  */
 const isNonEmptyString = (value) => typeof value === "string" && value !== "";
+/**
+ * @internal
+ */
+const isNumberNaN = Number.isNaN;
+/**
+ * @internal
+ */
+const isNumber = (value) => typeof value === "number" && !isNumberNaN(value);
 /**
  * @internal
  */
@@ -438,6 +446,14 @@ const transitionEnd = async (el) => new Promise((resolve) => {
     };
     el.addEventListener("transitionend", done);
     el.addEventListener("transitioncancel", done);
+});
+
+/**
+ * @internal
+ */
+const withTimeout = (promise, ms, message) => new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(message)), ms);
+    promise.then((value) => { clearTimeout(timer); resolve(value); }, (error) => { clearTimeout(timer); reject(error); });
 });
 
 /**
@@ -12434,7 +12450,7 @@ let createNanoEvents = () => ({
   }
 });
 
-var styles$1 = ".tebex-js-lightbox{all:unset;zoom:1;forced-color-adjust:none;position:fixed;left:0;top:0;width:100vw;height:100vh;z-index:var(--tebex-js-z-index,9999999);background:var(--tebex-js-lightbox-bg,rgba(0,0,0,.8));opacity:0;transition-property:opacity;transition-duration:var(--tebex-js-duration,.4s);transition-timing-function:var(--tebex-js-timing,ease);will-change:opacity;display:flex;justify-content:center;align-items:center;user-select:none;-webkit-user-select:none;-moz-user-select:none;}.tebex-js-lightbox--visible{opacity:1;}.tebex-js-lightbox__holder{display:block;border:0;overflow:hidden;border-radius:5px;}.tebex-js-lightbox__holder > div{display:block!important;}";
+var styles$1 = ".tebex-js-lightbox{all:unset;zoom:1;forced-color-adjust:none;position:fixed;left:0;top:0;width:100vw;height:100vh;z-index:var(--tebex-js-z-index,9999999);background:var(--tebex-js-lightbox-bg,rgba(0,0,0,.8));opacity:0;transition-property:opacity;transition-duration:var(--tebex-js-duration,.4s);transition-timing-function:var(--tebex-js-timing,ease);will-change:opacity;display:flex;justify-content:center;align-items:center;user-select:none;-webkit-user-select:none;-moz-user-select:none;}.tebex-js-lightbox--visible{opacity:1;}.tebex-js-lightbox__holder{display:block;border:0;overflow:hidden;border-radius:5px;}.tebex-js-lightbox__holder > div{display:block!important;}.tebex-js-lightbox__spinner{position:fixed;height:40px;width:40px;top:50%;left:50%;box-sizing:border-box;border:3px solid rgba(255,255,255,.2);border-top-color:#FFF;border-radius:100%;animation:tebex-js-lightbox-spinner-rotation .7s infinite linear;pointer-events:none;}@keyframes tebex-js-lightbox-spinner-rotation{from{transform:translateX(-50%) translateY(-50%) rotate(0deg);}to{transform:translateX(-50%) translateY(-50%) rotate(359deg);}}";
 
 var _Lightbox_name, _Lightbox_closeOnClickOutside, _Lightbox_closeOnEsc, _Lightbox_closeHandler, _Lightbox_onClickOutside, _Lightbox_onKeyPress;
 let globalIsLightboxOpen = false;
@@ -12476,12 +12492,25 @@ class Lightbox {
         return (h("div", { class: ["tebex-js-lightbox", __classPrivateFieldGet(this, _Lightbox_name, "f") ? `tebex-js-lightbox--${__classPrivateFieldGet(this, _Lightbox_name, "f")}` : null] },
             h("div", { class: "tebex-js-lightbox__holder", role: "dialog" })));
     }
+    showSpinner() {
+        const spinner = createElement("div");
+        spinner.classList.add("tebex-js-lightbox__spinner");
+        spinner.id = "tebex-js-lightbox-spinner";
+        this.root.appendChild(spinner);
+    }
+    hideSpinner() {
+        const spinner = this.root.querySelector("#tebex-js-lightbox-spinner");
+        if (spinner) {
+            spinner.remove();
+        }
+    }
     async show() {
         assert(!globalIsLightboxOpen, "There is already a lightbox open");
         globalIsLightboxOpen = true;
         this.body.append(this.root);
         await nextFrame();
         this.root.classList.add("tebex-js-lightbox--visible");
+        this.showSpinner();
         await transitionEnd(this.root);
         this.body.addEventListener("click", __classPrivateFieldGet(this, _Lightbox_onClickOutside, "f"));
         this.body.addEventListener("keydown", __classPrivateFieldGet(this, _Lightbox_onKeyPress, "f"));
@@ -12490,11 +12519,13 @@ class Lightbox {
         this.body.removeEventListener("click", __classPrivateFieldGet(this, _Lightbox_onClickOutside, "f"));
         this.body.removeEventListener("keydown", __classPrivateFieldGet(this, _Lightbox_onKeyPress, "f"));
         this.root.classList.remove("tebex-js-lightbox--visible");
+        this.hideSpinner();
         if (transition) {
             await nextFrame();
             await transitionEnd(this.root);
         }
-        this.body.removeChild(this.root);
+        if (this.root.parentNode)
+            this.body.removeChild(this.root);
         globalIsLightboxOpen = false;
     }
     destroy() {
@@ -12518,7 +12549,7 @@ const spinnerRender = ({ doc, props }) => {
     return html;
 };
 
-var _Checkout_instances, _Checkout_didRender, _Checkout_onRender, _Checkout_resolveLocale, _Checkout_resolveTheme, _Checkout_resolveColors, _Checkout_resolvePopupOnMobile, _Checkout_resolveEndpoint, _Checkout_resolveCloseOnClickOutside, _Checkout_resolveCloseOnEsc, _Checkout_resolveCloseOnPaymentComplete, _Checkout_resolveDefaultPaymentMethod, _Checkout_onRequestLightboxClose, _Checkout_showLightbox, _Checkout_createComponentFactory, _Checkout_createComponentInstance;
+var _Checkout_instances, _Checkout_didRender, _Checkout_onRender, _Checkout_resolveIdentFromCallback, _Checkout_openMobilePopupWithCallback, _Checkout_resolveLocale, _Checkout_resolveTheme, _Checkout_resolveColors, _Checkout_resolvePopupOnMobile, _Checkout_resolveEndpoint, _Checkout_resolveCloseOnClickOutside, _Checkout_resolveCloseOnEsc, _Checkout_resolveCloseOnPaymentComplete, _Checkout_resolveDefaultPaymentMethod, _Checkout_resolveLaunchTimeout, _Checkout_onRequestLightboxClose, _Checkout_showLightbox, _Checkout_createComponentFactory, _Checkout_createComponentInstance;
 const DEFAULT_WIDTH$1 = "800px";
 const DEFAULT_HEIGHT$1 = "760px";
 const THEME_NAMES$1 = [
@@ -12553,7 +12584,6 @@ const EVENT_NAMES$1 = [
 class Checkout {
     constructor() {
         _Checkout_instances.add(this);
-        this.ident = null;
         this.locale = null;
         this.theme = "default";
         this.colors = [];
@@ -12566,6 +12596,7 @@ class Checkout {
         this.isOpen = false;
         this.emitter = createNanoEvents();
         this.lightbox = null;
+        this.launchTimeout = 10000;
         this.componentFactory = null;
         this.zoid = null;
         _Checkout_didRender.set(this, false);
@@ -12579,7 +12610,6 @@ class Checkout {
      * Configure the Tebex checkout settings.
      */
     init(options) {
-        assert(options.ident && isString(options.ident), "ident option is required, and must be a string");
         this.ident = options.ident;
         this.locale = __classPrivateFieldGet(this, _Checkout_instances, "m", _Checkout_resolveLocale).call(this, options) ?? this.locale;
         this.theme = __classPrivateFieldGet(this, _Checkout_instances, "m", _Checkout_resolveTheme).call(this, options) ?? this.theme;
@@ -12590,6 +12620,7 @@ class Checkout {
         this.closeOnEsc = __classPrivateFieldGet(this, _Checkout_instances, "m", _Checkout_resolveCloseOnEsc).call(this, options) ?? this.closeOnEsc;
         this.closeOnPaymentComplete = __classPrivateFieldGet(this, _Checkout_instances, "m", _Checkout_resolveCloseOnPaymentComplete).call(this, options) ?? this.closeOnPaymentComplete;
         this.defaultPaymentMethod = __classPrivateFieldGet(this, _Checkout_instances, "m", _Checkout_resolveDefaultPaymentMethod).call(this, options) ?? this.defaultPaymentMethod;
+        this.launchTimeout = __classPrivateFieldGet(this, _Checkout_instances, "m", _Checkout_resolveLaunchTimeout).call(this, options) ?? this.launchTimeout;
     }
     /**
      * Subscribe to Tebex checkout events, such as when the embed is closed or when a payment is completed.
@@ -12611,15 +12642,23 @@ class Checkout {
     /**
      * Launch the Tebex checkout panel.
      * On desktop, the panel will launch in a "lightbox" mode that covers the screen. On mobile, it will be opened as a new page.
+     * @param callback An optional async callback invoked before the checkout iframe is created. Use this to perform async work (e.g. fetching a basket) while the loading spinner is visible.
      */
-    async launch() {
+    async launch(callback) {
+        if (!callback)
+            assert(this.ident && isString(this.ident), "A basket ident must be set via init() before calling launch() without a callback");
+        // The user is on mobile, launch as a popup in a new window (unless popupOnMobile is false)
         if (!this.popupOnMobile && isMobile(DEFAULT_WIDTH$1, DEFAULT_HEIGHT$1)) {
-            await __classPrivateFieldGet(this, _Checkout_instances, "m", _Checkout_createComponentInstance).call(this, document.body, true);
+            if (callback)
+                await __classPrivateFieldGet(this, _Checkout_instances, "m", _Checkout_openMobilePopupWithCallback).call(this, callback);
+            else
+                await __classPrivateFieldGet(this, _Checkout_instances, "m", _Checkout_createComponentInstance).call(this, document.body, true);
             this.isOpen = true;
             this.emitter.emit("open");
             return;
         }
-        await __classPrivateFieldGet(this, _Checkout_instances, "m", _Checkout_showLightbox).call(this);
+        // The user is on desktop, or popupOnMobile is true, launch as a lightbox
+        await __classPrivateFieldGet(this, _Checkout_instances, "m", _Checkout_showLightbox).call(this, callback);
     }
     /**
      * Close the Tebex checkout panel.
@@ -12652,6 +12691,7 @@ class Checkout {
     async render(element, width, height, popupOnMobile = this.popupOnMobile) {
         // Zoid requires that elements are already in the page, otherwise it throws a confusing error.
         assert(isInDocument(element), "Target element must already be inserted into the page before it can be used");
+        assert(this.ident && isString(this.ident), "The render method must be called after the checkout has been initialized with an ident");
         width = isString(width) ? width : `${width}px`;
         height = isString(height) ? height : `${height}px`;
         __classPrivateFieldGet(this, _Checkout_instances, "m", _Checkout_createComponentFactory).call(this, width, height);
@@ -12671,7 +12711,45 @@ class Checkout {
         });
     }
 }
-_Checkout_didRender = new WeakMap(), _Checkout_onRender = new WeakMap(), _Checkout_onRequestLightboxClose = new WeakMap(), _Checkout_instances = new WeakSet(), _Checkout_resolveLocale = function _Checkout_resolveLocale(options) {
+_Checkout_didRender = new WeakMap(), _Checkout_onRender = new WeakMap(), _Checkout_onRequestLightboxClose = new WeakMap(), _Checkout_instances = new WeakSet(), _Checkout_resolveIdentFromCallback = 
+/**
+ * Resolves the ident from the callback
+ * Throws if the ident is not a valid string, if the callback throws or times out.
+ */
+async function _Checkout_resolveIdentFromCallback(callback) {
+    try {
+        this.ident = await withTimeout(callback(), this.launchTimeout, "timed out after " + this.launchTimeout + " milliseconds");
+        // Check that the ident is valid
+        if (!this.ident || !isString(this.ident))
+            err("invalid ident returned - ident = " + this.ident, "");
+    }
+    catch (error) {
+        err("The callback provided to Tebex.checkout.launch() errored: " + error.message);
+    }
+}, _Checkout_openMobilePopupWithCallback = 
+/**
+ * Opens a blank popup window synchronously (within the user gesture call stack) to avoid
+ * popup blocking, resolves the ident via the callback, then passes the pre-opened window
+ * to zoid via its built-in `window` prop, which suppresses zoid's own window.open call.
+ */
+async function _Checkout_openMobilePopupWithCallback(callback) {
+    // Must be opened synchronously — browsers block window.open after an async operation.
+    const preOpenedWin = window.open('', '_blank');
+    if (preOpenedWin) {
+        const spinner = spinnerRender({ props: {} });
+        preOpenedWin.document.open();
+        preOpenedWin.document.write(spinner.outerHTML);
+        preOpenedWin.document.close();
+    }
+    try {
+        await __classPrivateFieldGet(this, _Checkout_instances, "m", _Checkout_resolveIdentFromCallback).call(this, callback);
+    }
+    catch (error) {
+        preOpenedWin?.close();
+        throw error;
+    }
+    await __classPrivateFieldGet(this, _Checkout_instances, "m", _Checkout_createComponentInstance).call(this, document.body, true, preOpenedWin ?? undefined);
+}, _Checkout_resolveLocale = function _Checkout_resolveLocale(options) {
     if (isNullOrUndefined(options.locale))
         return null;
     if (!isNonEmptyString(options.locale)) {
@@ -12774,7 +12852,15 @@ _Checkout_didRender = new WeakMap(), _Checkout_onRender = new WeakMap(), _Checko
         return null;
     }
     return options.defaultPaymentMethod;
-}, _Checkout_showLightbox = async function _Checkout_showLightbox() {
+}, _Checkout_resolveLaunchTimeout = function _Checkout_resolveLaunchTimeout(options) {
+    if (isNullOrUndefined(options.launchTimeout))
+        return null;
+    if (!isNumber(options.launchTimeout)) {
+        warn(`invalid launchTimeout option "${options.launchTimeout}" - must be a number`);
+        return null;
+    }
+    return options.launchTimeout;
+}, _Checkout_showLightbox = async function _Checkout_showLightbox(callback) {
     if (!this.lightbox)
         this.lightbox = new Lightbox();
     this.lightbox.setOptions({
@@ -12783,7 +12869,21 @@ _Checkout_didRender = new WeakMap(), _Checkout_onRender = new WeakMap(), _Checko
         closeOnEsc: this.closeOnEsc,
         closeHandler: __classPrivateFieldGet(this, _Checkout_onRequestLightboxClose, "f")
     });
-    await this.lightbox.show();
+    // Start the lightbox show animation concurrently with the callback so the
+    // callback's timeout begins immediately, independent of the CSS transition duration.
+    const showPromise = this.lightbox.show();
+    // If the user has provided a callback to launch() (e.g. to fetch a basket), resolve the ident from it before creating the component instance
+    if (callback) {
+        try {
+            await __classPrivateFieldGet(this, _Checkout_instances, "m", _Checkout_resolveIdentFromCallback).call(this, callback);
+        }
+        catch (error) {
+            this.lightbox.hide();
+            throw error;
+        }
+    }
+    await showPromise;
+    // Create the component instance
     await __classPrivateFieldGet(this, _Checkout_instances, "m", _Checkout_createComponentInstance).call(this, this.lightbox.holder, false);
     this.isOpen = true;
     this.emitter.emit("open");
@@ -12806,11 +12906,16 @@ _Checkout_didRender = new WeakMap(), _Checkout_onRender = new WeakMap(), _Checko
             },
         },
     });
-}, _Checkout_createComponentInstance = async function _Checkout_createComponentInstance(container, popup) {
+}, _Checkout_createComponentInstance = async function _Checkout_createComponentInstance(container, popup, preOpenedWindow) {
     const url = new URL(window.location.href);
     if (!this.componentFactory)
         __classPrivateFieldGet(this, _Checkout_instances, "m", _Checkout_createComponentFactory).call(this);
+    if (this.lightbox)
+        this.lightbox.hideSpinner();
     this.zoid = this.componentFactory({
+        // Pass a pre-opened window so zoid reuses it instead of calling window.open itself.
+        // @ts-ignore — `window` is a valid built-in zoid prop but not reflected types
+        ...(preOpenedWindow ? { window: preOpenedWindow } : {}),
         locale: this.locale,
         colors: this.colors,
         closeOnClickOutside: this.closeOnClickOutside,
@@ -12840,7 +12945,7 @@ _Checkout_didRender = new WeakMap(), _Checkout_onRender = new WeakMap(), _Checko
         origin: url.origin,
         path: url.pathname,
         params: url.search,
-        version: "1.10.0",
+        version: "1.11.0",
     });
     await this.zoid.renderTo(window, container, popup ? "popup" : "iframe");
     __classPrivateFieldSet(this, _Checkout_didRender, true, "f");
@@ -13168,7 +13273,7 @@ _Portal_didRender = new WeakMap(), _Portal_onRender = new WeakMap(), _Portal_onR
         origin: url.origin,
         path: url.pathname,
         params: url.search,
-        version: "1.10.0",
+        version: "1.11.0",
     });
     await this.zoid.renderTo(window, container, popup ? "popup" : "iframe");
     __classPrivateFieldSet(this, _Portal_didRender, true, "f");
@@ -13392,7 +13497,7 @@ if (isEnvBrowser())
 /**
  * Current Tebex.js package version
  */
-const version = "1.10.0";
+const version = "1.11.0";
 /**
  * Tebex checkout API
  */
