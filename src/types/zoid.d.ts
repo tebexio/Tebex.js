@@ -58,7 +58,7 @@ declare module "zoid" {
     export type ZoidComponentInstance = any;
 
     export type ZoidComponent<Props> = {
-        (props: Props): ZoidComponentInstance;
+        (props: Props, window?: Window): ZoidComponentInstance;
     };
 
     export type Zoid = {

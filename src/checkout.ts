@@ -31,6 +31,7 @@ import {
     isNonEmptyString,
     isObject,
     isBoolean,
+    err,
 } from "./utils";
 
 const DEFAULT_WIDTH = "800px";
@@ -72,7 +73,7 @@ export type CheckoutOptions = {
     /**
      * The checkout request ident received from either the Headless or Checkout APIs.
      */
-    ident: string;
+    ident?: string;
     /**
      * The default language to use, defined as an ISO locale code - e.g. `"en_US"` for American English, "de_DE" for German, etc.
      * @default `navigator.language`
@@ -180,6 +181,7 @@ export default class Checkout {
     isOpen = false;
     emitter = createNanoEvents<CheckoutEventMap>();
     lightbox: Lightbox = null;
+    preOpenedWin: Window = null;
 
     componentFactory: ZoidComponent<CheckoutZoidProps> = null;
     zoid: ZoidComponentInstance = null;
@@ -191,7 +193,6 @@ export default class Checkout {
      * Configure the Tebex checkout settings.
      */
     init(options: CheckoutOptions) {
-        assert(options.ident && isString(options.ident), "ident option is required, and must be a string");
         this.ident = options.ident;
         this.locale = this.#resolveLocale(options) ?? this.locale;
         this.theme = this.#resolveTheme(options) ?? this.theme;
@@ -226,18 +227,87 @@ export default class Checkout {
     }
 
     /**
+     * Resolves the ident from the callback, and throws if the ident is not a valid string.
+     */
+    async #resolveIdentFromCallback(callback: () => Promise<string>) {
+        try {
+            this.ident = await callback();
+            assert(this.ident && isString(this.ident), "The launch callback must return a valid basket identifier");
+        } catch (error) {
+            err("The launch callback threw an error: " + error?.message ?? "Unknown error");
+        }
+    }
+
+    /**
+     * Opens a blank popup window synchronously (within the user gesture call stack) to avoid
+     * popup blocking, resolves the ident via the callback, then hands the pre-opened window to
+     * zoid by intercepting its `window.open` call before creating the component instance.
+     */
+    async #openMobilePopupWithCallback(callback: () => Promise<string>) {
+        // Must be opened synchronously — browsers block window.open after an async operation.
+        this.preOpenedWin = window.open('', '_blank');
+
+        if (this.preOpenedWin) {
+            const spinner = spinnerRender({ doc: this.preOpenedWin.document, props: {} });
+            this.preOpenedWin.document.replaceChild(spinner, this.preOpenedWin.document.documentElement);
+        }
+
+        try {
+            await this.#resolveIdentFromCallback(callback);
+        } catch (e) {
+            this.preOpenedWin?.close();
+            throw e;
+        }
+
+        // Zoid opens popups with a blank URL and a "__zoid__"-prefixed window name.
+        // Intercept that call to return our pre-opened window so zoid can reuse it.
+        const originalOpen = window.open.bind(window);
+
+        let intercepted = false;
+        window.open = (url?: string | URL, name?: string, ...rest: any[]) => {
+            const isZoidPopup = !intercepted && url === '' && typeof name === 'string' && name.startsWith('__zoid__');
+
+            // If the popup is a Zoid popup, return the pre-opened window
+            if (isZoidPopup) {
+                intercepted = true;
+                return this.preOpenedWin;
+            }
+
+            // Otherwise, call the original window.open
+            return (originalOpen as any)(url, name, ...rest);
+        };
+
+        try {
+            await this.#createComponentInstance(document.body, true);
+        } finally {
+            window.open = originalOpen;
+        }
+    }
+
+    /**
      * Launch the Tebex checkout panel.
      * On desktop, the panel will launch in a "lightbox" mode that covers the screen. On mobile, it will be opened as a new page.
+     * @param callback An optional async callback invoked before the checkout iframe is created. Use this to perform async work (e.g. fetching a basket) while the loading spinner is visible.
      */
-    async launch() {
+    async launch(callback?: () => Promise<string>) {
+        if (!callback)
+            assert(this.ident && isString(this.ident), "A basket ident must be set via init() before calling launch() without a callback");
+
+        // The user is on mobile, launch as a popup in a new window (unless popupOnMobile is false)
         if (!this.popupOnMobile && isMobile(DEFAULT_WIDTH, DEFAULT_HEIGHT)) {
-            await this.#createComponentInstance(document.body, true);
+
+            if (callback)
+                await this.#openMobilePopupWithCallback(callback);
+            else
+                await this.#createComponentInstance(document.body, true);
+
             this.isOpen = true;
             this.emitter.emit("open");
             return;
         }
 
-        await this.#showLightbox();
+        // The user is on desktop, or popupOnMobile is true, launch as a lightbox
+        await this.#showLightbox(callback);
     }
 
     /**
@@ -275,6 +345,7 @@ export default class Checkout {
     async render(element: HTMLElement, width: CssDimension, height: CssDimension, popupOnMobile = this.popupOnMobile) {
         // Zoid requires that elements are already in the page, otherwise it throws a confusing error.
         assert(isInDocument(element), "Target element must already be inserted into the page before it can be used");
+        assert(this.ident && isString(this.ident), "The render method must be called after the checkout has been initialized with an ident");
 
         width = isString(width) ? width : `${ width }px`;
         height = isString(height) ? height : `${ height }px`;
@@ -448,7 +519,7 @@ export default class Checkout {
             await this.close();
     };
 
-    async #showLightbox() {
+    async #showLightbox(callback?: () => Promise<string>) {
         if (!this.lightbox)
             this.lightbox = new Lightbox();
 
@@ -460,6 +531,12 @@ export default class Checkout {
         });
 
         await this.lightbox.show();
+
+        // If the user has provided a callback to launch() (e.g. to fetch a basket), resolve the ident from it before creating the component instance
+        if (callback)
+            await this.#resolveIdentFromCallback(callback);
+
+        // Create the component instance
         await this.#createComponentInstance(this.lightbox.holder, false);
 
         this.isOpen = true;

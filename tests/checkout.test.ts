@@ -22,14 +22,14 @@ describe("Checkout", () => {
     describe("Checkout init()", () => {
         
         describe("ident option", () => {
-
-            test("Throws if ident option is not specified", () => {
-                expect(() => checkout.init({} as any)).toThrow();
-            });
-
             test("Class ident member reflects ident option", () => {
                 checkout.init({ ident: "test" });
                 expect(checkout.ident).toBe("test");
+            });
+
+            test("Class ident member is null if ident option is not provided", () => {
+                checkout.init({});
+                expect(checkout.ident).toBe(undefined);
             });
         });
 
@@ -449,6 +449,102 @@ describe("Checkout", () => {
 
             await checkout.launch();
             expect(spy).toHaveBeenCalled();
+        });
+
+        test("Invokes callback before creating the iframe (lightbox path)", async () => {
+            let iframeExistedDuringCallback = false;
+
+            checkout.init({ ident: __TEST_BASKET_IDENT__, popupOnMobile: true });
+            await checkout.launch(() => {
+                iframeExistedDuringCallback = !!document.body.querySelector(".tebex-js-lightbox iframe");
+                return Promise.resolve(__TEST_BASKET_IDENT__);
+            });
+
+            expect(iframeExistedDuringCallback).toBe(false);
+            expect(document.body.querySelector(".tebex-js-lightbox iframe")).not.toBeNull();
+        });
+
+        test("Awaits async callback before creating the iframe (lightbox path)", async () => {
+            let iframeExistedDuringCallback = false;
+
+            checkout.init({ ident: __TEST_BASKET_IDENT__, popupOnMobile: true });
+            await checkout.launch(async () => {
+                await new Promise<void>(resolve => setTimeout(resolve, 10));
+                iframeExistedDuringCallback = !!document.body.querySelector(".tebex-js-lightbox iframe");
+                return __TEST_BASKET_IDENT__;
+            });
+
+            expect(iframeExistedDuringCallback).toBe(false);
+            expect(document.body.querySelector(".tebex-js-lightbox iframe")).not.toBeNull();
+        });
+
+        test("Opens blank popup before invoking callback (mobile path)", async () => {
+            const openSpy = vi.spyOn(window, "open");
+            let popupOpenedDuringCallback = false;
+
+            checkout.init({ ident: __TEST_BASKET_IDENT__ });
+            await checkout.launch(() => {
+                popupOpenedDuringCallback = openSpy.mock.calls.length > 0;
+                return Promise.resolve(__TEST_BASKET_IDENT__);
+            });
+
+            expect(popupOpenedDuringCallback).toBe(true);
+            expect(openSpy).toHaveBeenCalled();
+        });
+
+        test("Opens blank popup before async callback resolves (mobile path)", async () => {
+            const openSpy = vi.spyOn(window, "open");
+            let popupOpenedDuringCallback = false;
+
+            checkout.init({ ident: __TEST_BASKET_IDENT__ });
+            await checkout.launch(async () => {
+                await new Promise<void>(resolve => setTimeout(resolve, 10));
+                popupOpenedDuringCallback = openSpy.mock.calls.length > 0;
+                return __TEST_BASKET_IDENT__;
+            });
+
+            expect(popupOpenedDuringCallback).toBe(true);
+            expect(openSpy).toHaveBeenCalled();
+        });
+
+        test("Throws if no ident is set and no callback is provided (mobile path)", async () => {
+            checkout.init({});
+            await expect(checkout.launch()).rejects.toThrow("A basket ident must be set via init() before calling launch() without a callback");
+        });
+
+        test("Throws if no ident is set and no callback is provided (lightbox path)", async () => {
+            checkout.init({ popupOnMobile: true });
+            await expect(checkout.launch()).rejects.toThrow("A basket ident must be set via init() before calling launch() without a callback");
+        });
+
+        test("Throws if callback does not return a valid ident (mobile path)", async () => {
+            checkout.init({});
+            await expect(checkout.launch(async () => undefined as any)).rejects.toThrow("The launch callback must return a valid basket identifier");
+        });
+
+        test("Throws if callback does not return a valid ident (lightbox path)", async () => {
+            checkout.init({ popupOnMobile: true });
+            await expect(checkout.launch(async () => undefined as any)).rejects.toThrow("The launch callback must return a valid basket identifier");
+        });
+
+        test("Throws if callback returns an empty string (mobile path)", async () => {
+            checkout.init({});
+            await expect(checkout.launch(async () => "" as any)).rejects.toThrow("The launch callback must return a valid basket identifier");
+        });
+
+        test("Throws if callback returns an empty string (lightbox path)", async () => {
+            checkout.init({ popupOnMobile: true });
+            await expect(checkout.launch(async () => "" as any)).rejects.toThrow("The launch callback must return a valid basket identifier");
+        });
+
+        test("Throws if callback throws an error (mobile path)", async () => {
+            checkout.init({});
+            await expect(checkout.launch(async () => { throw new Error("test"); })).rejects.toThrow("The launch callback threw an error: test");
+        });
+
+        test("Throws if callback throws an error (lightbox path)", async () => {
+            checkout.init({ popupOnMobile: true });
+            await expect(checkout.launch(async () => { throw new Error("test"); })).rejects.toThrow("The launch callback threw an error: test");
         });
 
     });
