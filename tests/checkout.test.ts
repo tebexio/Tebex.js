@@ -562,32 +562,32 @@ describe("Checkout", () => {
 
         test("Throws if callback does not return a valid ident (mobile path)", async () => {
             checkout.init({});
-            await expect(checkout.launch(async () => undefined as any)).rejects.toThrow("The launch callback must return a valid basket identifier");
+            await expect(checkout.launch(async () => undefined as any)).rejects.toThrow("The callback provided to Tebex.checkout.launch() errored: invalid ident returned");
         });
 
         test("Throws if callback does not return a valid ident (lightbox path)", async () => {
             checkout.init({ popupOnMobile: true });
-            await expect(checkout.launch(async () => undefined as any)).rejects.toThrow("The launch callback must return a valid basket identifier");
+            await expect(checkout.launch(async () => undefined as any)).rejects.toThrow("The callback provided to Tebex.checkout.launch() errored: invalid ident returned");
         });
 
         test("Throws if callback returns an empty string (mobile path)", async () => {
             checkout.init({});
-            await expect(checkout.launch(async () => "" as any)).rejects.toThrow("The launch callback must return a valid basket identifier");
+            await expect(checkout.launch(async () => "" as any)).rejects.toThrow("The callback provided to Tebex.checkout.launch() errored: invalid ident returned");
         });
 
         test("Throws if callback returns an empty string (lightbox path)", async () => {
             checkout.init({ popupOnMobile: true });
-            await expect(checkout.launch(async () => "" as any)).rejects.toThrow("The launch callback must return a valid basket identifier");
+            await expect(checkout.launch(async () => "" as any)).rejects.toThrow("The callback provided to Tebex.checkout.launch() errored: invalid ident returned");
         });
 
         test("Throws if callback throws an error (mobile path)", async () => {
             checkout.init({});
-            await expect(checkout.launch(async () => { throw new Error("test"); })).rejects.toThrow("The launch callback threw an error: test");
+            await expect(checkout.launch(async () => { throw new Error("test"); })).rejects.toThrow("The callback provided to Tebex.checkout.launch() errored: test");
         });
 
         test("Throws if callback throws an error (lightbox path)", async () => {
             checkout.init({ popupOnMobile: true });
-            await expect(checkout.launch(async () => { throw new Error("test"); })).rejects.toThrow("The launch callback threw an error: test");
+            await expect(checkout.launch(async () => { throw new Error("test"); })).rejects.toThrow("The callback provided to Tebex.checkout.launch() errored: test");
         });
 
         test("Throws if callback times out (lightbox path)", async () => {
@@ -608,7 +608,7 @@ describe("Checkout", () => {
 
                 await vi.advanceTimersByTimeAsync(10_001);
 
-                await expect(launchPromise).rejects.toThrow("The callback provided to Tebex.checkout.launch() timed out after 10000 milliseconds");
+                await expect(launchPromise).rejects.toThrow("The callback provided to Tebex.checkout.launch() errored: timed out after 10000 milliseconds");
             } finally {
                 vi.useRealTimers();
             }
@@ -620,7 +620,22 @@ describe("Checkout", () => {
                 checkout.init({});
                 const launchPromise = checkout.launch(() => new Promise<string>(() => {}));
                 await vi.advanceTimersByTimeAsync(10_001);
-                await expect(launchPromise).rejects.toThrow("The callback provided to Tebex.checkout.launch() timed out after 10000 milliseconds");
+                await expect(launchPromise).rejects.toThrow("The callback provided to Tebex.checkout.launch() errored: timed out after 10000 milliseconds");
+            } finally {
+                vi.useRealTimers();
+            }
+        });
+
+
+        test("Throws if callback times out using custom timeout", async () => {
+            vi.useFakeTimers();
+            try {
+                checkout.init({
+                    launchTimeout: 4_000,
+                });
+                const launchPromise = checkout.launch(() => new Promise<string>(() => {}));
+                await vi.advanceTimersByTimeAsync(4001);
+                await expect(launchPromise).rejects.toThrow("The callback provided to Tebex.checkout.launch() errored: timed out after 4000 milliseconds");
             } finally {
                 vi.useRealTimers();
             }

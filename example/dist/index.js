@@ -1,5 +1,3 @@
-let ident = null;
-
 window.launchCheckout = function launchCheckout() {
     const colorInputs = Array.from(document.querySelectorAll(".checkout-demo .color-selections"));
     const colors = [];
@@ -16,14 +14,18 @@ window.launchCheckout = function launchCheckout() {
     const theme = themeInput?.value ?? "default";
 
     Tebex.checkout.init({
-        ident: ident,
         theme: theme,
         colors: colors,
         endpoint: "https://pay.tebex.io",
         defaultPaymentMethod: "paypal",
+        launchTimeout: 20_000,
     });
 
-    Tebex.checkout.launch();
+    Tebex.checkout.launch(async () => {
+        const response = await fetch("/token");
+        const data = await response.json();
+        return data.ident;
+    });
 };
 
 window.launchPortal = function launchPortal() {
@@ -52,15 +54,10 @@ window.launchPortal = function launchPortal() {
 };
 
 addEventListener("load", function (e) {
-    fetch("/token")
-        .then((response) => response.json())
-        .then((response) => {
-            ident = response.ident;
-            document
-                .getElementById("loading-container")
-                ?.classList.remove("hide");
-            document.getElementById("loading-spinner")?.classList.add("hide");
-        });
+    document
+        .getElementById("loading-container")
+        ?.classList.remove("hide");
+    document.getElementById("loading-spinner")?.classList.add("hide");
 
     Tebex.checkout.on("open", () => {
         console.log("checkout opened");

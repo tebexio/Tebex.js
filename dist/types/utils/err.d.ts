@@ -2,7 +2,7 @@ type AssertFn = (condition: boolean, err?: string) => asserts condition;
 /**
  * @internal
  */
-export declare const err: (msg?: string) => never;
+export declare const err: (msg?: string, prefix?: string) => never;
 /**
  * @internal
  */

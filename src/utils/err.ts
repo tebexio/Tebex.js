@@ -3,8 +3,8 @@ type AssertFn = (condition: boolean, err?: string) => asserts condition;
 /**
  * @internal
  */
-export const err = (msg = "") => {
-    throw new Error("Tebex.js error" + (msg ? ": " : "") + msg.trim());
+export const err = (msg = "", prefix = "Tebex.js error") => {
+    throw new Error(prefix + (msg && prefix ? ": " : "") + msg.trim());
 };
 
 /**

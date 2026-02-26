@@ -109,7 +109,7 @@ export type CheckoutZoidProps = {
  */
 export default class Checkout {
     #private;
-    ident: string;
+    ident?: string;
     locale: string;
     theme: TebexTheme;
     colors: TebexColorDefinition[];

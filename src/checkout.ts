@@ -33,6 +33,7 @@ import {
     isBoolean,
     withTimeout,
     isNumber,
+    err,
 } from "./utils";
 
 const DEFAULT_WIDTH = "800px";
@@ -173,7 +174,7 @@ export type CheckoutZoidProps = {
  */
 export default class Checkout {
 
-    ident: string = null;
+    ident?: string;
     locale: string = null;
     theme: TebexTheme = "default";
     colors: TebexColorDefinition[] = [];
@@ -234,20 +235,23 @@ export default class Checkout {
     }
 
     /**
-     * Resolves the ident from the callback, and throws if the ident is not a valid string.
+     * Resolves the ident from the callback
+     * Throws if the ident is not a valid string, if the callback throws or times out.
      */
     async #resolveIdentFromCallback(callback: () => Promise<string>) {
         try {
             this.ident = await withTimeout(
                 callback(),
                 this.launchTimeout,
-                "The callback provided to Tebex.checkout.launch() timed out after " + this.launchTimeout + " milliseconds"
+                "timed out after " + this.launchTimeout + " milliseconds"
             );
-            assert(this.ident && isString(this.ident), "The launch callback must return a valid basket identifier");
+
+            // Check that the ident is valid
+            if (!this.ident || !isString(this.ident))
+                err("invalid ident returned - ident = " + this.ident, "");
+
         } catch (error) {
-            if (error instanceof Error && !error.message.startsWith("The callback provided to Tebex"))
-                throw new Error("The launch callback threw an error: " + error.message);
-            throw error;
+            err("The callback provided to Tebex.checkout.launch() errored: " + error.message);
         }
     }
 
