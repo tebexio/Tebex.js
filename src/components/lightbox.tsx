@@ -53,8 +53,10 @@ export class Lightbox {
 
     render() {
         return (
-            <div class={[ "tebex-js-lightbox", this.#name ? `tebex-js-lightbox--${this.#name}` : null ]}>
-                <div class="tebex-js-lightbox__holder" role="dialog"></div>
+            <div class={["tebex-js-lightbox", this.#name ? `tebex-js-lightbox--${this.#name}` : null]}>
+                <div class="tebex-js-lightbox__holder" role="dialog">
+                    <div class="tebex-js-lightbox__spinner" id="tebex-js-lightbox-spinner"></div>
+                </div>
             </div>
         );
     }

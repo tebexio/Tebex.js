@@ -507,6 +507,28 @@ describe("Checkout", () => {
             expect(openSpy).toHaveBeenCalled();
         });
 
+        test("Renders spinner in pre-opened popup during callback (mobile path)", async () => {
+            const originalOpen = window.open.bind(window);
+            let writeSpy: ReturnType<typeof vi.spyOn> | undefined;
+
+            // Wrap window.open so we can spy on document.write of the initial blank popup.
+            // The spy must be attached synchronously inside the wrapper before our code
+            // calls document.write, which happens immediately after window.open returns.
+            vi.spyOn(window, "open").mockImplementation((...args: Parameters<typeof window.open>) => {
+                const win = originalOpen(...args);
+                if (args[0] === "" && args[1] === "_blank" && win?.document && !writeSpy)
+                    writeSpy = vi.spyOn(win.document, "write");
+                return win;
+            });
+
+            checkout.init({ ident: __TEST_BASKET_IDENT__ });
+            await checkout.launch(async () => __TEST_BASKET_IDENT__);
+
+            expect(writeSpy).toBeDefined();
+            expect(writeSpy).toHaveBeenCalledOnce();
+            expect(writeSpy!.mock.calls[0][0]).toContain("tebex-js-spinner");
+        });
+
         test("Throws if no ident is set and no callback is provided (mobile path)", async () => {
             checkout.init({});
             await expect(checkout.launch()).rejects.toThrow("A basket ident must be set via init() before calling launch() without a callback");

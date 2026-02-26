@@ -61,6 +61,11 @@ export type CheckoutOptions = {
      * @internal
      */
     endpoint?: string;
+    /**
+     * The timeout in milliseconds for the launch callback.
+     * @default 10_000
+     */
+    launchTimeout?: number;
 };
 /**
  * Checkout event type. You can subscribe to checkout events with `Tebex.checkout.on()`.
@@ -122,7 +127,7 @@ export default class Checkout {
         "payment:error": (e: Event) => void;
     }>;
     lightbox: Lightbox;
-    preOpenedWin: Window;
+    launchTimeout: number;
     componentFactory: ZoidComponent<CheckoutZoidProps>;
     zoid: ZoidComponentInstance;
     /**

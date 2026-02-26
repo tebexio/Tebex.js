@@ -32,6 +32,8 @@ import {
     isObject,
     isBoolean,
     err,
+    withTimeout,
+    isNumber,
 } from "./utils";
 
 const DEFAULT_WIDTH = "800px";
@@ -120,6 +122,11 @@ export type CheckoutOptions = {
      * @internal
      */
     endpoint?: string;
+    /**
+     * The timeout in milliseconds for the launch callback.
+     * @default 10_000
+     */
+    launchTimeout?: number;
 };
 
 /**
@@ -181,7 +188,7 @@ export default class Checkout {
     isOpen = false;
     emitter = createNanoEvents<CheckoutEventMap>();
     lightbox: Lightbox = null;
-    preOpenedWin: Window = null;
+    launchTimeout: number = 10_000;
 
     componentFactory: ZoidComponent<CheckoutZoidProps> = null;
     zoid: ZoidComponentInstance = null;
@@ -203,6 +210,7 @@ export default class Checkout {
         this.closeOnEsc = this.#resolveCloseOnEsc(options) ?? this.closeOnEsc;
         this.closeOnPaymentComplete = this.#resolveCloseOnPaymentComplete(options) ?? this.closeOnPaymentComplete;
         this.defaultPaymentMethod = this.#resolveDefaultPaymentMethod(options) ?? this.defaultPaymentMethod;
+        this.launchTimeout = this.#resolveLaunchTimeout(options) ?? this.launchTimeout;
     }
     
     /**
@@ -231,7 +239,7 @@ export default class Checkout {
      */
     async #resolveIdentFromCallback(callback: () => Promise<string>) {
         try {
-            this.ident = await callback();
+            this.ident = await withTimeout(callback(), 10_000, "timed out after 10 seconds");
             assert(this.ident && isString(this.ident), "The launch callback must return a valid basket identifier");
         } catch (error) {
             err("The launch callback threw an error: " + error?.message ?? "Unknown error");
@@ -240,48 +248,28 @@ export default class Checkout {
 
     /**
      * Opens a blank popup window synchronously (within the user gesture call stack) to avoid
-     * popup blocking, resolves the ident via the callback, then hands the pre-opened window to
-     * zoid by intercepting its `window.open` call before creating the component instance.
+     * popup blocking, resolves the ident via the callback, then passes the pre-opened window
+     * to zoid via its built-in `window` prop, which suppresses zoid's own window.open call.
      */
     async #openMobilePopupWithCallback(callback: () => Promise<string>) {
         // Must be opened synchronously — browsers block window.open after an async operation.
-        this.preOpenedWin = window.open('', '_blank');
+        const preOpenedWin = window.open('', '_blank');
 
-        if (this.preOpenedWin) {
-            const spinner = spinnerRender({ doc: this.preOpenedWin.document, props: {} });
-            this.preOpenedWin.document.replaceChild(spinner, this.preOpenedWin.document.documentElement);
+        if (preOpenedWin) {
+            const spinner = spinnerRender({ props: {} });
+            preOpenedWin.document.open();
+            preOpenedWin.document.write(spinner.outerHTML);
+            preOpenedWin.document.close();
         }
 
         try {
             await this.#resolveIdentFromCallback(callback);
         } catch (e) {
-            this.preOpenedWin?.close();
+            preOpenedWin?.close();
             throw e;
         }
 
-        // Zoid opens popups with a blank URL and a "__zoid__"-prefixed window name.
-        // Intercept that call to return our pre-opened window so zoid can reuse it.
-        const originalOpen = window.open.bind(window);
-
-        let intercepted = false;
-        window.open = (url?: string | URL, name?: string, ...rest: any[]) => {
-            const isZoidPopup = !intercepted && url === '' && typeof name === 'string' && name.startsWith('__zoid__');
-
-            // If the popup is a Zoid popup, return the pre-opened window
-            if (isZoidPopup) {
-                intercepted = true;
-                return this.preOpenedWin;
-            }
-
-            // Otherwise, call the original window.open
-            return (originalOpen as any)(url, name, ...rest);
-        };
-
-        try {
-            await this.#createComponentInstance(document.body, true);
-        } finally {
-            window.open = originalOpen;
-        }
+        await this.#createComponentInstance(document.body, true, preOpenedWin ?? undefined);
     }
 
     /**
@@ -514,6 +502,19 @@ export default class Checkout {
         return options.defaultPaymentMethod;
     }
 
+    #resolveLaunchTimeout(options: CheckoutOptions) {
+
+        if (isNullOrUndefined(options.launchTimeout))
+            return null;
+
+        if (!isNumber(options.launchTimeout)) {
+            warn(`invalid launchTimeout option "${ options.launchTimeout }" - must be a number`);
+            return null;
+        }
+
+        return options.launchTimeout;
+    }
+
     #onRequestLightboxClose = async () => {
         if (this.isOpen)
             await this.close();
@@ -564,13 +565,16 @@ export default class Checkout {
         });
     }
 
-    async #createComponentInstance(container: HTMLElement, popup: boolean) {
+    async #createComponentInstance(container: HTMLElement, popup: boolean, preOpenedWindow?: Window) {
         const url = new URL(window.location.href);
 
         if (!this.componentFactory)
             this.#createComponentFactory();
 
         this.zoid = this.componentFactory({
+            // Pass a pre-opened window so zoid reuses it instead of calling window.open itself.
+            // @ts-ignore — `window` is a valid built-in zoid prop but not reflected types
+            ...(preOpenedWindow ? { window: preOpenedWindow } : {}),
             locale: this.locale,
             colors: this.colors,
             closeOnClickOutside: this.closeOnClickOutside,
@@ -607,6 +611,10 @@ export default class Checkout {
         await this.zoid.renderTo(window, container, popup ? "popup" : "iframe");
 
         this.#didRender = true;
+
+        // Remove the spinner from the container after rendering the component
+        container.querySelector("#tebex-js-lightbox-spinner")?.remove();
+
         if (this.#onRender)
             this.#onRender();
     }
