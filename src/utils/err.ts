@@ -10,6 +10,13 @@ export const err = (msg = "") => {
 /**
  * @internal
  */
+export const logError = (msg = "") => {
+    console.error("Tebex.js error" + (msg ? ": " : "") + msg.trim());
+};
+
+/**
+ * @internal
+ */
 export const warn = (msg = "") => {
     console.warn("Tebex.js warning" + (msg ? ": " : "") + msg.trim());
 };

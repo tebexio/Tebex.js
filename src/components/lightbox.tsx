@@ -54,11 +54,23 @@ export class Lightbox {
     render() {
         return (
             <div class={["tebex-js-lightbox", this.#name ? `tebex-js-lightbox--${this.#name}` : null]}>
-                <div class="tebex-js-lightbox__holder" role="dialog">
-                    <div class="tebex-js-lightbox__spinner" id="tebex-js-lightbox-spinner"></div>
-                </div>
+                <div class="tebex-js-lightbox__holder" role="dialog"></div>
             </div>
         );
+    }
+
+    showSpinner() {
+        const spinner = createElement("div");
+        spinner.classList.add("tebex-js-lightbox__spinner");
+        spinner.id = "tebex-js-lightbox-spinner";
+        this.root.appendChild(spinner);
+    }
+
+    hideSpinner() {
+        const spinner = this.root.querySelector("#tebex-js-lightbox-spinner");
+        if (spinner) {
+            spinner.remove();
+        }
     }
 
     async show() {
@@ -67,6 +79,7 @@ export class Lightbox {
         this.body.append(this.root);
         await nextFrame();
         this.root.classList.add("tebex-js-lightbox--visible");
+        this.showSpinner();
         await transitionEnd(this.root);
         this.body.addEventListener("click", this.#onClickOutside);
         this.body.addEventListener("keydown", this.#onKeyPress);
@@ -76,11 +89,13 @@ export class Lightbox {
         this.body.removeEventListener("click", this.#onClickOutside);
         this.body.removeEventListener("keydown", this.#onKeyPress);
         this.root.classList.remove("tebex-js-lightbox--visible");
+        this.hideSpinner();
         if (transition) {
             await nextFrame();
             await transitionEnd(this.root);
         }
-        this.body.removeChild(this.root);
+        if (this.root.parentNode)
+            this.body.removeChild(this.root);
         globalIsLightboxOpen = false;
     }
 

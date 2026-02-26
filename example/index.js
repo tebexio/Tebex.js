@@ -20,6 +20,7 @@ window.launchCheckout = function launchCheckout() {
         colors: colors,
         endpoint: __CHECKOUT_ENDPOINT__,
         defaultPaymentMethod: "paypal",
+        launchTimeout: 20_000,
     });
 
     Tebex.checkout.launch(async () => {

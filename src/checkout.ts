@@ -31,7 +31,6 @@ import {
     isNonEmptyString,
     isObject,
     isBoolean,
-    err,
     withTimeout,
     isNumber,
 } from "./utils";
@@ -239,10 +238,16 @@ export default class Checkout {
      */
     async #resolveIdentFromCallback(callback: () => Promise<string>) {
         try {
-            this.ident = await withTimeout(callback(), 10_000, "timed out after 10 seconds");
+            this.ident = await withTimeout(
+                callback(),
+                this.launchTimeout,
+                "The callback provided to Tebex.checkout.launch() timed out after " + this.launchTimeout + " milliseconds"
+            );
             assert(this.ident && isString(this.ident), "The launch callback must return a valid basket identifier");
         } catch (error) {
-            err("The launch callback threw an error: " + error?.message ?? "Unknown error");
+            if (error instanceof Error && !error.message.startsWith("The callback provided to Tebex"))
+                throw new Error("The launch callback threw an error: " + error.message);
+            throw error;
         }
     }
 
@@ -264,9 +269,9 @@ export default class Checkout {
 
         try {
             await this.#resolveIdentFromCallback(callback);
-        } catch (e) {
+        } catch (error) {
             preOpenedWin?.close();
-            throw e;
+            throw error;
         }
 
         await this.#createComponentInstance(document.body, true, preOpenedWin ?? undefined);
@@ -531,11 +536,21 @@ export default class Checkout {
             closeHandler: this.#onRequestLightboxClose
         });
 
-        await this.lightbox.show();
+        // Start the lightbox show animation concurrently with the callback so the
+        // callback's timeout begins immediately, independent of the CSS transition duration.
+        const showPromise = this.lightbox.show();
 
         // If the user has provided a callback to launch() (e.g. to fetch a basket), resolve the ident from it before creating the component instance
-        if (callback)
-            await this.#resolveIdentFromCallback(callback);
+        if (callback) {
+            try {
+                await this.#resolveIdentFromCallback(callback);
+            } catch (error) {
+                this.lightbox.hide();
+                throw error;
+            }
+        }
+
+        await showPromise;
 
         // Create the component instance
         await this.#createComponentInstance(this.lightbox.holder, false);
@@ -570,6 +585,9 @@ export default class Checkout {
 
         if (!this.componentFactory)
             this.#createComponentFactory();
+
+        if (this.lightbox)
+            this.lightbox.hideSpinner();
 
         this.zoid = this.componentFactory({
             // Pass a pre-opened window so zoid reuses it instead of calling window.open itself.
@@ -607,14 +625,11 @@ export default class Checkout {
             params: url.search,
             version: __VERSION__,
         });
-
+    
         await this.zoid.renderTo(window, container, popup ? "popup" : "iframe");
 
         this.#didRender = true;
-
-        // Remove the spinner from the container after rendering the component
-        container.querySelector("#tebex-js-lightbox-spinner")?.remove();
-
+                
         if (this.#onRender)
             this.#onRender();
     }

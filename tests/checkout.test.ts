@@ -371,6 +371,27 @@ describe("Checkout", () => {
                 expect(checkout.defaultPaymentMethod).toBe(undefined);
             });
         });
+
+        describe("launchTimeout option", () => {
+
+            test("launchTimeout defaults to 10_000", () => {
+                checkout.init({});
+                expect(checkout.launchTimeout).toBe(10_000);
+            });
+
+            test("Can set launchTimeout", () => {
+                checkout.init({ launchTimeout: 5_000 });
+                expect(checkout.launchTimeout).toBe(5_000);
+            });
+
+            test("Warns if launchTimeout option isn't a number, and falls back to default", () => {
+                const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
+                checkout.init({ launchTimeout: "invalid" as any });
+                expect(spy).toHaveBeenCalledOnce();
+                expect(spy.mock.lastCall[0]).toContain("invalid launchTimeout option");
+                expect(checkout.launchTimeout).toBe(10_000);
+            });
+        });
     });
 
     describe("Checkout on()", () => {
@@ -567,6 +588,54 @@ describe("Checkout", () => {
         test("Throws if callback throws an error (lightbox path)", async () => {
             checkout.init({ popupOnMobile: true });
             await expect(checkout.launch(async () => { throw new Error("test"); })).rejects.toThrow("The launch callback threw an error: test");
+        });
+
+        test("Throws if callback times out (lightbox path)", async () => {
+            vi.useFakeTimers();
+            try {
+                checkout.init({ popupOnMobile: true });
+
+                const callback = async () => {
+                    return new Promise<string>((resolve) => {
+                        setTimeout(() => {
+                            // Will not resolve in the timeout period
+                            resolve("test");
+                        }, 12_000);
+                    });
+                };
+
+                const launchPromise = checkout.launch(callback);
+
+                await vi.advanceTimersByTimeAsync(10_001);
+
+                await expect(launchPromise).rejects.toThrow("The callback provided to Tebex.checkout.launch() timed out after 10000 milliseconds");
+            } finally {
+                vi.useRealTimers();
+            }
+        });
+
+        test("Throws if callback times out (mobile path)", async () => {
+            vi.useFakeTimers();
+            try {
+                checkout.init({});
+                const launchPromise = checkout.launch(() => new Promise<string>(() => {}));
+                await vi.advanceTimersByTimeAsync(10_001);
+                await expect(launchPromise).rejects.toThrow("The callback provided to Tebex.checkout.launch() timed out after 10000 milliseconds");
+            } finally {
+                vi.useRealTimers();
+            }
+        });
+
+        test("Sets ident from callback return value (lightbox path)", async () => {
+            checkout.init({ popupOnMobile: true });
+            await checkout.launch(async () => "callback-ident");
+            expect(checkout.ident).toBe("callback-ident");
+        });
+
+        test("Sets ident from callback return value (mobile path)", async () => {
+            checkout.init({});
+            await checkout.launch(async () => "callback-ident");
+            expect(checkout.ident).toBe("callback-ident");
         });
 
     });
