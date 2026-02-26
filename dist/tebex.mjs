@@ -13249,6 +13249,8 @@ _Portal_didRender = new WeakMap(), _Portal_onRender = new WeakMap(), _Portal_onR
     const url = new URL(window.location.href);
     if (!this.componentFactory)
         __classPrivateFieldGet(this, _Portal_instances, "m", _Portal_createComponentFactory).call(this);
+    if (this.lightbox)
+        this.lightbox.hideSpinner();
     this.zoid = this.componentFactory({
         token: this.token,
         locale: this.locale,

@@ -464,6 +464,9 @@ export default class Portal {
         if (!this.componentFactory)
             this.#createComponentFactory();
 
+        if (this.lightbox)
+            this.lightbox.hideSpinner();
+
         this.zoid = this.componentFactory({
             token: this.token,
             locale: this.locale,
