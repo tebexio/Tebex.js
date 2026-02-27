@@ -8,6 +8,8 @@ import {
 } from "../utils";
 
 import styles from "./lightbox.css?inline";
+import spinnerStyles from "./spinner.css?inline";
+import { spinnerHtml } from "./spinner";
 
 export type LightboxCloseHandler = (e: MouseEvent | KeyboardEvent) => void;
 
@@ -39,6 +41,10 @@ export class Lightbox {
         stylesheet.append(styles);
         this.body.append(stylesheet);
 
+        const spinnerStylesheet = createElement("style");
+        spinnerStylesheet.append(spinnerStyles);
+        this.body.append(spinnerStylesheet);
+
         this.setOptions(options);
         this.root = this.render();
         this.holder = this.root.querySelector(".tebex-js-lightbox__holder");
@@ -54,24 +60,13 @@ export class Lightbox {
     render() {
         return (
             <div class={["tebex-js-lightbox", this.#name ? `tebex-js-lightbox--${this.#name}` : null]}>
-                <div class="tebex-js-lightbox__holder" role="dialog"></div>
+                <div class="tebex-js-lightbox__holder" role="dialog">
+                    {spinnerHtml()}
+                </div>
             </div>
         );
     }
 
-    showSpinner() {
-        const spinner = createElement("div");
-        spinner.classList.add("tebex-js-lightbox__spinner");
-        spinner.id = "tebex-js-lightbox-spinner";
-        this.root.appendChild(spinner);
-    }
-
-    hideSpinner() {
-        const spinner = this.root.querySelector("#tebex-js-lightbox-spinner");
-        if (spinner) {
-            spinner.remove();
-        }
-    }
 
     async show() {
         assert(!globalIsLightboxOpen, "There is already a lightbox open");
@@ -79,7 +74,6 @@ export class Lightbox {
         this.body.append(this.root);
         await nextFrame();
         this.root.classList.add("tebex-js-lightbox--visible");
-        this.showSpinner();
         await transitionEnd(this.root);
         this.body.addEventListener("click", this.#onClickOutside);
         this.body.addEventListener("keydown", this.#onKeyPress);
@@ -89,7 +83,6 @@ export class Lightbox {
         this.body.removeEventListener("click", this.#onClickOutside);
         this.body.removeEventListener("keydown", this.#onKeyPress);
         this.root.classList.remove("tebex-js-lightbox--visible");
-        this.hideSpinner();
         if (transition) {
             await nextFrame();
             await transitionEnd(this.root);

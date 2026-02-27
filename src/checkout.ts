@@ -604,9 +604,6 @@ export default class Checkout {
         if (!this.componentFactory)
             this.#createComponentFactory();
 
-        if (this.lightbox)
-            this.lightbox.hideSpinner();
-
         this.zoid = this.componentFactory({
             // Pass a pre-opened window so zoid reuses it instead of calling window.open itself.
             // @ts-ignore — `window` is a valid built-in zoid prop but not reflected types

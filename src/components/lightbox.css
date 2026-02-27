@@ -42,26 +42,3 @@
     /* Without this, there's a little gap below the iframe, so it looks like the bottom border-radius is missing */
     display: block !important;
 }
-
-.tebex-js-lightbox__spinner {
-    position: fixed;
-    height: 40px;
-    width: 40px;
-    top: 50%;
-    left: 50%;
-    box-sizing: border-box;
-    border: 3px solid rgba(255, 255, 255, .2);
-    border-top-color: #FFF;
-    border-radius: 100%;
-    animation: tebex-js-lightbox-spinner-rotation .7s infinite linear;
-    pointer-events: none;
-}
-
-@keyframes tebex-js-lightbox-spinner-rotation {
-    from {
-        transform: translateX(-50%) translateY(-50%) rotate(0deg);
-    }
-    to {
-        transform: translateX(-50%) translateY(-50%) rotate(359deg);
-    }
-}
