@@ -35,6 +35,7 @@ import {
     isNumber,
     err,
 } from "./utils";
+import { navigate } from "./utils/navigate";
 
 const DEFAULT_WIDTH = "800px";
 const DEFAULT_HEIGHT = "760px";
@@ -276,6 +277,12 @@ export default class Checkout {
         } catch (error) {
             preOpenedWin?.close();
             throw error;
+        }
+
+        if (!preOpenedWin) {
+            warn("Failed to open a checkout in a new window, popup blocked, redirecting to checkout page instead");
+            navigate(this.endpoint + "/" + this.ident);
+            return;
         }
 
         await this.#createComponentInstance(document.body, true, preOpenedWin ?? undefined);
@@ -521,6 +528,11 @@ export default class Checkout {
             return null;
         }
 
+        if (options.launchTimeout <= 0) {
+            warn(`invalid launchTimeout option "${ options.launchTimeout }" - must be a positive number`);
+            return null;
+        }
+
         return options.launchTimeout;
     }
 
@@ -549,7 +561,9 @@ export default class Checkout {
             try {
                 await this.#resolveIdentFromCallback(callback);
             } catch (error) {
-                this.lightbox.hide();
+                // Await show() before hiding
+                await showPromise;
+                this.lightbox.hide(false);
                 throw error;
             }
         }

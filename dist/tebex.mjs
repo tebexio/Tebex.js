@@ -12878,7 +12878,9 @@ async function _Checkout_openMobilePopupWithCallback(callback) {
             await __classPrivateFieldGet(this, _Checkout_instances, "m", _Checkout_resolveIdentFromCallback).call(this, callback);
         }
         catch (error) {
-            this.lightbox.hide();
+            // Await show() before hiding
+            await showPromise;
+            this.lightbox.hide(false);
             throw error;
         }
     }

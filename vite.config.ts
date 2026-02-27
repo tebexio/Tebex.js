@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 
 import pkg from './package.json' with { type: 'json' };
 import { onRequest } from './functions/token';
+import { playwright } from '@vitest/browser-playwright'
 
 if (existsSync('.dev.vars'))
     dotenv.config({ path: '.dev.vars' });
@@ -26,9 +27,10 @@ export default defineConfig({
     test: {
         browser: {
             enabled: true,
-            provider: 'playwright',
             headless: true,
-            name: 'chromium',
+            instances: [
+                { browser: 'chromium', provider: playwright() },
+            ],
         },
         typecheck: {
             enabled: true,
