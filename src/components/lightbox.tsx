@@ -8,6 +8,8 @@ import {
 } from "../utils";
 
 import styles from "./lightbox.css?inline";
+import spinnerStyles from "./spinner.css?inline";
+import { spinnerHtml } from "./spinner";
 
 export type LightboxCloseHandler = (e: MouseEvent | KeyboardEvent) => void;
 
@@ -39,6 +41,10 @@ export class Lightbox {
         stylesheet.append(styles);
         this.body.append(stylesheet);
 
+        const spinnerStylesheet = createElement("style");
+        spinnerStylesheet.append(spinnerStyles);
+        this.body.append(spinnerStylesheet);
+
         this.setOptions(options);
         this.root = this.render();
         this.holder = this.root.querySelector(".tebex-js-lightbox__holder");
@@ -53,11 +59,14 @@ export class Lightbox {
 
     render() {
         return (
-            <div class={[ "tebex-js-lightbox", this.#name ? `tebex-js-lightbox--${this.#name}` : null ]}>
-                <div class="tebex-js-lightbox__holder" role="dialog"></div>
+            <div class={["tebex-js-lightbox", this.#name ? `tebex-js-lightbox--${this.#name}` : null]}>
+                <div class="tebex-js-lightbox__holder" role="dialog">
+                    {spinnerHtml()}
+                </div>
             </div>
         );
     }
+
 
     async show() {
         assert(!globalIsLightboxOpen, "There is already a lightbox open");
@@ -78,7 +87,8 @@ export class Lightbox {
             await nextFrame();
             await transitionEnd(this.root);
         }
-        this.body.removeChild(this.root);
+        if (this.root.parentNode)
+            this.body.removeChild(this.root);
         globalIsLightboxOpen = false;
     }
 

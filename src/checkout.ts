@@ -31,7 +31,11 @@ import {
     isNonEmptyString,
     isObject,
     isBoolean,
+    withTimeout,
+    isNumber,
+    err,
 } from "./utils";
+import { navigate } from "./utils/navigate";
 
 const DEFAULT_WIDTH = "800px";
 const DEFAULT_HEIGHT = "760px";
@@ -72,7 +76,7 @@ export type CheckoutOptions = {
     /**
      * The checkout request ident received from either the Headless or Checkout APIs.
      */
-    ident: string;
+    ident?: string;
     /**
      * The default language to use, defined as an ISO locale code - e.g. `"en_US"` for American English, "de_DE" for German, etc.
      * @default `navigator.language`
@@ -119,6 +123,11 @@ export type CheckoutOptions = {
      * @internal
      */
     endpoint?: string;
+    /**
+     * The timeout in milliseconds for the launch callback.
+     * @default 10_000
+     */
+    launchTimeout?: number;
 };
 
 /**
@@ -166,7 +175,7 @@ export type CheckoutZoidProps = {
  */
 export default class Checkout {
 
-    ident: string = null;
+    ident?: string;
     locale: string = null;
     theme: TebexTheme = "default";
     colors: TebexColorDefinition[] = [];
@@ -180,6 +189,7 @@ export default class Checkout {
     isOpen = false;
     emitter = createNanoEvents<CheckoutEventMap>();
     lightbox: Lightbox = null;
+    launchTimeout: number = 10_000;
 
     componentFactory: ZoidComponent<CheckoutZoidProps> = null;
     zoid: ZoidComponentInstance = null;
@@ -191,7 +201,6 @@ export default class Checkout {
      * Configure the Tebex checkout settings.
      */
     init(options: CheckoutOptions) {
-        assert(options.ident && isString(options.ident), "ident option is required, and must be a string");
         this.ident = options.ident;
         this.locale = this.#resolveLocale(options) ?? this.locale;
         this.theme = this.#resolveTheme(options) ?? this.theme;
@@ -202,6 +211,7 @@ export default class Checkout {
         this.closeOnEsc = this.#resolveCloseOnEsc(options) ?? this.closeOnEsc;
         this.closeOnPaymentComplete = this.#resolveCloseOnPaymentComplete(options) ?? this.closeOnPaymentComplete;
         this.defaultPaymentMethod = this.#resolveDefaultPaymentMethod(options) ?? this.defaultPaymentMethod;
+        this.launchTimeout = this.#resolveLaunchTimeout(options) ?? this.launchTimeout;
     }
     
     /**
@@ -226,18 +236,82 @@ export default class Checkout {
     }
 
     /**
+     * Resolves the ident from the callback
+     * Throws if the ident is not a valid string, if the callback throws or times out.
+     */
+    async #resolveIdentFromCallback(callback: () => Promise<string>) {
+        try {
+            this.ident = await withTimeout(
+                callback(),
+                this.launchTimeout,
+                "timed out after " + this.launchTimeout + " milliseconds"
+            );
+
+            // Check that the ident is valid
+            if (!this.ident || !isString(this.ident))
+                err("invalid ident returned - ident = " + this.ident, "");
+
+        } catch (error) {
+            err("The callback provided to Tebex.checkout.launch() errored: " + error.message);
+        }
+    }
+
+    /**
+     * Opens a blank popup window synchronously (within the user gesture call stack) to avoid
+     * popup blocking, resolves the ident via the callback, then passes the pre-opened window
+     * to zoid via its built-in `window` prop, which suppresses zoid's own window.open call.
+     */
+    async #openMobilePopupWithCallback(callback: () => Promise<string>) {
+        // Must be opened synchronously — browsers block window.open after an async operation.
+        const preOpenedWin = window.open('', '_blank');
+
+        if (preOpenedWin) {
+            const spinner = spinnerRender({ props: {} });
+            preOpenedWin.document.open();
+            preOpenedWin.document.write(spinner.outerHTML);
+            preOpenedWin.document.close();
+        }
+
+        try {
+            await this.#resolveIdentFromCallback(callback);
+        } catch (error) {
+            preOpenedWin?.close();
+            throw error;
+        }
+
+        if (!preOpenedWin) {
+            warn("Failed to open a checkout in a new window, popup blocked, redirecting to checkout page instead");
+            navigate(this.endpoint + "/" + this.ident);
+            return;
+        }
+
+        await this.#createComponentInstance(document.body, true, preOpenedWin ?? undefined);
+    }
+
+    /**
      * Launch the Tebex checkout panel.
      * On desktop, the panel will launch in a "lightbox" mode that covers the screen. On mobile, it will be opened as a new page.
+     * @param callback An optional async callback invoked before the checkout iframe is created. Use this to perform async work (e.g. fetching a basket) while the loading spinner is visible.
      */
-    async launch() {
+    async launch(callback?: () => Promise<string>) {
+        if (!callback)
+            assert(this.ident && isString(this.ident), "A basket ident must be set via init() before calling launch() without a callback");
+
+        // The user is on mobile, launch as a popup in a new window (unless popupOnMobile is false)
         if (!this.popupOnMobile && isMobile(DEFAULT_WIDTH, DEFAULT_HEIGHT)) {
-            await this.#createComponentInstance(document.body, true);
+
+            if (callback)
+                await this.#openMobilePopupWithCallback(callback);
+            else
+                await this.#createComponentInstance(document.body, true);
+
             this.isOpen = true;
             this.emitter.emit("open");
             return;
         }
 
-        await this.#showLightbox();
+        // The user is on desktop, or popupOnMobile is true, launch as a lightbox
+        await this.#showLightbox(callback);
     }
 
     /**
@@ -275,6 +349,7 @@ export default class Checkout {
     async render(element: HTMLElement, width: CssDimension, height: CssDimension, popupOnMobile = this.popupOnMobile) {
         // Zoid requires that elements are already in the page, otherwise it throws a confusing error.
         assert(isInDocument(element), "Target element must already be inserted into the page before it can be used");
+        assert(this.ident && isString(this.ident), "The render method must be called after the checkout has been initialized with an ident");
 
         width = isString(width) ? width : `${ width }px`;
         height = isString(height) ? height : `${ height }px`;
@@ -443,12 +518,30 @@ export default class Checkout {
         return options.defaultPaymentMethod;
     }
 
+    #resolveLaunchTimeout(options: CheckoutOptions) {
+
+        if (isNullOrUndefined(options.launchTimeout))
+            return null;
+
+        if (!isNumber(options.launchTimeout)) {
+            warn(`invalid launchTimeout option "${ options.launchTimeout }" - must be a number`);
+            return null;
+        }
+
+        if (options.launchTimeout <= 0) {
+            warn(`invalid launchTimeout option "${ options.launchTimeout }" - must be a positive number`);
+            return null;
+        }
+
+        return options.launchTimeout;
+    }
+
     #onRequestLightboxClose = async () => {
         if (this.isOpen)
             await this.close();
     };
 
-    async #showLightbox() {
+    async #showLightbox(callback?: () => Promise<string>) {
         if (!this.lightbox)
             this.lightbox = new Lightbox();
 
@@ -459,7 +552,25 @@ export default class Checkout {
             closeHandler: this.#onRequestLightboxClose
         });
 
-        await this.lightbox.show();
+        // Start the lightbox show animation concurrently with the callback so the
+        // callback's timeout begins immediately, independent of the CSS transition duration.
+        const showPromise = this.lightbox.show();
+
+        // If the user has provided a callback to launch() (e.g. to fetch a basket), resolve the ident from it before creating the component instance
+        if (callback) {
+            try {
+                await this.#resolveIdentFromCallback(callback);
+            } catch (error) {
+                // Await show() before hiding
+                await showPromise;
+                this.lightbox.hide(false);
+                throw error;
+            }
+        }
+
+        await showPromise;
+
+        // Create the component instance
         await this.#createComponentInstance(this.lightbox.holder, false);
 
         this.isOpen = true;
@@ -487,13 +598,16 @@ export default class Checkout {
         });
     }
 
-    async #createComponentInstance(container: HTMLElement, popup: boolean) {
+    async #createComponentInstance(container: HTMLElement, popup: boolean, preOpenedWindow?: Window) {
         const url = new URL(window.location.href);
 
         if (!this.componentFactory)
             this.#createComponentFactory();
 
         this.zoid = this.componentFactory({
+            // Pass a pre-opened window so zoid reuses it instead of calling window.open itself.
+            // @ts-ignore — `window` is a valid built-in zoid prop but not reflected types
+            ...(preOpenedWindow ? { window: preOpenedWindow } : {}),
             locale: this.locale,
             colors: this.colors,
             closeOnClickOutside: this.closeOnClickOutside,
@@ -526,10 +640,11 @@ export default class Checkout {
             params: url.search,
             version: __VERSION__,
         });
-
+    
         await this.zoid.renderTo(window, container, popup ? "popup" : "iframe");
 
         this.#didRender = true;
+                
         if (this.#onRender)
             this.#onRender();
     }

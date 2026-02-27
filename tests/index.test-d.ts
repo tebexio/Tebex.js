@@ -41,7 +41,7 @@ describe("Typechecks", () => {
         test("CheckoutOptions", () => {
             expectTypeOf<CheckoutOptions>().toBeObject();
             expectTypeOf<CheckoutOptions>().toMatchTypeOf<{
-                ident: string;
+                ident?: string;
                 theme?: "light" | "dark" | "default" | "auto";
                 closeOnClickOutside?: boolean;
                 closeOnEsc?: boolean;
@@ -283,7 +283,7 @@ describe("Typechecks", () => {
             expectTypeOf(tebex.checkout.init).toBeFunction();
             expectTypeOf(tebex.checkout.init).returns.toMatchTypeOf<void>();
             expectTypeOf(tebex.checkout.init).parameter(0).toMatchTypeOf<{
-                ident: string;
+                ident?: string;
                 theme?: "light" | "dark" | "default" | "auto";
                 closeOnClickOutside?: boolean;
                 closeOnEsc?: boolean;

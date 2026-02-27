@@ -14,7 +14,7 @@ export type CheckoutOptions = {
     /**
      * The checkout request ident received from either the Headless or Checkout APIs.
      */
-    ident: string;
+    ident?: string;
     /**
      * The default language to use, defined as an ISO locale code - e.g. `"en_US"` for American English, "de_DE" for German, etc.
      * @default `navigator.language`
@@ -61,6 +61,11 @@ export type CheckoutOptions = {
      * @internal
      */
     endpoint?: string;
+    /**
+     * The timeout in milliseconds for the launch callback.
+     * @default 10_000
+     */
+    launchTimeout?: number;
 };
 /**
  * Checkout event type. You can subscribe to checkout events with `Tebex.checkout.on()`.
@@ -104,7 +109,7 @@ export type CheckoutZoidProps = {
  */
 export default class Checkout {
     #private;
-    ident: string;
+    ident?: string;
     locale: string;
     theme: TebexTheme;
     colors: TebexColorDefinition[];
@@ -122,6 +127,7 @@ export default class Checkout {
         "payment:error": (e: Event) => void;
     }>;
     lightbox: Lightbox;
+    launchTimeout: number;
     componentFactory: ZoidComponent<CheckoutZoidProps>;
     zoid: ZoidComponentInstance;
     /**
@@ -136,8 +142,9 @@ export default class Checkout {
     /**
      * Launch the Tebex checkout panel.
      * On desktop, the panel will launch in a "lightbox" mode that covers the screen. On mobile, it will be opened as a new page.
+     * @param callback An optional async callback invoked before the checkout iframe is created. Use this to perform async work (e.g. fetching a basket) while the loading spinner is visible.
      */
-    launch(): Promise<void>;
+    launch(callback?: () => Promise<string>): Promise<void>;
     /**
      * Close the Tebex checkout panel.
      */
