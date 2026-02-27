@@ -13,8 +13,6 @@ export declare class Lightbox {
     constructor(options?: Partial<LightboxOptions>);
     setOptions(options: Partial<LightboxOptions>): void;
     render(): any;
-    showSpinner(): void;
-    hideSpinner(): void;
     show(): Promise<void>;
     hide(transition?: boolean): Promise<void>;
     destroy(): void;

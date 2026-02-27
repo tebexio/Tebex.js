@@ -12240,7 +12240,34 @@ let createNanoEvents = () => ({
   }
 });
 
-var styles$1 = ".tebex-js-lightbox{all:unset;zoom:1;forced-color-adjust:none;position:fixed;left:0;top:0;width:100vw;height:100vh;z-index:var(--tebex-js-z-index,9999999);background:var(--tebex-js-lightbox-bg,rgba(0,0,0,.8));opacity:0;transition-property:opacity;transition-duration:var(--tebex-js-duration,.4s);transition-timing-function:var(--tebex-js-timing,ease);will-change:opacity;display:flex;justify-content:center;align-items:center;user-select:none;-webkit-user-select:none;-moz-user-select:none;}.tebex-js-lightbox--visible{opacity:1;}.tebex-js-lightbox__holder{display:block;border:0;overflow:hidden;border-radius:5px;}.tebex-js-lightbox__holder > div{display:block!important;}.tebex-js-lightbox__spinner{position:fixed;height:40px;width:40px;top:50%;left:50%;box-sizing:border-box;border:3px solid rgba(255,255,255,.2);border-top-color:#FFF;border-radius:100%;animation:tebex-js-lightbox-spinner-rotation .7s infinite linear;pointer-events:none;}@keyframes tebex-js-lightbox-spinner-rotation{from{transform:translateX(-50%) translateY(-50%) rotate(0deg);}to{transform:translateX(-50%) translateY(-50%) rotate(359deg);}}";
+var styles = ".tebex-js-lightbox{all:unset;zoom:1;forced-color-adjust:none;position:fixed;left:0;top:0;width:100vw;height:100vh;z-index:var(--tebex-js-z-index,9999999);background:var(--tebex-js-lightbox-bg,rgba(0,0,0,.8));opacity:0;transition-property:opacity;transition-duration:var(--tebex-js-duration,.4s);transition-timing-function:var(--tebex-js-timing,ease);will-change:opacity;display:flex;justify-content:center;align-items:center;user-select:none;-webkit-user-select:none;-moz-user-select:none;}.tebex-js-lightbox--visible{opacity:1;}.tebex-js-lightbox__holder{display:block;border:0;overflow:hidden;border-radius:5px;}.tebex-js-lightbox__holder > div{display:block!important;}";
+
+var spinnerStyles = ".tebex-js-spinner{position:fixed;max-height:60vmin;max-width:60vmin;height:40px;width:40px;top:50%;left:50%;box-sizing:border-box;border:3px solid rgba(0,0,0,.2);border-top-color:#FFF;border-radius:100%;animation:tebex-js-spinner-rotation .7s infinite linear;}@keyframes tebex-js-spinner-rotation{from{transform:translateX(-50%) translateY(-50%) rotate(0deg);}to{transform:translateX(-50%) translateY(-50%) rotate(359deg);}}";
+
+var prerenderStyles = "html,body{width:100px;height:100px;overflow:hidden;}";
+
+const spinnerHtml = () => {
+    return (h("div", { class: "tebex-js-spinner" }));
+};
+const spinnerRender = ({ doc, props }) => {
+    let html = null;
+    // When the spinner is embedded in the lightbox, the lightbox will handle the spinner itself.
+    if (props.isEmbedded) {
+        html = (h("html", null,
+            h("body", null)));
+    }
+    else {
+        html = (h("html", null,
+            h("body", null,
+                h("style", { nonce: props.cspNonce }, prerenderStyles),
+                h("style", { nonce: props.cspNonce }, spinnerStyles),
+                spinnerHtml())));
+    }
+    // move elements to iframe document
+    if (doc)
+        doc.adoptNode(html);
+    return html;
+};
 
 var _Lightbox_name, _Lightbox_closeOnClickOutside, _Lightbox_closeOnEsc, _Lightbox_closeHandler, _Lightbox_onClickOutside, _Lightbox_onKeyPress;
 let globalIsLightboxOpen = false;
@@ -12266,8 +12293,11 @@ class Lightbox {
         assert(isEnvBrowser());
         this.body = document.body;
         const stylesheet = createElement("style");
-        stylesheet.append(styles$1);
+        stylesheet.append(styles);
         this.body.append(stylesheet);
+        const spinnerStylesheet = createElement("style");
+        spinnerStylesheet.append(spinnerStyles);
+        this.body.append(spinnerStylesheet);
         this.setOptions(options);
         this.root = this.render();
         this.holder = this.root.querySelector(".tebex-js-lightbox__holder");
@@ -12280,19 +12310,7 @@ class Lightbox {
     }
     render() {
         return (h("div", { class: ["tebex-js-lightbox", __classPrivateFieldGet(this, _Lightbox_name, "f") ? `tebex-js-lightbox--${__classPrivateFieldGet(this, _Lightbox_name, "f")}` : null] },
-            h("div", { class: "tebex-js-lightbox__holder", role: "dialog" })));
-    }
-    showSpinner() {
-        const spinner = createElement("div");
-        spinner.classList.add("tebex-js-lightbox__spinner");
-        spinner.id = "tebex-js-lightbox-spinner";
-        this.root.appendChild(spinner);
-    }
-    hideSpinner() {
-        const spinner = this.root.querySelector("#tebex-js-lightbox-spinner");
-        if (spinner) {
-            spinner.remove();
-        }
+            h("div", { class: "tebex-js-lightbox__holder", role: "dialog" }, spinnerHtml())));
     }
     async show() {
         assert(!globalIsLightboxOpen, "There is already a lightbox open");
@@ -12300,7 +12318,6 @@ class Lightbox {
         this.body.append(this.root);
         await nextFrame();
         this.root.classList.add("tebex-js-lightbox--visible");
-        this.showSpinner();
         await transitionEnd(this.root);
         this.body.addEventListener("click", __classPrivateFieldGet(this, _Lightbox_onClickOutside, "f"));
         this.body.addEventListener("keydown", __classPrivateFieldGet(this, _Lightbox_onKeyPress, "f"));
@@ -12309,7 +12326,6 @@ class Lightbox {
         this.body.removeEventListener("click", __classPrivateFieldGet(this, _Lightbox_onClickOutside, "f"));
         this.body.removeEventListener("keydown", __classPrivateFieldGet(this, _Lightbox_onKeyPress, "f"));
         this.root.classList.remove("tebex-js-lightbox--visible");
-        this.hideSpinner();
         if (transition) {
             await nextFrame();
             await transitionEnd(this.root);
@@ -12325,19 +12341,6 @@ class Lightbox {
     }
 }
 _Lightbox_name = new WeakMap(), _Lightbox_closeOnClickOutside = new WeakMap(), _Lightbox_closeOnEsc = new WeakMap(), _Lightbox_closeHandler = new WeakMap(), _Lightbox_onClickOutside = new WeakMap(), _Lightbox_onKeyPress = new WeakMap();
-
-var styles = "html,body{width:100px;height:100px;overflow:hidden;}.tebex-js-spinner{position:fixed;max-height:60vmin;max-width:60vmin;height:40px;width:40px;top:50%;left:50%;box-sizing:border-box;border:3px solid rgba(0,0,0,.2);border-top-color:#FFF;border-radius:100%;animation:tebex-js-spinner-rotation .7s infinite linear;}@keyframes tebex-js-spinner-rotation{from{transform:translateX(-50%) translateY(-50%) rotate(0deg);}to{transform:translateX(-50%) translateY(-50%) rotate(359deg);}}";
-
-const spinnerRender = ({ doc, props }) => {
-    const html = (h("html", null,
-        h("body", null,
-            h("style", { nonce: props.cspNonce }, styles),
-            h("div", { class: "tebex-js-spinner" }))));
-    // move elements to iframe document
-    if (doc)
-        doc.adoptNode(html);
-    return html;
-};
 
 /**
  * Navigate to the given URL.
@@ -12718,8 +12721,6 @@ async function _Checkout_openMobilePopupWithCallback(callback) {
     const url = new URL(window.location.href);
     if (!this.componentFactory)
         __classPrivateFieldGet(this, _Checkout_instances, "m", _Checkout_createComponentFactory).call(this);
-    if (this.lightbox)
-        this.lightbox.hideSpinner();
     this.zoid = this.componentFactory({
         // Pass a pre-opened window so zoid reuses it instead of calling window.open itself.
         // @ts-ignore — `window` is a valid built-in zoid prop but not reflected types
@@ -13057,8 +13058,6 @@ _Portal_didRender = new WeakMap(), _Portal_onRender = new WeakMap(), _Portal_onR
     const url = new URL(window.location.href);
     if (!this.componentFactory)
         __classPrivateFieldGet(this, _Portal_instances, "m", _Portal_createComponentFactory).call(this);
-    if (this.lightbox)
-        this.lightbox.hideSpinner();
     this.zoid = this.componentFactory({
         token: this.token,
         locale: this.locale,
