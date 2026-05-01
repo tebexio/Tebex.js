@@ -97,6 +97,18 @@ describe("Lightbox", () => {
             lightbox.destroy();
             expect(document.body.querySelector('.tebex-js-lightbox')).toBeNull();
         });
+
+        test("Releases the global open-state lock even if root has already been detached", async () => {
+            await lightbox.show();
+            // Simulate the root being removed by something other than the lightbox itself.
+            lightbox.root.remove();
+            lightbox.destroy();
+
+            // If the global lock weren't released, constructing + showing a new lightbox would assert.
+            const next = new Lightbox({ name: "test-lightbox-2" });
+            await expect(next.show()).resolves.toBeUndefined();
+            next.destroy();
+        });
     });
 
 });

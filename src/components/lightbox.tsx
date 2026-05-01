@@ -93,9 +93,9 @@ export class Lightbox {
     }
 
     destroy() {
-        if (!this.root.parentNode)
-            return;
-        this.hide(false);
+        // Always run cleanup, even if the root has already been detached, so listeners
+        // and the global open-state flag don't leak across destroy/re-show cycles.
+        void this.hide(false);
     }
 
     #onClickOutside = (e: MouseEvent) => {

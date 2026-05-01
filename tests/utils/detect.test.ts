@@ -63,6 +63,14 @@ describe("isMobile", () => {
         expect(isMobile("800px", "760px")).toEqual(true);
     });
 
-    // TODO: test that this returns false on larger viewports
+    test("Returns false when viewport is larger than the supplied thresholds", () => {
+        // 1px thresholds will not match unless the browser viewport is impossibly small.
+        expect(isMobile("1px", "1px")).toEqual(false);
+    });
+
+    test("Returns true when matchMedia is unavailable", () => {
+        vi.stubGlobal('matchMedia', undefined);
+        expect(isMobile("800px", "760px")).toEqual(true);
+    });
 
 });
