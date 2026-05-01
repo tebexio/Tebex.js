@@ -216,7 +216,7 @@ export default class Checkout {
     
     /**
      * Subscribe to Tebex checkout events, such as when the embed is closed or when a payment is completed.
-     * NOTE: None of these events should not be used to confirm actual receipt of payment - you should use Webhooks for that.
+     * NOTE: These events should not be used to confirm actual receipt of payment - you should use Webhooks for that.
      */
     on<T extends CheckoutEvent>(event: T, callback: CheckoutEventMap[T]): Unsubscribe {
         // @ts-ignore - handles legacy event name

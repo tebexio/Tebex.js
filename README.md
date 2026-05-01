@@ -36,7 +36,7 @@ Alternatively, we also provide Tebex.js via our own CDN, which you can add as a 
 
 When installing Tebex.js this way, the `Tebex` object will become available globally on the `window` object.
 
-We recommend using `defer` on the script to prevent it from blocking your website's initial page render, but when doing do, it's important to **wait for the page `load` event** before you begin configuring the checkout:
+We recommend using `defer` on the script to prevent it from blocking your website's initial page render, but when doing so, it's important to **wait for the page `load` event** before you begin configuring the checkout:
 
 ```html
 <script>
