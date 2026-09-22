@@ -39,12 +39,12 @@
   "devEngines": {
     "runtime": {
       "name": "node",
-      "version": ">=20.0.0",
+      "version": ">=22.0.0",
       "onFail": "error"
     },
     "packageManager": {
       "name": "npm",
-      "version": ">=11.0.0",
+      "version": ">=11.5.1",
       "onFail": "error"
     }
   },

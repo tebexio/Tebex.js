@@ -10,6 +10,8 @@ on:
 jobs:
   test-and-build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -17,7 +19,7 @@ jobs:
           node-version: 22
           registry-url: https://registry.npmjs.org/
       - name: Update npm to match devEngines
-        run: npm install -g npm@^11
+        run: npm install -g npm@11.19.1
       - run: npm ci
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
