@@ -84,14 +84,16 @@ declare module "zoid" {
         }
     >;
 
+    type ZoidDimensions = {
+        width: string | number;
+        height: string | number;
+    };
+
     export type ComponentConfig = {
         tag: string;
         url: string | ((props: ComponentProps) => string);
         props?: ComponentProps;
-        dimensions?: {
-            width: string | number;
-            height: string | number;
-        };
+        dimensions?: ZoidDimensions | ((args: { props: ComponentProps }) => ZoidDimensions);
         autoResize?: {
             width?: boolean;
             height?: boolean;

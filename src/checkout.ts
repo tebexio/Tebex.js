@@ -195,6 +195,7 @@ export default class Checkout {
     zoid: ZoidComponentInstance = null;
 
     #didRender = false;
+    #dimensions: { width: CssDimension, height: CssDimension } = { width: DEFAULT_WIDTH, height: DEFAULT_HEIGHT };
     #onRender: Function;
 
     /**
@@ -297,6 +298,8 @@ export default class Checkout {
         if (!callback)
             assert(this.ident && isString(this.ident), "A basket ident must be set via init() before calling launch() without a callback");
 
+        this.#dimensions = { width: DEFAULT_WIDTH, height: DEFAULT_HEIGHT };
+
         // The user is on mobile, launch as a popup in a new window (unless popupOnMobile is false)
         if (!this.popupOnMobile && isMobile(DEFAULT_WIDTH, DEFAULT_HEIGHT)) {
 
@@ -354,7 +357,8 @@ export default class Checkout {
         width = isString(width) ? width : `${ width }px`;
         height = isString(height) ? height : `${ height }px`;
         
-        this.#createComponentFactory(width, height);
+        this.#dimensions = { width, height };
+        await this.zoid?.close().catch(() => {});
         await this.#createComponentInstance(element, popupOnMobile && isMobile(width, height));
         this.isOpen = true;
         this.emitter.emit("open");
@@ -577,7 +581,7 @@ export default class Checkout {
         this.emitter.emit("open");
     }
 
-    #createComponentFactory(width: CssDimension = DEFAULT_WIDTH, height: CssDimension = DEFAULT_HEIGHT) {
+    #createComponentFactory() {
         this.componentFactory = zoid.create({
             tag: "tebex-js-checkout-component",
             url: () => this.endpoint + "/" + this.ident,
@@ -585,10 +589,7 @@ export default class Checkout {
                 width: false,
                 height: false,
             },
-            dimensions: {
-                width,
-                height,
-            },
+            dimensions: () => this.#dimensions,
             prerenderTemplate: spinnerRender,
             attributes: {
                 iframe: {
