@@ -717,6 +717,38 @@ describe("Checkout", () => {
             expect(style.height).toEqual("456px");
         });
 
+        test("Can be called repeatedly, reusing one component and applying each call's dimensions", async () => {
+            const first = document.createElement("div");
+            const second = document.createElement("div");
+            document.body.append(first, second);
+
+            checkout.init({ ident: __TEST_BASKET_IDENT__ });
+            await checkout.render(first, 123, 456, false);
+            const factory = checkout.componentFactory;
+            checkout.destroy();
+            await checkout.render(second, 321, 654, false);
+
+            expect(checkout.componentFactory).toBe(factory);
+            const iframe = second.querySelector<HTMLIFrameElement>("iframe");
+            expect(iframe).not.toBeNull();
+            expect(getComputedStyle(iframe).width).toEqual("321px");
+            expect(getComputedStyle(iframe).height).toEqual("654px");
+        });
+
+        test("Launch after render uses the default dimensions", async () => {
+            const el = document.createElement("div");
+            document.body.appendChild(el);
+
+            checkout.init({ ident: __TEST_BASKET_IDENT__, popupOnMobile: true });
+            await checkout.render(el, 123, 456, false);
+            checkout.destroy();
+            await checkout.launch();
+
+            const iframe = checkout.lightbox.holder.querySelector<HTMLIFrameElement>("iframe");
+            expect(getComputedStyle(iframe).width).toEqual("800px");
+            expect(getComputedStyle(iframe).height).toEqual("760px");
+        });
+
         // TODO: This test hangs because of the window spy
         test.skip("Can render content as a popup in a new window", async () => {
             const spy = vi.spyOn(window, "open");
